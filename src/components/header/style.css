@@ -1,0 +1,31 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 4em;
+    background-color: #191F2C;
+    color: #FAF9F9;
+  }
+
+  .logo {
+    font-size: 2em;
+    font-weight: bold;
+  }
+
+  .nav a {
+    display: flex;
+    justify-content: center;
+    margin: 0 1em;
+    color: #FAF9F9;
+    text-decoration: none;
+    font-weight: 400;
+    font-size: 1em;
+    min-width: 7.7em;
+  }
+
+  .nav a:hover {
+    font-weight: 600;
+  }
+  .nav {
+    align-items: center;
+  }
