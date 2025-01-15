@@ -2,13 +2,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1em 4em;
+    padding: 0.5em 4em;
     background-color: #191F2C;
     color: #FAF9F9;
   }
 
   .logo {
-    font-size: 2em;
+    font-size: 1.7em;
     font-weight: bold;
   }
 
@@ -19,8 +19,8 @@
     color: #FAF9F9;
     text-decoration: none;
     font-weight: 400;
-    font-size: 1em;
-    min-width: 7.7em;
+    font-size: 0.9em;
+    min-width: 7.4em;
   }
 
   .nav a:hover {

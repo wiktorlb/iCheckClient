@@ -1,11 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
-
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
     background-color: #FAF9F9 !important;
-    height: 100vh;
   }
   .spacer {
     display: flex;
@@ -15,12 +13,13 @@ body {
     background: linear-gradient(to right, #191F2C 15%,#faf9f9be 50%, #191F2C 85%);
     margin: 0 auto;
   }
+
   .login-container {
     font-family: 'Roboto', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50em;
+    height: 100vh;
   }
 
   .login-box {

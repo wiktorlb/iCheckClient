@@ -101,7 +101,7 @@ const FlightBoard = () => {
                   </td>
                   <td>{flight.route}</td>
                   <td>{flight.state}</td>
-                  <td>{flight.departureDate} {flight.departureTime}</td>
+                  <td>{flight.departureTime}</td>
                   <td>
                     <a href="#" className="action-link">
                       ENTER
