@@ -7,6 +7,7 @@ import RegisterForm from './components/RegisterForm'; // Formularz rejestracji
 import Header from './components/header/Header'; // Importowanie Header
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Management from './components/management/Management'; // Importowanie komponentu Management
+import FlightCheckin from './components/flight/FlightCheckin';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -46,6 +47,9 @@ const App = () => {
 
         {/* Dodanie Rejsu (dostępne tylko dla zalogowanych użytkowników) */}
         <Route path="/add-flight" element={isLoggedIn ? <AddFlightForm /> : <Navigate to="/login" />} />
+
+        {/* Odprawa pasażerów */}
+        <Route path="/checkin" element={isLoggedIn ? <FlightCheckin /> : <Navigate to="/login" />} />
 
         {/* Ścieżka do strony zarządzania */}
         <Route path="/management" element={isLoggedIn ? <Management /> : <Navigate to="/login" />} />

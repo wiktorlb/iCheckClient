@@ -103,9 +103,9 @@ const FlightBoard = () => {
                   <td>{flight.state}</td>
                   <td>{flight.departureTime}</td>
                   <td>
-                    <a href="#" className="action-link">
+                    <Link to={`/checkin/${flight._id}`} className="action-link">
                       ENTER
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -115,9 +115,13 @@ const FlightBoard = () => {
           <div>No flights available for the selected date.</div>
         )}
 
+
         <div className="add-flight-button">
           <Link to="/add-flight">
             <button>Add New Flight</button>
+          </Link>
+          <Link to="/checkin">
+            <button>Checkin site</button>
           </Link>
         </div>
       </main>
