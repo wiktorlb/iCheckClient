@@ -90,7 +90,7 @@ const FlightBoard = () => {
             </thead>
             <tbody>
               {filteredFlights.map((flight, index) => (
-                <tr key={flight._id}>
+                <tr key={flight.id}>
                   <td>{index + 1}.</td>
                   <td>
                     <span className={`flight ${flight.state.toLowerCase()}`}>
@@ -101,10 +101,18 @@ const FlightBoard = () => {
                   </td>
                   <td>{flight.route}</td>
                   <td>{flight.state}</td>
-                  <td>{flight.departureTime}</td>
-                  <td>
+                  <td>{flight.departureTime} + {flight.id}</td>
+                  {/* <td>
                     <Link to={`/checkin/${flight._id}`} className="action-link">
                       ENTER
+                    </Link>
+                  </td> */}
+                  <td>
+                    <Link to={`/checkin/${flight.id}`} className="action-link">
+                      ENTER
+                    </Link>
+                    <Link to={`/flights/${flight.id}/passengers`} className="action-link">
+                      View Passengers
                     </Link>
                   </td>
                 </tr>
