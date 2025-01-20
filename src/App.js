@@ -8,6 +8,7 @@ import Header from './components/header/Header'; // Importowanie Header
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Management from './components/management/Management'; // Importowanie komponentu Management
 import FlightPassengers from './components/flight/FlightPassengers';
+import UploadPassengers from './components/flight/UploadPassengers';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,12 +49,12 @@ const App = () => {
         {/* Dodanie Rejsu (dostępne tylko dla zalogowanych użytkowników) */}
         <Route path="/add-flight" element={isLoggedIn ? <AddFlightForm /> : <Navigate to="/login" />} />
 
-        {/* Odprawa pasażerów */}
-        <Route path="/checkin" element={isLoggedIn ? <FlightPassengers /> : <Navigate to="/login" />} />
-
         {/* Ścieżka dla pasażerów danego lotu */}
         {/* <Route path="/flights/:id/passengers" element={isLoggedIn ? <FlightPassengers /> : <Navigate to="/login" />} /> */}
         <Route path="/flights/:flightId/passengers" element={isLoggedIn ? <FlightPassengers /> : <Navigate to="/login" />} />
+
+        {/* Ścieżka do dodania pasażerów */}
+        <Route path="/flights/:flightId/upload-passengers" element={isLoggedIn ? <UploadPassengers /> : <Navigate to="/login" />} />
 
         {/* Ścieżka do strony zarządzania */}
         <Route path="/management" element={isLoggedIn ? <Management /> : <Navigate to="/login" />} />
