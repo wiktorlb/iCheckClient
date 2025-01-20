@@ -9,7 +9,88 @@ const FlightPassengers = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate(); // Hook do przekierowywania
 
+    const [flightStatus, setFlightStatus] = useState('');
     useEffect(() => {
+        const jwt = localStorage.getItem('jwt');
+
+        if (jwt) {
+            axiosInstance
+                .get(`/api/flights/${flightId}/passengers`, {
+                    headers: { Authorization: `Bearer ${jwt}` },
+                })
+                .then((response) => {
+                    setFlightStatus(response.data.state); // Ustaw status lotu
+                })
+                .catch((error) => {
+                    console.error('Error fetching flight details:', error);
+                    setError('Failed to fetch flight details.');
+                });
+
+            axiosInstance
+                .get(`/api/flights/${flightId}/passengers`, {
+                    headers: { Authorization: `Bearer ${jwt}` },
+                })
+                .then((response) => {
+                    setPassengers(response.data); // Ustaw listę pasażerów
+                })
+                .catch((error) => {
+                    console.error('Error fetching passengers:', error);
+                    setError('Failed to fetch passengers.');
+                });
+        }
+    }, [flightId]);
+    const updateFlightStatus = (newStatus) => {
+        const jwt = localStorage.getItem('jwt');
+
+        if (!jwt) {
+            setError('You must be logged in to update flight status.');
+            return;
+        }
+
+        axiosInstance
+            .patch(`/api/flights/${flightId}/status`, newStatus, {
+                headers: { Authorization: `Bearer ${jwt}` },
+            })
+            .then(() => {
+                setFlightStatus(newStatus); // Zaktualizuj status w stanie
+                alert('Flight status updated successfully.');
+            })
+            .catch((error) => {
+                console.error('Error updating flight status:', error);
+                setError('Failed to update flight status.');
+            });
+    };
+    // Funkcja obsługująca przekierowanie do formularza dodawania pasażerów
+    const handleAddPassengers = () => {
+        navigate(`/flights/${flightId}/upload-passengers`);
+    };
+
+    // Funkcja do usuwania pasażera
+    const handleDeletePassenger = async (passengerId) => {
+        const jwt = localStorage.getItem('jwt');
+
+        if (!jwt) {
+            setError('You must be logged in to delete a passenger.');
+            return;
+        }
+
+        try {
+            await axiosInstance.delete(`/api/flights/${flightId}/passengers/${passengerId}`, {
+                headers: { Authorization: `Bearer ${jwt}` },
+            });
+
+            // Aktualizuj listę pasażerów po usunięciu
+            setPassengers((prevPassengers) =>
+                prevPassengers.filter((passenger) => passenger.id !== passengerId)
+            );
+        } catch (error) {
+            console.error('Error deleting passenger:', error);
+            setError('An error occurred while deleting the passenger.');
+        }
+    };
+
+
+/*     useEffect(() => {
         const jwt = localStorage.getItem('jwt');
 
         if (jwt) {
@@ -59,7 +140,7 @@ const FlightPassengers = () => {
                 setError('An error occurred while deleting the passenger.');
             }
         }
-    };
+    }; */
 
     return (
         <section>
@@ -76,6 +157,20 @@ const FlightPassengers = () => {
                 <button onClick={handleAddPassengers} className="add-passengers-btn">
                     Add Passengers
                 </button>
+                <div className="status-section">
+                    <h3>Flight Status: {flightStatus}</h3>
+                    <div className="status-buttons">
+                        {['prepare', 'open', 'closed', 'finalized'].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => updateFlightStatus(status)}
+                                className={`status-btn ${flightStatus === status ? 'active' : ''}`}
+                            >
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {passengers.length > 0 ? (
                     <table className="passenger-table">

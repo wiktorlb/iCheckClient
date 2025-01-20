@@ -61,6 +61,29 @@ const FlightBoard = () => {
     !selectedDate || flight.departureDate === selectedDate
   );
 
+
+  const deleteFlight = (flightId) => {
+    const jwt = localStorage.getItem('jwt');
+
+    if (jwt) {
+      axiosInstance
+        .delete(`/api/flights/${flightId}`, {
+          headers: { Authorization: `Bearer ${jwt}` },
+        })
+        .then((response) => {
+          alert(response.data);
+          setFlights(flights.filter((flight) => flight.id !== flightId)); // Usuń lot z listy w stanie
+        })
+        .catch((error) => {
+          console.error('Error deleting flight:', error);
+          alert('Failed to delete flight.');
+        });
+    } else {
+      window.location.href = '/login';
+    }
+  };
+
+
   return (
     <section>
       <main className="main">
@@ -106,6 +129,12 @@ const FlightBoard = () => {
                     <Link to={`/flights/${flight.id}/passengers`} className="action-link">
                       ENTER
                     </Link>
+                    <button
+                      onClick={() => deleteFlight(flight.id)}
+                      className="delete-button"
+                    >
+                      DELETE
+                    </button>
                   </td>
                 </tr>
               ))}
