@@ -117,14 +117,14 @@ const FlightBoard = () => {
                   <td>{index + 1}.</td>
                   <td>
                     <span className={`flight ${flight.state.toLowerCase()}`}>
-                      <a href="#" className="flight-board-link">
+                      <Link to={`/flights/${flight.id}/passengers`} className="action-link">
                         {flight.flightNumber}
-                      </a>
+                      </Link>
                     </span>
                   </td>
                   <td>{flight.route}</td>
                   <td>{flight.state}</td>
-                  <td>{flight.departureTime} + {flight.id}</td>
+                  <td>{flight.departureTime}</td>
                   <td>
                     <Link to={`/flights/${flight.id}/passengers`} className="action-link">
                       ENTER
@@ -148,9 +148,6 @@ const FlightBoard = () => {
         <div className="add-flight-button">
           <Link to="/add-flight">
             <button>Add New Flight</button>
-          </Link>
-          <Link to="/checkin">
-            <button>Checkin site</button>
           </Link>
         </div>
       </main>

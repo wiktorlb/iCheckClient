@@ -39,6 +39,7 @@ const FlightPassengers = () => {
                 });
         }
     }, [flightId]);
+
     const updateFlightStatus = (newStatus) => {
         const jwt = localStorage.getItem('jwt');
 
@@ -47,13 +48,15 @@ const FlightPassengers = () => {
             return;
         }
 
+        // Tworzenie obiektu z kluczem "newStatus"
+        const payload = { newStatus };
+
         axiosInstance
-            .patch(`/api/flights/${flightId}/status`, newStatus, {
+            .put(`/api/flights/${flightId}/status`, payload, {
                 headers: { Authorization: `Bearer ${jwt}` },
             })
             .then(() => {
                 setFlightStatus(newStatus); // Zaktualizuj status w stanie
-                alert('Flight status updated successfully.');
             })
             .catch((error) => {
                 console.error('Error updating flight status:', error);
@@ -88,60 +91,6 @@ const FlightPassengers = () => {
             setError('An error occurred while deleting the passenger.');
         }
     };
-
-
-/*     useEffect(() => {
-        const jwt = localStorage.getItem('jwt');
-
-        if (jwt) {
-            axiosInstance
-                .get(`/api/flights/${flightId}/passengers`, {
-                    headers: { Authorization: `Bearer ${jwt}` },
-                })
-                .then((response) => {
-                    setPassengers(response.data); // Ustawienie listy pasażerów
-                })
-                .catch((error) => {
-                    console.error('Error fetching passengers:', error);
-                    setError('Failed to fetch passengers.');
-                });
-        }
-    }, [flightId]);
-
-    // Funkcja obsługująca przekierowanie do formularza dodawania pasażerów
-    const handleAddPassengers = () => {
-        navigate(`/flights/${flightId}/upload-passengers`); // Przekierowanie do formularza
-    };
-
-    // Funkcja do usuwania pasażera
-    const handleDeletePassenger = async (passengerId) => {
-        console.log('Deleting passenger with ID:', passengerId);
-        const jwt = localStorage.getItem('jwt');
-
-        if (!jwt) {
-            setError('You must be logged in to delete a passenger.');
-            return;
-        }
-
-        try {
-            const response = await axiosInstance.delete(`/api/flights/${flightId}/passengers/${passengerId}`, {
-                headers: { Authorization: `Bearer ${jwt}` },
-            });
-
-            // Po usunięciu pasażera, odśwież listę
-            setPassengers((prevPassengers) =>
-                prevPassengers.filter((passenger) => passenger.id !== passengerId)
-            );
-        } catch (error) {
-            console.error('Error deleting passenger:', error);
-            if (error.response && error.response.status === 401) {
-                setError('Invalid or expired token. Please log in again.');
-            } else {
-                setError('An error occurred while deleting the passenger.');
-            }
-        }
-    }; */
-
     return (
         <section>
             <main className="main">
@@ -160,13 +109,13 @@ const FlightPassengers = () => {
                 <div className="status-section">
                     <h3>Flight Status: {flightStatus}</h3>
                     <div className="status-buttons">
-                        {['prepare', 'open', 'closed', 'finalized'].map((status) => (
+                        {['Prepare', 'Open', 'Closed', 'Finalized'].map((status) => (
                             <button
                                 key={status}
-                                onClick={() => updateFlightStatus(status)}
-                                className={`status-btn ${flightStatus === status ? 'active' : ''}`}
+                                onClick={() => updateFlightStatus(status.toLowerCase())}
+                                className={`status-btn ${flightStatus === status.toLowerCase() ? 'active' : ''}`}
                             >
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                                {status}
                             </button>
                         ))}
                     </div>
