@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axiosInstance from '../api/axiosConfig';
+import { jwtDecode } from 'jwt-decode'; // Zmieniony import
 import "./style.css";
 
 const LoginForm = ({ onLogin }) => {
@@ -19,6 +20,16 @@ const LoginForm = ({ onLogin }) => {
         const { token } = response.data; // Pobierz token z odpowiedzi
         localStorage.setItem('jwt', token); // Zapisz token w localStorage
         console.log('Token saved in localStorage:', token);
+
+        // Dekodowanie tokena
+        const decodedToken = jwtDecode(token); // Użyj jwtDecode
+        console.log('Decoded Token:', decodedToken);
+
+        // Wyświetlenie ról użytkownika w konsoli
+        if (decodedToken && decodedToken.role) {
+          console.log('User Roles:', decodedToken.role);  // Pokaż role użytkownika w konsoli
+        }
+
         onLogin(); // Przekierowanie po zalogowaniu
       }
     } catch (error) {
@@ -33,11 +44,11 @@ const LoginForm = ({ onLogin }) => {
         <h2 className="login-title">iCheck</h2>
         <form onSubmit={handleLogin} className="login-form">
           {/* Select Company */}
-          <select className="login-input form-select" required>
+{/*           <select className="login-input form-select" required>
             <option value="Choose">Choose Company</option>
             <option value="LSAS">LSAS</option>
             <option value="Ryanair">Ryanair</option>
-          </select>
+          </select> */}
           {/* Username Input */}
           <input
             className="login-input"

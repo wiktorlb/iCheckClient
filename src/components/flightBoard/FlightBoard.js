@@ -175,6 +175,11 @@ const FlightBoard = () => {
             <button>Add New Flight</button>
           </Link>
         </div>
+        <div className="add-flight-button">
+          <Link to="/register">
+            <button>Add New User</button>
+          </Link>
+        </div>
       </main>
     </section>
   );

@@ -100,3 +100,35 @@ body {
               margin-bottom: 2em;
       border-radius: 0 !important;
     }
+
+    .pagination-userManagement {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-userManagement {
+      width: 70%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: column;
+    }
+    .userManagement-tableHead{
+      text-align: center;
+    }
+    th, td{
+          text-align: center;
+          padding: 12px;
+          border-bottom: 1px solid #ddd;
+          font-size: 14px;
+          min-width: 190px;
+    }
+
+        tr:nth-child(even) {
+          background-color: #c4c4c431;
+        }
+
+        tr:nth-child(odd) {
+          background-color: #fafafa;
+        }
