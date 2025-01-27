@@ -6,9 +6,9 @@ import AddFlightForm from './components/flightBoard/AddFlightForm';
 import RegisterForm from './components/RegisterForm'; // Formularz rejestracji
 import Header from './components/header/Header'; // Importowanie Header
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Management from './components/management/Management'; // Importowanie komponentu Management
 import FlightPassengers from './components/flight/FlightPassengers';
 import UploadPassengers from './components/flight/UploadPassengers';
+import UserManagement from './components/UserManagement';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,7 +37,7 @@ const App = () => {
       {isLoggedIn && <Header onLogout={handleLogout} />} {/* Wyświetlanie Header tylko, gdy użytkownik jest zalogowany */}
 
       <Routes>
-        {/* Ścieżka logowania */}
+        {/* Ścieżka logowania WSZYSCY*/}
         <Route path="/login" element={isLoggedIn ? <Navigate to="/flightboard" /> : <LoginForm onLogin={handleLogin} />} />
 
         {/* Ścieżka rejestracji */}
@@ -57,7 +57,7 @@ const App = () => {
         <Route path="/flights/:flightId/upload-passengers" element={isLoggedIn ? <UploadPassengers /> : <Navigate to="/login" />} />
 
         {/* Ścieżka do strony zarządzania */}
-        <Route path="/management" element={isLoggedIn ? <Management /> : <Navigate to="/login" />} />
+        <Route path="/management" element={isLoggedIn ? <UserManagement /> : <Navigate to="/login" />} />
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}
         <Route path="/" element={<Navigate to="/login" />} />

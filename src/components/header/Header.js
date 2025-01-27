@@ -17,7 +17,7 @@ const Header = ({ onLogout }) => {
     <header className="header">
       <div className="logo">iCheck</div>
       <nav className="nav">
-        <Link to="/management">MANAGEMENT</Link>
+        <Link to="/management">USERS</Link>
         <Link to="/flightboard">FLIGHTS</Link>
         <a href="#">CHECK-IN</a>
         <a href="#">BOARDING</a>

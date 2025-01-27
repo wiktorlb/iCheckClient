@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axiosInstance from '../api/axiosConfig';
 
 const RegisterForm = () => {
-    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -13,7 +12,6 @@ const RegisterForm = () => {
         e.preventDefault();
 
         const user = {
-            username: username,
             email: email,
             password: password,
         };
@@ -25,7 +23,6 @@ const RegisterForm = () => {
                 setSuccessMessage('User registered successfully!');
                 setErrorMessage('');
                 // Resetowanie pól formularza
-                setUsername('');
                 setEmail('');
                 setPassword('');
             } else {
@@ -42,15 +39,6 @@ const RegisterForm = () => {
         <div>
             <h2>Register</h2>
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Username</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                </div>
                 <div>
                     <label>Email</label>
                     <input

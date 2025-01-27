@@ -4,9 +4,11 @@ import axiosInstance from '../../api/axiosConfig';
 import './style.css';
 
 const FlightBoard = () => {
-  const [flights, setFlights] = useState([]); // Domyślnie tablica
+  const [flights, setFlights] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
-  const [error, setError] = useState(null); // Dodanie stanu błędu
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Aktualna strona
+  const itemsPerPage = 10; // Liczba elementów na stronę
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
@@ -18,10 +20,10 @@ const FlightBoard = () => {
         })
         .then((response) => {
           if (Array.isArray(response.data)) {
-            setFlights(response.data); // Jeśli dane są tablicą, ustaw je
+            setFlights(response.data);
           } else {
-            setFlights([]); // Jeśli nie, ustaw pustą tablicę
-            setError(response.data); // Przechowaj błąd lub komunikat
+            setFlights([]);
+            setError(response.data);
           }
         })
         .catch((error) => {
@@ -35,6 +37,7 @@ const FlightBoard = () => {
 
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
+    setCurrentPage(1); // Resetuj stronę po zmianie daty
 
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
@@ -57,11 +60,6 @@ const FlightBoard = () => {
     }
   };
 
-  const filteredFlights = flights.filter((flight) =>
-    !selectedDate || flight.departureDate === selectedDate
-  );
-
-
   const deleteFlight = (flightId) => {
     const jwt = localStorage.getItem('jwt');
 
@@ -72,7 +70,7 @@ const FlightBoard = () => {
         })
         .then((response) => {
           alert(response.data);
-          setFlights(flights.filter((flight) => flight.id !== flightId)); // Usuń lot z listy w stanie
+          setFlights(flights.filter((flight) => flight.id !== flightId));
         })
         .catch((error) => {
           console.error('Error deleting flight:', error);
@@ -83,6 +81,19 @@ const FlightBoard = () => {
     }
   };
 
+  const filteredFlights = flights.filter((flight) =>
+    !selectedDate || flight.departureDate === selectedDate
+  );
+
+  // Obliczanie paginacji
+  const totalItems = filteredFlights.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentFlights = filteredFlights.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <section>
@@ -99,7 +110,7 @@ const FlightBoard = () => {
           />
         </div>
 
-        {filteredFlights.length > 0 ? (
+        {currentFlights.length > 0 ? (
           <table className="flight-table">
             <thead>
               <tr className="flightBoard-title">
@@ -112,9 +123,9 @@ const FlightBoard = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredFlights.map((flight, index) => (
+              {currentFlights.map((flight, index) => (
                 <tr key={flight.id}>
-                  <td>{index + 1}.</td>
+                  <td>{startIndex + index + 1}.</td>
                   <td>
                     <span className={`flight ${flight.state.toLowerCase()}`}>
                       <Link to={`/flights/${flight.id}/passengers`} className="action-link">
@@ -144,6 +155,20 @@ const FlightBoard = () => {
           <div>No flights available for the selected date.</div>
         )}
 
+        {/* Paginacja */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                className={`page-button ${currentPage === index + 1 ? 'active' : ''}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="add-flight-button">
           <Link to="/add-flight">
