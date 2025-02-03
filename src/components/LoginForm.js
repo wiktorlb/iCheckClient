@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import axiosInstance from '../api/axiosConfig';
-import { jwtDecode } from 'jwt-decode'; // Zmieniony import
+import { jwtDecode } from 'jwt-decode';
 import "./style.css";
 
 const LoginForm = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false); // Dodano stan ładowania
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Włączenie ekranu ładowania
     try {
       const response = await axiosInstance.post('/api/auth/login', {
         username,
@@ -17,39 +19,37 @@ const LoginForm = ({ onLogin }) => {
       });
 
       if (response.status === 200) {
-        const { token } = response.data; // Pobierz token z odpowiedzi
-        localStorage.setItem('jwt', token); // Zapisz token w localStorage
+        const { token } = response.data;
+        localStorage.setItem('jwt', token);
         console.log('Token saved in localStorage:', token);
 
-        // Dekodowanie tokena
-        const decodedToken = jwtDecode(token); // Użyj jwtDecode
+        const decodedToken = jwtDecode(token);
         console.log('Decoded Token:', decodedToken);
 
-        // Wyświetlenie ról użytkownika w konsoli
         if (decodedToken && decodedToken.role) {
-          console.log('User Roles:', decodedToken.role);  // Pokaż role użytkownika w konsoli
+          console.log('User Roles:', decodedToken.role);
         }
 
-        onLogin(); // Przekierowanie po zalogowaniu
+        onLogin();
       }
     } catch (error) {
       setErrorMessage('Invalid credentials or server error');
       console.error('Login error:', error.response?.data || error.message);
+    } finally {
+      setLoading(false); // Wyłączenie ekranu ładowania
     }
   };
 
   return (
     <div className="login-container">
+      {loading && (
+        <div className="loading-screen">
+          <div className="spinner"></div>
+        </div>
+      )}
       <div className="login-box">
         <h2 className="login-title">iCheck</h2>
         <form onSubmit={handleLogin} className="login-form">
-          {/* Select Company */}
-{/*           <select className="login-input form-select" required>
-            <option value="Choose">Choose Company</option>
-            <option value="LSAS">LSAS</option>
-            <option value="Ryanair">Ryanair</option>
-          </select> */}
-          {/* Username Input */}
           <input
             className="login-input"
             type="text"
@@ -58,7 +58,6 @@ const LoginForm = ({ onLogin }) => {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-          {/* Password Input */}
           <input
             className="login-input"
             type="password"
@@ -67,8 +66,7 @@ const LoginForm = ({ onLogin }) => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {/* Submit Button */}
-          <button type="submit" className="login-button">
+          <button type="submit" className="login-button" disabled={loading}>
             Login
           </button>
         </form>

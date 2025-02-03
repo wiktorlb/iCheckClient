@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';  // Importuj useParams
+import { useParams } from 'react-router-dom';
 import axios from '../../api/axiosConfig';
+import "./style.css";
 
 const UploadPassengers = () => {
-    const { flightId } = useParams(); // Pobierz flightId z URL
+    const { flightId } = useParams();
     const [file, setFile] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false); // Dodano stan ładowania
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -22,6 +24,7 @@ const UploadPassengers = () => {
 
         const formData = new FormData();
         formData.append('file', file);
+        setLoading(true); // Włączenie ekranu ładowania
 
         try {
             const response = await axios.post(`/api/passengers/${flightId}/upload`, formData, {
@@ -34,11 +37,18 @@ const UploadPassengers = () => {
         } catch (error) {
             setErrorMessage('An error occurred while uploading the file.');
             console.error(error);
+        } finally {
+            setLoading(false); // Wyłączenie ekranu ładowania
         }
     };
 
     return (
         <div>
+            {loading && (
+                <div className="loading-screen">
+                    <div className="spinner"></div>
+                </div>
+            )}
             <h2>Upload Passengers for Flight {flightId}</h2>
             <form onSubmit={handleSubmit}>
                 <div>
@@ -51,7 +61,7 @@ const UploadPassengers = () => {
                         required
                     />
                 </div>
-                <button type="submit">Upload</button>
+                <button type="submit" disabled={loading}>Upload</button>
             </form>
             {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
             {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}

@@ -1,32 +1,28 @@
 {
-    "workbench.colorTheme": "Default Dark+",
-    "screencastMode.fontSize": 54,
-    "workbench.colorCustomizations": {
-
-    },
-    "editor.fontFamily": "'JetBrains Mono NL'",
-    "editor.fontSize": 14,
-    "editor.lineHeight": 20,
-    //"editor.letterSpacing": 0.1,
-    "files.trimTrailingWhitespace": true,
-    "editor.fontWeight": "normal",
-    "prettier.eslintIntegration": true,
-    "editor.cursorStyle": "line",
-    "editor.cursorWidth": 5,
-    "editor.cursorBlinking": "phase",
-    "editor.fontVariations": false,
-    "php.validate.executablePath": "",
-    "window.zoomLevel": -0.8,
-
-    "terminal.integrated.fontSize": 12,
-    "editor.codeActionsOnSave": {
-
-
-    },
-    "files.associations": {
-        "*.tpl": "html",
-        "*.master": "html"
-      },
-      "editor.formatOnPaste": true,
-      "java.configuration.updateBuildConfiguration": "interactive"
+  "workbench.colorTheme": "Default Dark+",
+  "screencastMode.fontSize": 54,
+  "workbench.colorCustomizations": {},
+  "editor.fontFamily": "'JetBrains Mono NL'",
+  "editor.fontSize": 14,
+  "editor.lineHeight": 20,
+  "editor.letterSpacing": 0.1,
+  "files.trimTrailingWhitespace": true,
+  "editor.fontWeight": "normal",
+  "prettier.eslintIntegration": true,
+  "editor.cursorStyle": "line",
+  "editor.cursorWidth": 5,
+  "editor.cursorBlinking": "phase",
+  "editor.fontVariations": false,
+  "php.validate.executablePath": "",
+  "window.zoomLevel": -0.8,
+  "terminal.integrated.fontSize": 12,
+  "editor.codeActionsOnSave": {},
+  "files.associations": {
+    "*.tpl": "html",
+    "*.master": "html"
+  },
+  "editor.formatOnPaste": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
 }
