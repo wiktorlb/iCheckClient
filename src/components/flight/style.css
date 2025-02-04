@@ -93,7 +93,7 @@
 }
 
 .passenger-table tr:hover {
-    background-color: #E5E7EB;
+    /* background-color: #0000001c; */
     transition: background 0.3s ease;
 }
 
@@ -105,6 +105,9 @@
     justify-content: center;
     gap: 15px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 }
 
 .fixed-action-panel button {
@@ -126,10 +129,33 @@
 }
 
 .update-btn {
-    background-color: #F59E0B;
+    background-color: #4169E1;
     color: #FAF9F9;
 }
 
 .update-btn:hover {
-    background-color: #D97706;
+    background-color: #2f51b6;
 }
+
+.offload-btn {
+background-color: #FF0000;
+color: #FAF9F9;
+}
+.offload-btn:hover {
+background-color: #b20000;
+}
+.row-accepted {
+    background-color: #d4edda;
+}
+.row-accepted:hover {
+    background-color: #059669;
+}
+.row-offloaded {
+    background-color: #ff8f98;
+}
+
+
+.row-standby {
+    background-color: rgb(233, 179, 80);
+}
+

@@ -33,17 +33,55 @@ const FlightPassengers = () => {
     }, [flightId]);
 
     const togglePassengerSelection = (passengerId) => {
-        setSelectedPassengers((prevSelected) => {
-            if (prevSelected.includes(passengerId)) {
-                return prevSelected.filter(id => id !== passengerId);
-            } else {
-                return [...prevSelected, passengerId];
-            }
-        });
+        setSelectedPassengers((prevSelected) =>
+            prevSelected.includes(passengerId)
+                ? prevSelected.filter(id => id !== passengerId)
+                : [...prevSelected, passengerId]
+        );
     };
 
-    const handleNavigate = (action) => {
-        navigate('/checkin', { state: { passengers: selectedPassengers, action } });
+    const handleAction = async (action) => {
+        const jwt = localStorage.getItem('jwt');
+        if (!jwt) return;
+
+        let newStatus = '';
+        if (action === 'accept') newStatus = 'ACC';
+        if (action === 'offload') newStatus = 'OFF';
+
+        try {
+            if (newStatus) {
+                await Promise.all(selectedPassengers.map(passengerId =>
+                    axiosInstance.put(
+                        `/api/passengers/${passengerId}/status`,
+                        newStatus,  // Teraz wysyłamy czysty string zamiast obiektu
+                        {
+                            headers: {
+                                Authorization: `Bearer ${jwt}`,
+                                "Content-Type": "text/plain" // Wymusza poprawny format
+                            }
+                        }
+                    )
+                ));
+
+                setPassengers(prevPassengers =>
+                    prevPassengers.map(passenger =>
+                        selectedPassengers.includes(passenger.id)
+                            ? { ...passenger, status: newStatus }
+                            : passenger
+                    )
+                );
+            }
+
+            const selectedPassengerDetails = passengers.filter(passenger =>
+                selectedPassengers.includes(passenger.id)
+            ).map(passenger => ({ ...passenger, status: newStatus || passenger.status }));
+
+            navigate('/checkin', { state: { passengers: selectedPassengerDetails, action } });
+
+        } catch (error) {
+            console.error('Error updating passengers:', error);
+            setError('Failed to update passengers.');
+        }
     };
 
     const filteredPassengers = passengers.filter(passenger =>
@@ -80,7 +118,11 @@ const FlightPassengers = () => {
                             </thead>
                             <tbody>
                                 {filteredPassengers.map((passenger, index) => (
-                                    <tr key={passenger.id}>
+                                    <tr key={passenger.id} className={
+                                        passenger.status === 'ACC' ? 'row-accepted' :
+                                            passenger.status === 'STBY' ? 'row-standby' :
+                                            passenger.status === 'OFF' ? 'row-offloaded' : ''
+                                    }>
                                         <td>
                                             <input
                                                 type="checkbox"
@@ -105,8 +147,9 @@ const FlightPassengers = () => {
 
             {selectedPassengers.length > 0 && (
                 <div className="action-panel fixed-action-panel">
-                    <button onClick={() => handleNavigate('accept')} className="accept-btn">Accept Passenger</button>
-                    <button onClick={() => handleNavigate('update')} className="update-btn">Update Passenger</button>
+                    <button onClick={() => handleAction('accept')} className="accept-btn">Accept Passenger</button>
+                    <button onClick={() => handleAction('update')} className="update-btn">Update Passenger</button>
+                    {/* <button onClick={() => handleAction('offload')} className="offload-btn">Offload Passenger</button> */}
                 </div>
             )}
         </section>

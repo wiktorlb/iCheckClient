@@ -9,6 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import FlightPassengers from './components/flight/FlightPassengers';
 import UploadPassengers from './components/flight/UploadPassengers';
 import UserManagement from './components/UserManagement';
+import CheckinSite from './components/flight/CheckinSite';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -132,6 +133,11 @@ const App = () => {
               <Navigate to="/flightboard" />
             )
           }
+        />
+        {/* Ścieżka do strony odprawy pasażerów */}
+        <Route
+          path="/checkin"
+          element={isLoggedIn ? <CheckinSite /> : <Navigate to="/login" />}
         />
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}
