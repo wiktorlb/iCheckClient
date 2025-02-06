@@ -8,24 +8,108 @@ const { countries } = require('countries-list');
 const CheckinSite = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [selectedPassenger, setSelectedPassenger] = useState(null);  // Zmieniamy na pojedynczego pasażera
+    const [selectedPassenger, setSelectedPassenger] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [countryNames, setCountryNames] = useState([]);
     const [baggageWeight, setBaggageWeight] = useState('');
     const [baggageType, setBaggageType] = useState("BAG");
+    const [comment, setComment] = useState('');
+    const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
 
-    const [comment, setComment] = useState('');  // Stan przechowujący treść komentarza
-    const [comments, setComments] = useState([]); // Stan przechowujący listę komentarzy
+    const [passengerForm, setPassengerForm] = useState({
+        name: '',
+        surname: '',
+        gender: '',
+        dateOfBirth: '',
+        citizenship: '',
+        documentType: '',
+        serialName: '',
+        validUntil: '',
+        issueCountry: ''
+    });
+
+    useEffect(() => {
+        if (selectedPassenger) {
+            setPassengerForm({
+                name: selectedPassenger.name || '',
+                surname: selectedPassenger.surname || '',
+                gender: selectedPassenger.gender || '',
+                dateOfBirth: selectedPassenger.dateOfBirth || '',
+                citizenship: selectedPassenger.citizenship || '',
+                documentType: selectedPassenger.documentType || '',
+                serialName: selectedPassenger.serialName || '',
+                validUntil: selectedPassenger.validUntil || '',
+                issueCountry: selectedPassenger.issueCountry || ''
+            });
+        }
+    }, [selectedPassenger]);
 
     useEffect(() => {
         const countryNamesArray = Object.values(countries).map(country => country.name).sort();
         setCountryNames(countryNamesArray);
-    }, []);
+    }, [selectedPassenger]);
+
+    const fetchSrrCodes = async (passengerId) => {
+        try {
+            const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
+            return response.data.srrCodes || [];
+        } catch (error) {
+            console.error('Error fetching SRR codes:', error);
+            return [];
+        }
+    };
+
+    useEffect(() => {
+        const loadSrrCodes = async () => {
+            if (location.state?.passengers) {
+                const srrCodesMap = {};
+                for (const passenger of location.state.passengers) {
+                    const codes = await fetchSrrCodes(passenger.id);
+                    srrCodesMap[passenger.id] = codes;
+                }
+                setPassengerSrrCodes(srrCodesMap);
+            }
+        };
+        loadSrrCodes();
+    }, [location.state?.passengers]);
+
+    const refreshSrrCodes = async (passengerId) => {
+        try {
+            const codes = await fetchSrrCodes(passengerId);
+            setPassengerSrrCodes(prev => ({
+                ...prev,
+                [passengerId]: codes
+            }));
+        } catch (error) {
+            console.error('Error refreshing SRR codes:', error);
+        }
+    };
 
     const handleOpenModal = async (passenger) => {
+        if (!passenger?.id) {
+            console.error('No passenger selected');
+            return;
+        }
+
         try {
             const response = await axiosInstance.get(`/api/passengers/${passenger.id}`);
-            setSelectedPassenger(response.data);
+            const passengerData = response.data.passenger || response.data;
+
+            setSelectedPassenger(passengerData);
+            setPassengerForm({
+                name: passengerData.name || '',
+                surname: passengerData.surname || '',
+                gender: passengerData.gender || '',
+                title: passengerData.title || '',
+                status: passengerData.status || '',
+                dateOfBirth: passengerData.dateOfBirth || '',
+                citizenship: passengerData.citizenship || '',
+                documentType: passengerData.documentType || 'P',
+                serialName: passengerData.serialName || '',
+                validUntil: passengerData.validUntil || '',
+                issueCountry: passengerData.issueCountry || ''
+            });
+
             setShowModal(true);
         } catch (error) {
             console.error('Error fetching passenger data:', error.response ? error.response.data : error.message);
@@ -38,8 +122,8 @@ const CheckinSite = () => {
     };
 
     const handleInputChange = (field) => (event) => {
-        setSelectedPassenger(prevState => ({
-            ...prevState,
+        setPassengerForm(prev => ({
+            ...prev,
             [field]: event.target.value
         }));
     };
@@ -47,55 +131,91 @@ const CheckinSite = () => {
         if (!selectedPassenger) return;
 
         try {
-            const response = await axiosInstance.put(`/api/passengers/${selectedPassenger.id}/status`, JSON.stringify(status), {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                },
-            });
+            await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}/status`,
+                JSON.stringify(status),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                    },
+                }
+            );
 
-            // Aktualizacja statusu pasażera w stanie
             const updatedPassengers = location.state.passengers.map((p) =>
                 p.id === selectedPassenger.id ? { ...p, status } : p
             );
 
-            setSelectedPassenger((prev) => ({ ...prev, status })); // Aktualizacja wybranego pasażera
-            location.state.passengers = updatedPassengers; // Aktualizacja listy pasażerów w stanie
+            setSelectedPassenger((prev) => ({ ...prev, status }));
+            location.state.passengers = updatedPassengers;
+            await refreshSrrCodes(selectedPassenger.id);
 
         } catch (error) {
             console.error('Error updating passenger status:', error.response ? error.response.data : error.message);
         }
     };
+
     const handleSavePassenger = async () => {
-        const jwt = localStorage.getItem('jwt');
-        if (!jwt) {
-            console.error('No JWT token found');
+        if (!selectedPassenger?.id) {
+            console.error('No passenger selected');
             return;
         }
 
         try {
-            const response = await axiosInstance.put(`/api/passengers/${selectedPassenger.id}`, selectedPassenger, {
-                headers: {
-                    Authorization: `Bearer ${jwt}`,
-                },
-            });
-            console.log('Response from API:', response.data);
-            setSelectedPassenger(response.data);  // Zaktualizuj dane pasażera
+            const updatedPassenger = {
+                id: selectedPassenger.id,
+                flightId: selectedPassenger.flightId,
+                name: passengerForm.name,
+                surname: passengerForm.surname,
+                gender: passengerForm.gender,
+                status: selectedPassenger.status,
+                title: passengerForm.title,
+                dateOfBirth: passengerForm.dateOfBirth || null,
+                citizenship: passengerForm.citizenship || null,
+                documentType: passengerForm.documentType || null,
+                serialName: passengerForm.serialName || null,
+                validUntil: passengerForm.validUntil || null,
+                issueCountry: passengerForm.issueCountry || null
+            };
+
+            const response = await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}`,
+                updatedPassenger,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                }
+            );
+
+            setSelectedPassenger(response.data);
+
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? response.data : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+
+            await refreshSrrCodes(selectedPassenger.id);
             handleCloseModal();
         } catch (error) {
-            console.error('Error updating passenger:', error);
+            console.error('Error updating passenger:', error.response?.data || error.message);
+            alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
         }
     };
 
     const handleSelectPassenger = (passengerId) => {
-        setSelectedPassenger(location.state?.passengers.find(p => p.id === passengerId));  // Ustawiamy pojedynczego pasażera
+        const passenger = location.state?.passengers.find(p => p.id === passengerId);
+        if (passenger) {
+            setSelectedPassenger(passenger);
+        } else {
+            console.error('Passenger not found');
+        }
     };
 
     const handleAddBaggage = async () => {
-        if (!selectedPassenger || !baggageWeight || !baggageType) {
-            console.log("No passenger selected or baggage details missing.");
-            return;
-        }
+        if (!selectedPassenger || !baggageWeight || !baggageType) return;
 
         const baggageData = {
             weight: parseFloat(baggageWeight),
@@ -103,7 +223,6 @@ const CheckinSite = () => {
         };
 
         try {
-            // Teraz frontend nie generuje ID, backend się tym zajmuje
             const response = await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}/add-baggage`,
                 baggageData,
@@ -115,13 +234,12 @@ const CheckinSite = () => {
                 }
             );
 
-            console.log("Baggage added successfully:", response.data);
-
             setSelectedPassenger(prev => ({
                 ...prev,
-                baggageList: [...(prev.baggageList || []), response.data], // Response contains the baggage with generated ID
+                baggageList: [...(prev.baggageList || []), response.data],
             }));
 
+            await refreshSrrCodes(selectedPassenger.id);
             setBaggageWeight('');
             setBaggageType('BAG');
 
@@ -129,8 +247,6 @@ const CheckinSite = () => {
             console.error("Error adding baggage:", error.response ? error.response.data : error.message);
         }
     };
-
-
 
     const handleCommentChange = (event) => {
         setComment(event.target.value);
@@ -142,7 +258,7 @@ const CheckinSite = () => {
         const newComment = {
             text: comment,
             date: new Date().toLocaleString(),
-            addedBy: "Admin",  // Możesz dodać nazwisko lub inne dane, które chcesz
+            addedBy: "Admin",
         };
 
         try {
@@ -157,10 +273,10 @@ const CheckinSite = () => {
                 }
             );
 
-            // Po udanym dodaniu komentarza, zaktualizuj listę komentarzy
             setSelectedPassenger(response.data);
-            setComments(response.data.comments);  // Ustawienie komentarzy dla tego pasażera
-            setComment('');  // Czyści pole tekstowe
+            setComment('');
+            await refreshSrrCodes(selectedPassenger.id);
+
         } catch (error) {
             console.error("Error adding comment:", error.response ? error.response.data : error.message);
         }
@@ -178,8 +294,6 @@ const CheckinSite = () => {
                                 <th>Select</th>
                                 <th>No.</th>
                                 <th>Name</th>
-                                <th>Surname</th>
-                                <th>SRR</th>
                                 <th>Gender</th>
                                 <th>State</th>
                             </tr>
@@ -188,19 +302,25 @@ const CheckinSite = () => {
                             {location.state?.passengers.map((passenger, index) => (
                                 <tr key={passenger.id} className={
                                     passenger.status === 'ACC' ? 'row-accepted' :
-                                        passenger.status === 'STBY' ? 'row-standby' :
-                                            passenger.status === 'OFF' ? 'row-offloaded' : ''
+                                    passenger.status === 'STBY' ? 'row-standby' :
+                                    passenger.status === 'OFF' ? 'row-offloaded' : ''
                                 }>
                                     <td>
                                         <input
-                                            type="radio"  // Zmienia typ na radio, aby można było zaznaczyć tylko jeden
+                                            type="radio"
+                                            name="passengerSelect" // dodaj name aby radio buttons działały jako grupa
                                             checked={selectedPassenger?.id === passenger.id}
                                             onChange={() => handleSelectPassenger(passenger.id)}
                                         />
                                     </td>
                                     <td>{index + 1}</td>
-                                    <td>{passenger.name}</td>
-                                    <td>{passenger.surname}</td>
+                                    <td>{passenger.name} {passenger.surname} {passengerSrrCodes[passenger.id]?.length > 0 && (
+                                        <div className="srr-codes">
+                                            {passengerSrrCodes[passenger.id].map((code, idx) => (
+                                                <span key={idx} className="srr-code">{code}</span>
+                                            ))}
+                                        </div>
+                                    )}</td>
                                     <td>{passenger.gender}</td>
                                     <td>{passenger.status}</td>
                                 </tr>
@@ -211,12 +331,16 @@ const CheckinSite = () => {
 
                 <div className="actions-container">
                     <div className="left-actions">
-                        <button onClick={() => console.log("Printing...")}>Print</button>
+                        <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
                         <button onClick={() => navigate(-1)}>Back</button>
                     </div>
                     <div className="right-actions">
-                        <button disabled={!selectedPassenger}
-                                onClick={() => handleOpenModal(selectedPassenger)}>API</button>
+                        <button
+                            disabled={!selectedPassenger}
+                            onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
+                        >
+                            API
+                        </button>
                         <button disabled={!selectedPassenger}>Seat</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
@@ -276,49 +400,121 @@ const CheckinSite = () => {
                 <div className="modal">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h2>Advance Passenger Information</h2>
+                            <h2>API for {selectedPassenger.name} {selectedPassenger.surname}</h2>
                             <button className="close-btn" onClick={handleCloseModal}>X</button>
                         </div>
-                        <label>Name: <input type="text" value={selectedPassenger.name} onChange={handleInputChange('name')} /></label>
-                        <label>Surname: <input type="text" value={selectedPassenger.surname} onChange={handleInputChange('surname')} /></label>
+                        <div className="form-grid">
+                            <label>
+                                Name:
+                                <input
+                                    type="text"
+                                    value={passengerForm.name}
+                                    onChange={handleInputChange('name')}
+                                />
+                            </label>
+                            <label>
+                                Surname:
+                                <input
+                                    type="text"
+                                    value={passengerForm.surname}
+                                    onChange={handleInputChange('surname')}
+                                />
+                            </label>
 
-                        <label>Gender:
-                            <select value={selectedPassenger.gender} onChange={handleInputChange('gender')}>
-                                <option value="MR">MR</option>
-                                <option value="MRS">MRS</option>
-                                <option value="CHLD">CHLD</option>
-                            </select>
-                        </label>
+                            <label>
+                                Gender:
+                                <select
+                                    value={passengerForm.gender}
+                                    onChange={handleInputChange('gender')}
+                                >
+                                    <option value="">Select gender</option>
+                                    <option value="M">M</option>
+                                    <option value="F">F</option>
+                                </select>
+                            </label>
 
-                        <label>Date of Birth: <input type="date" value={selectedPassenger.dateOfBirth || ''} onChange={handleInputChange('dateOfBirth')} /></label>
+                            <label>
+                                Title:
+                                <select
+                                    value={passengerForm.title}
+                                    onChange={handleInputChange('title')}
+                                >
+                                    <option value="">Select title</option>
+                                    <option value="MR">MR</option>
+                                    <option value="MRS">MRS</option>
+                                    <option value="CHLD">CHLD</option>
+                                </select>
+                            </label>
 
-                        <label>Citizenship:
-                            <select value={selectedPassenger.citizenship || ''} onChange={handleInputChange('citizenship')}>
-                                {countryNames.map((country) => (
-                                    <option key={country} value={country}>{country}</option>
-                                ))}
-                            </select>
-                        </label>
+                            <label>
+                                Date of Birth:
+                                <input
+                                    type="date"
+                                    value={passengerForm.dateOfBirth || ''}
+                                    onChange={handleInputChange('dateOfBirth')}
+                                />
+                            </label>
 
-                        <label>Document Type:
-                            <select value={selectedPassenger.documentType || ''} onChange={handleInputChange('documentType')}>
-                                <option value="P">P</option>
-                                <option value="ID">ID</option>
-                            </select>
-                        </label>
+                            <label>
+                                Citizenship:
+                                <select
+                                    value={passengerForm.citizenship || ''}
+                                    onChange={handleInputChange('citizenship')}
+                                >
+                                    <option value="">Select country</option>
+                                    {countryNames.map((country) => (
+                                        <option key={country} value={country}>{country}</option>
+                                    ))}
+                                </select>
+                            </label>
 
-                        <label>Serial Name: <input type="text" value={selectedPassenger.serialName || ''} onChange={handleInputChange('serialName')} /></label>
-                        <label>Valid Until: <input type="date" value={selectedPassenger.validUntil || ''} onChange={handleInputChange('validUntil')} /></label>
+                            <label>
+                                Document Type:
+                                <select
+                                    value={passengerForm.documentType || 'P'}
+                                    onChange={handleInputChange('documentType')}
+                                >
+                                    <option value="P">Passport</option>
+                                    <option value="ID">ID Card</option>
+                                </select>
+                            </label>
 
-                        <label>Issue Country:
-                            <select value={selectedPassenger.issueCountry || ''} onChange={handleInputChange('issueCountry')}>
-                                {countryNames.map((country) => (
-                                    <option key={country} value={country}>{country}</option>
-                                ))}
-                            </select>
-                        </label>
+                            <label>
+                                Serial Name:
+                                <input
+                                    type="text"
+                                    value={passengerForm.serialName || ''}
+                                    onChange={handleInputChange('serialName')}
+                                />
+                            </label>
 
-                        <button onClick={handleSavePassenger}>Save</button>
+                            <label>
+                                Valid Until:
+                                <input
+                                    type="date"
+                                    value={passengerForm.validUntil || ''}
+                                    onChange={handleInputChange('validUntil')}
+                                />
+                            </label>
+
+                            <label>
+                                Issue Country:
+                                <select
+                                    value={passengerForm.issueCountry || ''}
+                                    onChange={handleInputChange('issueCountry')}
+                                >
+                                    <option value="">Select country</option>
+                                    {countryNames.map((country) => (
+                                        <option key={country} value={country}>{country}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button onClick={handleSavePassenger} className="save-btn">Save</button>
+                            <button onClick={handleCloseModal} className="cancel-btn">Cancel</button>
+                        </div>
                     </div>
                 </div>
             )}

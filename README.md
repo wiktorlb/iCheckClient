@@ -44,7 +44,7 @@ Static header with the title and the logo.
 
 ### LoginForm
 
-Displays a splitted Form with the Login form on one side and the register form on the other side. 
+Displays a splitted Form with the Login form on one side and the register form on the other side.
 
 Submitting one form or the other will request different endpoints in the backend.
 
@@ -63,3 +63,6 @@ If the credentials are correct, a JWT will be returned.
 The JWT will be stored in the localstorage for further usage.
 
 When available the JWT will be sent in the Authorization Header for each requests made with axios.
+
+## MUST INSTALL
+npm install countries-list
