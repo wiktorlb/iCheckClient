@@ -159,3 +159,15 @@ background-color: #b20000;
     background-color: rgb(233, 179, 80);
 }
 
+.passenger-table-header {
+    position: relative;
+    top: 0;
+    width: 100%;
+}
+
+/* .passenger-table-header-row {
+    position: relative;
+        top: 0;
+        width: 100%;
+} */
+

@@ -12,6 +12,10 @@ const CheckinSite = () => {
     const [showModal, setShowModal] = useState(false);
     const [countryNames, setCountryNames] = useState([]);
     const [baggageWeight, setBaggageWeight] = useState('');
+    const [baggageType, setBaggageType] = useState("BAG");
+
+    const [comment, setComment] = useState('');  // Stan przechowujący treść komentarza
+    const [comments, setComments] = useState([]); // Stan przechowujący listę komentarzy
 
     useEffect(() => {
         const countryNamesArray = Object.values(countries).map(country => country.name).sort();
@@ -87,13 +91,79 @@ const CheckinSite = () => {
         setSelectedPassenger(location.state?.passengers.find(p => p.id === passengerId));  // Ustawiamy pojedynczego pasażera
     };
 
-    const handleAddBaggage = () => {
-        if (!selectedPassenger) {
-            console.log("No passenger selected for baggage.");
+    const handleAddBaggage = async () => {
+        if (!selectedPassenger || !baggageWeight || !baggageType) {
+            console.log("No passenger selected or baggage details missing.");
             return;
         }
-        // Możesz dodać logikę do dodawania bagażu, np. przekierowanie do formularza bagażu
-        console.log(`Adding baggage for ${selectedPassenger.name}`);
+
+        const baggageData = {
+            weight: parseFloat(baggageWeight),
+            type: baggageType
+        };
+
+        try {
+            // Teraz frontend nie generuje ID, backend się tym zajmuje
+            const response = await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}/add-baggage`,
+                baggageData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            console.log("Baggage added successfully:", response.data);
+
+            setSelectedPassenger(prev => ({
+                ...prev,
+                baggageList: [...(prev.baggageList || []), response.data], // Response contains the baggage with generated ID
+            }));
+
+            setBaggageWeight('');
+            setBaggageType('BAG');
+
+        } catch (error) {
+            console.error("Error adding baggage:", error.response ? error.response.data : error.message);
+        }
+    };
+
+
+
+    const handleCommentChange = (event) => {
+        setComment(event.target.value);
+    };
+
+    const handleAddComment = async () => {
+        if (!selectedPassenger || !comment.trim()) return;
+
+        const newComment = {
+            text: comment,
+            date: new Date().toLocaleString(),
+            addedBy: "Admin",  // Możesz dodać nazwisko lub inne dane, które chcesz
+        };
+
+        try {
+            const response = await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}/add-comment`,
+                newComment,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            // Po udanym dodaniu komentarza, zaktualizuj listę komentarzy
+            setSelectedPassenger(response.data);
+            setComments(response.data.comments);  // Ustawienie komentarzy dla tego pasażera
+            setComment('');  // Czyści pole tekstowe
+        } catch (error) {
+            console.error("Error adding comment:", error.response ? error.response.data : error.message);
+        }
     };
 
 
@@ -109,6 +179,7 @@ const CheckinSite = () => {
                                 <th>No.</th>
                                 <th>Name</th>
                                 <th>Surname</th>
+                                <th>SRR</th>
                                 <th>Gender</th>
                                 <th>State</th>
                             </tr>
@@ -154,6 +225,14 @@ const CheckinSite = () => {
                 </div>
 
                 <div className="baggage-form">
+                    <label>Wybierz typ bagażu:</label>
+                    <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
+                        <option value="BAG">BAG</option>
+                        <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
+                        <option value="DAA">DAA</option>
+                        <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
+                        <option value="WHEELCHAIR">WHEELCHAIR</option>
+                    </select>
                     <input
                         type="number"
                         placeholder="Enter baggage weight"
@@ -161,6 +240,34 @@ const CheckinSite = () => {
                         onChange={(e) => setBaggageWeight(e.target.value)}
                     />
                     <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
+                </div>
+
+                {/* Formularz komentarza */}
+                <div className="comment-section">
+                    <h2>Add a Comment</h2>
+                    <textarea
+                        value={comment}
+                        onChange={handleCommentChange}
+                        placeholder="Write your comment here..."
+                        rows="4"
+                        cols="50"
+                    />
+                    <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
+
+                    {/* Lista komentarzy */}
+                    {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                        <div className="comments-list">
+                            <h3>Comments</h3>
+                            <ul>
+                                {selectedPassenger.comments.map((comment, index) => (
+                                    <li key={index}>
+                                        <p>{comment.text}</p>
+                                        <small>{comment.date} - {comment.addedBy}</small>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </main>
 
