@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axiosInstance from '../../api/axiosConfig';
+import axiosInstance from '../../../api/axiosConfig';
 import './style.css';
+
 
 const { countries } = require('countries-list');
 
@@ -156,55 +157,6 @@ const CheckinSite = () => {
         }
     };
 
-   /*  const handleSavePassenger = async () => {
-        if (!selectedPassenger?.id) {
-            console.error('No passenger selected');
-            return;
-        }
-
-        try {
-            const updatedPassenger = {
-                id: selectedPassenger.id,
-                flightId: selectedPassenger.flightId,
-                name: passengerForm.name,
-                surname: passengerForm.surname,
-                gender: passengerForm.gender,
-                status: selectedPassenger.status,
-                title: passengerForm.title,
-                dateOfBirth: passengerForm.dateOfBirth || null,
-                citizenship: passengerForm.citizenship || null,
-                documentType: passengerForm.documentType || null,
-                serialName: passengerForm.serialName || null,
-                validUntil: passengerForm.validUntil || null,
-                issueCountry: passengerForm.issueCountry || null
-            };
-
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}`,
-                updatedPassenger,
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                }
-            );
-
-            setSelectedPassenger(response.data);
-
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? response.data : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-
-            await refreshSrrCodes(selectedPassenger.id);
-            handleCloseModal();
-        } catch (error) {
-            console.error('Error updating passenger:', error.response?.data || error.message);
-            alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
-        }
-    }; */
     const handleSavePassenger = async () => {
         if (!selectedPassenger?.id) {
             console.error('No passenger selected');

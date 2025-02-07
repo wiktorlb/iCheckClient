@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useCallback, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
-import PassengerStats from './components/PassengerStats';
-import PassengerTable from './components/PassengerTable';
-import SearchBar from './components/SearchBar';
-import ActionPanel from './components/ActionPanel';
-import ErrorMessage from './components/ErrorMessage';
+import PassengerStats from './components/PassengerStats/PassengerStats';
+import PassengerTable from './components/PassengerTable/PassengerTable';
+import SearchBar from './components/SearchBar/SearchBar';
+import ActionPanel from './components/ActionPanel/ActionPanel';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
 import { passengerReducer, initialState } from './reducers/PassengerReducer';
 import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';

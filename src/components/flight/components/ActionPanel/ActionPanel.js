@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import './style.css';
 /**
  * Komponent panelu akcji
  * @component

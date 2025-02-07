@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from '../../api/axiosConfig';
+import axiosInstance from '../../../api/axiosConfig';
 import "./style.css";
 
 const UploadPassengers = () => {
@@ -24,10 +24,10 @@ const UploadPassengers = () => {
 
         const formData = new FormData();
         formData.append('file', file);
-        setLoading(true); // Włączenie ekranu ładowania
+        setLoading(true);
 
         try {
-            const response = await axios.post(`/api/passengers/${flightId}/upload`, formData, {
+            const response = await axiosInstance.post(`/api/passengers/${flightId}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -38,7 +38,7 @@ const UploadPassengers = () => {
             setErrorMessage('An error occurred while uploading the file.');
             console.error(error);
         } finally {
-            setLoading(false); // Wyłączenie ekranu ładowania
+            setLoading(false);
         }
     };
 

@@ -1,0 +1,233 @@
+/* Style dla tabeli */
+.passenger-container {
+    position: relative;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.passenger-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Style dla nagłówka tabeli */
+.passenger-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #191F2C;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #FAF9F9;
+}
+
+/* Style dla kodów SSR */
+.srr-codes {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.srr-code {
+    position: relative;
+    cursor: pointer;
+    font-size: 0.8em;
+    padding: 2px 6px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    color: #333;
+}
+
+/* Tooltip styles */
+.srr-code::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: pre-line;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    min-width: 200px;
+    text-align: left;
+}
+
+.passenger-table tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(70vh - 9.5em);
+}
+
+.passenger-table thead tr,
+.passenger-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+        text-align: center;
+}
+
+.passenger-table tbody tr {
+    border-bottom: 1px solid #191F2C;
+    height: 5em;
+}
+
+/* Style dla wierszy o różnych statusach */
+.row-accepted {
+    background-color: #c8e6c9;
+}
+
+.row-accepted:hover {
+    background-color: #059669;
+}
+
+.row-offloaded {
+    background-color: #ffcdd2;
+}
+
+.row-standby {
+    background-color: rgb(233, 179, 80);
+}
+
+/* Szerokości kolumn */
+.passenger-table th:nth-child(1),
+.passenger-table td:nth-child(1) {
+    width: 10%;
+}
+
+.passenger-table th:nth-child(2),
+.passenger-table td:nth-child(2) {
+    width: 10%;
+}
+
+.passenger-table th:nth-child(3),
+.passenger-table td:nth-child(3) {
+    width: 40%;
+}
+
+.passenger-table th:nth-child(4),
+.passenger-table td:nth-child(4) {
+    width: 20%;
+}
+
+.passenger-table th:nth-child(5),
+.passenger-table td:nth-child(5) {
+    width: 20%;
+}
+
+/* Style dla kodów SSR */
+.srr-code[data-type="DOCS"] {
+    background-color: #bbdefb;
+}
+
+.srr-code[data-type="BAG"] {
+    background-color: #62c3d2;
+}
+
+.srr-code[data-type="COM"] {
+    background-color: #fff9c4;
+}
+
+/* Hover efekty dla tooltipa */
+.srr-code:hover::before,
+.srr-code:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+/*
+----------------------------------------------------------------------------------------
+
+ */
+ .srr-codes {
+     display: flex;
+     gap: 4px;
+     flex-wrap: wrap;
+     margin-top: 4px;
+ }
+
+ .srr-code {
+     font-size: 0.8em;
+     padding: 2px 6px;
+     border-radius: 4px;
+     position: relative;
+     cursor: pointer;
+     color: #333;
+ }
+
+ /* Specyficzne kolory dla różnych typów kodów SSR */
+ .srr-code[data-type="DOCS"] {
+     background-color: #bbdefb;
+     /* Jasnoniebieski */
+ }
+
+ .srr-code[data-type="BAG"] {
+     background-color: #62c3d2;
+     /* Turkusowy */
+ }
+
+ .srr-code[data-type="COM"] {
+     background-color: #fff9c4;
+     /* Jasnożółty */
+ }
+
+ /* Style dla tooltipa */
+ .srr-code::before {
+     content: attr(data-tooltip);
+     position: absolute;
+     bottom: 100%;
+     left: 50%;
+     transform: translateX(-50%);
+     padding: 8px;
+     background-color: rgba(0, 0, 0, 0.8);
+     color: white;
+     border-radius: 4px;
+     font-size: 12px;
+     white-space: pre-line;
+     visibility: hidden;
+     opacity: 0;
+     transition: opacity 0.3s ease;
+     z-index: 1000;
+     min-width: 200px;
+     text-align: left;
+ }
+
+ .srr-code:hover::before {
+     visibility: visible;
+     opacity: 1;
+ }
+
+ /* Dodaj strzałkę do tooltipa */
+ .srr-code::after {
+     content: '';
+     position: absolute;
+     bottom: 100%;
+     left: 50%;
+     transform: translateX(-50%);
+     border: 6px solid transparent;
+     border-top-color: rgba(0, 0, 0, 0.8);
+     visibility: hidden;
+     opacity: 0;
+     transition: opacity 0.3s ease;
+ }
+
+ .srr-code:hover::after {
+     visibility: visible;
+     opacity: 1;
+ }
+
+ /* Zapobiegaj ucięciu tooltipa */
+ .passenger-container {
+     overflow: visible;
+ }
+
+ .passenger-table {
+     overflow: visible;
+ }
+
+

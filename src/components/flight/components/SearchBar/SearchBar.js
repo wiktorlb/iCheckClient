@@ -1,4 +1,6 @@
 import React, { memo } from 'react';
+import './style.css';
+
 /**
  * Komponent paska wyszukiwania
  * @component

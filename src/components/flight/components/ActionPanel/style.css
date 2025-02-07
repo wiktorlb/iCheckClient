@@ -1,0 +1,45 @@
+.fixed-action-panel {
+    background: #191F2C;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.accept-btn {
+    background-color: #10B981;
+}
+
+.update-btn {
+    background-color: #4169E1;
+}
+
+.offload-btn {
+    background-color: #FF0000;
+}
+
+.fixed-action-panel button {
+    padding: 10px 15px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', serif;
+    color: #FAF9F9;
+}
+
+.accept-btn:hover {
+    background-color: #059669;
+}
+
+.update-btn:hover {
+    background-color: #2f51b6;
+}
+
+.offload-btn:hover {
+    background-color: #b20000;
+}

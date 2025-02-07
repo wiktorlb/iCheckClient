@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+/* import React, { useState, useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import FlightBoard from './components/flightBoard/FlightBoard';
@@ -9,7 +9,20 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import FlightPassengers from './components/flight/FlightPassengers';
 import UploadPassengers from './components/flight/UploadPassengers';
 import UserManagement from './components/UserManagement';
-import CheckinSite from './components/flight/CheckinSite';
+import CheckinSite from './components/flight/CheckinSite'; */
+
+import React, { useState, useEffect } from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import LoginForm from './components/LoginForm';
+import FlightBoard from './components/flightBoard/FlightBoard';
+import AddFlightForm from './components/flightBoard/AddFlightForm';
+import RegisterForm from './components/RegisterForm';
+import Header from './components/header/Header';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import FlightPassengers from './components/flight/FlightPassengers';
+import UploadPassengers from './components/flight/UploadPassengers/UploadPassengers';
+import UserManagement from './components/UserManagement';
+import CheckinSite from './components/flight/CheckinSite/CheckinSite';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
