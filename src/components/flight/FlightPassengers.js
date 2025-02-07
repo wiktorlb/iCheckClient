@@ -47,6 +47,74 @@ const FlightPassengers = () => {
                 : [...prevSelected, passengerId]
         );
     };
+    const getPassengerStats = () => {
+        const stats = {
+            none: 0,
+            acc: 0,
+            stby: 0,
+            off: 0
+        };
+
+        passengers.forEach(passenger => {
+            switch (passenger.status) {
+                case 'NONE':
+                    stats.none++;
+                    break;
+                case 'ACC':
+                    stats.acc++;
+                    break;
+                case 'STBY':
+                    stats.stby++;
+                    break;
+                case 'OFF':
+                    stats.off++;
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        const total = passengers.length || 1; // Zabezpieczenie przed dzieleniem przez 0
+        return {
+            none: {
+                count: stats.none,
+                percentage: (stats.none / total) * 100
+            },
+            acc: {
+                count: stats.acc,
+                percentage: (stats.acc / total) * 100
+            },
+            stby: {
+                count: stats.stby,
+                percentage: (stats.stby / total) * 100
+            },
+            off: {
+                count: stats.off,
+                percentage: (stats.off / total) * 100
+            }
+        };
+    };
+
+    const getSrrTooltip = (code, passenger) => {
+        if (code.startsWith('BAG')) {
+            const baggage = passenger.baggageList[parseInt(code.replace('BAG', '')) - 1];
+            return baggage ? `Weight: ${baggage.weight}kg\nID: ${baggage.id}` : 'No baggage details';
+        }
+        if (code === 'COM') {
+            const comments = passenger.comments;
+            return comments && comments.length > 0
+                ? comments.map(com =>
+                    `${com.text}\nAdded by: ${com.addedBy}\nDate: ${com.date}`
+                ).join('\n\n')
+                : 'No comments';
+        }
+        if (code === 'DOCS') {
+            return passenger.documentType
+                ? `Document: ${passenger.documentType}\nCitizenship: ${passenger.citizenship}`
+                : 'No document details';
+        }
+        return 'No additional information';
+    };
 
     const handleAction = async (action) => {
         const jwt = localStorage.getItem('jwt');
@@ -101,8 +169,60 @@ const FlightPassengers = () => {
             <main className="main">
                 {error && <div className="error-message">{error}</div>}
                 <h1>Passengers List</h1>
-                <div>
-                    <h3>Total Passengers: {passengers.length}</h3>
+                <div className="stats-container">
+                    <div className="stats-header">
+                        <div className="stats-title">
+                            <h3>Total Passengers: {passengers.length}</h3>
+                        </div>
+                        <div className="stats-legend">
+                            <div className="legend-item">
+                                <span className="legend-color none"></span>
+                                <span>Not Checked ({getPassengerStats().none.count})</span>
+                            </div>
+                            <div className="legend-item">
+                                <span className="legend-color acc"></span>
+                                <span>Accepted ({getPassengerStats().acc.count})</span>
+                            </div>
+                            <div className="legend-item">
+                                <span className="legend-color stby"></span>
+                                <span>Standby ({getPassengerStats().stby.count})</span>
+                            </div>
+                            <div className="legend-item">
+                                <span className="legend-color off"></span>
+                                <span>Offloaded ({getPassengerStats().off.count})</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="single-progress-bar">
+                        <div
+                            className="progress-segment none"
+                            style={{ width: `${getPassengerStats().none.percentage}%` }}
+                            title={`Not Checked: ${getPassengerStats().none.count}`}
+                        >
+                            {getPassengerStats().none.percentage > 10 && getPassengerStats().none.count}
+                        </div>
+                        <div
+                            className="progress-segment acc"
+                            style={{ width: `${getPassengerStats().acc.percentage}%` }}
+                            title={`Accepted: ${getPassengerStats().acc.count}`}
+                        >
+                            {getPassengerStats().acc.percentage > 10 && getPassengerStats().acc.count}
+                        </div>
+                        <div
+                            className="progress-segment stby"
+                            style={{ width: `${getPassengerStats().stby.percentage}%` }}
+                            title={`Standby: ${getPassengerStats().stby.count}`}
+                        >
+                            {getPassengerStats().stby.percentage > 10 && getPassengerStats().stby.count}
+                        </div>
+                        <div
+                            className="progress-segment off"
+                            style={{ width: `${getPassengerStats().off.percentage}%` }}
+                            title={`Offloaded: ${getPassengerStats().off.count}`}
+                        >
+                            {getPassengerStats().off.percentage > 10 && getPassengerStats().off.count}
+                        </div>
+                    </div>
                 </div>
                 <input
                     type="text"
@@ -110,6 +230,7 @@ const FlightPassengers = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-bar"
+
                 />
                 {filteredPassengers.length > 0 ? (
                     <div className="passenger-container">
@@ -143,7 +264,13 @@ const FlightPassengers = () => {
                                             {passengerSrrCodes[passenger.id]?.length > 0 && (
                                                 <div className="srr-codes">
                                                     {passengerSrrCodes[passenger.id].map((code, idx) => (
-                                                        <span key={idx} className="srr-code">{code}</span>
+                                                        <span
+                                                            key={idx}
+                                                            className={`srr-code ${code.toLowerCase()}`}
+                                                            data-tooltip={getSrrTooltip(code, passenger)}
+                                                        >
+                                                            {code}
+                                                        </span>
                                                     ))}
                                                 </div>
                                             )}
