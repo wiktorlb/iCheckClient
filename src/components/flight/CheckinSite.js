@@ -36,7 +36,8 @@ const CheckinSite = () => {
                 gender: selectedPassenger.gender || '',
                 dateOfBirth: selectedPassenger.dateOfBirth || '',
                 citizenship: selectedPassenger.citizenship || '',
-                documentType: selectedPassenger.documentType || '',
+                // Ustaw domyślną wartość 'P' jeśli documentType jest null
+                documentType: selectedPassenger.documentType || 'P',
                 serialName: selectedPassenger.serialName || '',
                 validUntil: selectedPassenger.validUntil || '',
                 issueCountry: selectedPassenger.issueCountry || ''
@@ -155,7 +156,7 @@ const CheckinSite = () => {
         }
     };
 
-    const handleSavePassenger = async () => {
+   /*  const handleSavePassenger = async () => {
         if (!selectedPassenger?.id) {
             console.error('No passenger selected');
             return;
@@ -173,6 +174,57 @@ const CheckinSite = () => {
                 dateOfBirth: passengerForm.dateOfBirth || null,
                 citizenship: passengerForm.citizenship || null,
                 documentType: passengerForm.documentType || null,
+                serialName: passengerForm.serialName || null,
+                validUntil: passengerForm.validUntil || null,
+                issueCountry: passengerForm.issueCountry || null
+            };
+
+            const response = await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}`,
+                updatedPassenger,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                }
+            );
+
+            setSelectedPassenger(response.data);
+
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? response.data : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+
+            await refreshSrrCodes(selectedPassenger.id);
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error updating passenger:', error.response?.data || error.message);
+            alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
+        }
+    }; */
+    const handleSavePassenger = async () => {
+        if (!selectedPassenger?.id) {
+            console.error('No passenger selected');
+            return;
+        }
+
+        try {
+            // Upewnij się, że documentType jest ustawiony na 'P' jeśli jest pusty
+            const updatedPassenger = {
+                id: selectedPassenger.id,
+                flightId: selectedPassenger.flightId,
+                name: passengerForm.name,
+                surname: passengerForm.surname,
+                gender: passengerForm.gender,
+                status: selectedPassenger.status,
+                title: passengerForm.title,
+                dateOfBirth: passengerForm.dateOfBirth || null,
+                citizenship: passengerForm.citizenship || null,
+                // Ustaw domyślną wartość 'P' jeśli documentType jest pusty
+                documentType: passengerForm.documentType || 'P',
                 serialName: passengerForm.serialName || null,
                 validUntil: passengerForm.validUntil || null,
                 issueCountry: passengerForm.issueCountry || null
@@ -283,6 +335,56 @@ const CheckinSite = () => {
     };
 
 
+
+    const getSrrTooltip = (code, passenger) => {
+        if (code.startsWith('BAG')) {
+            if (!passenger.baggageList || !Array.isArray(passenger.baggageList)) {
+                return 'No baggage details available';
+            }
+
+            const bagIndex = parseInt(code.slice(3)) - 1;
+            const baggage = passenger.baggageList[bagIndex];
+
+            if (baggage) {
+                return `Baggage Details:\n` +
+                    `ID: ${baggage.id || 'N/A'}\n` +
+                    `Weight: ${baggage.weight || 'N/A'} kg`;
+            }
+            return 'Baggage information not found';
+        }
+
+        if (code === 'DOCS') {
+            if (passenger.documentType || passenger.citizenship || passenger.validUntil || passenger.issueCountry) {
+                const details = [];
+
+                if (passenger.documentType) details.push(`Type: ${passenger.documentType}`);
+                if (passenger.citizenship) details.push(`Citizenship: ${passenger.citizenship}`);
+                if (passenger.serialName) details.push(`Serial Number: ${passenger.serialName}`);
+                if (passenger.validUntil) details.push(`Valid Until: ${passenger.validUntil}`);
+                if (passenger.issueCountry) details.push(`Issue Country: ${passenger.issueCountry}`);
+
+                return details.length > 0
+                    ? `Document Details:\n${details.join('\n')}`
+                    : 'Document information not available';
+            }
+            return 'Document information not available';
+        }
+
+        if (code === 'COM') {
+            if (passenger.comments && passenger.comments.length > 0) {
+                return passenger.comments.map(comment =>
+                    `Comment: ${comment.text}\n` +
+                    `Added by: ${comment.addedBy}\n` +
+                    `Date: ${comment.date}`
+                ).join('\n\n');
+            }
+            return 'No comments available';
+        }
+
+        return 'No additional information available';
+    };
+
+
     return (
         <section>
             <main className="main">
@@ -314,10 +416,16 @@ const CheckinSite = () => {
                                         />
                                     </td>
                                     <td>{index + 1}</td>
-                                    <td>{passenger.name} {passenger.surname} {passengerSrrCodes[passenger.id]?.length > 0 && (
+                                    <td>{passenger.name} {passenger.surname} {passenger.title} {passengerSrrCodes[passenger.id]?.length > 0 && (
                                         <div className="srr-codes">
                                             {passengerSrrCodes[passenger.id].map((code, idx) => (
-                                                <span key={idx} className="srr-code">{code}</span>
+                                                <span
+                                                    key={idx}
+                                                    className={`srr-code ${code.toLowerCase()}`}
+                                                    data-tooltip={getSrrTooltip(code, passenger)}
+                                                >
+                                                    {code}
+                                                </span>
                                             ))}
                                         </div>
                                     )}</td>

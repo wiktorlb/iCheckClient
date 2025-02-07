@@ -99,8 +99,14 @@
 /* Style dla różnych typów SSR */
 .srr-code.bag1,
 .srr-code.bag2,
-.srr-code.bag3 {
-    background-color: #c8e6c9;
+.srr-code.bag3
+.srr-code.bag4
+.srr-code.bag5
+.srr-code.bag6
+.srr-code.bag7
+.srr-code.bag8
+.srr-code.bag9{
+    background-color: #63e5e8;
 }
 
 .srr-code.docs {
@@ -302,7 +308,7 @@ background-color: #b20000;
 }
 
 .srr-code[data-type="BAG"] {
-    background-color: #c8e6c9;
+    background-color: #62c3d2;
 }
 
 .srr-code[data-type="COM"] {
@@ -353,7 +359,7 @@ background-color: #b20000;
     table-layout: fixed;
 }
 .passenger-table tbody tr {
-    border: 1px solid #191F2C;
+    border-bottom: 1px solid #191F2C;
     height: 5em;
 }
 
@@ -364,7 +370,7 @@ background-color: #b20000;
     text-align: left;
 }
 
-.passenger-table tbody tr:nth-child(even) {
+.passenger-table tbody tr {
     background-color: #E6E8E6;
 }
 .passenger-table tbody tr.row-accepted {
