@@ -77,11 +77,15 @@ const CheckinSite = () => {
 
     const refreshSrrCodes = async (passengerId) => {
         try {
-            const codes = await fetchSrrCodes(passengerId);
-            setPassengerSrrCodes(prev => ({
-                ...prev,
-                [passengerId]: codes
-            }));
+            const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
+            const passengerData = response.data.passenger || response.data;
+
+            if (passengerData) {
+                setPassengerSrrCodes(prev => ({
+                    ...prev,
+                    [passengerId]: passengerData.srrCodes || []
+                }));
+            }
         } catch (error) {
             console.error('Error refreshing SRR codes:', error);
         }
@@ -164,7 +168,6 @@ const CheckinSite = () => {
         }
 
         try {
-            // Upewnij się, że documentType jest ustawiony na 'P' jeśli jest pusty
             const updatedPassenger = {
                 id: selectedPassenger.id,
                 flightId: selectedPassenger.flightId,
@@ -175,39 +178,50 @@ const CheckinSite = () => {
                 title: passengerForm.title,
                 dateOfBirth: passengerForm.dateOfBirth || null,
                 citizenship: passengerForm.citizenship || null,
-                // Ustaw domyślną wartość 'P' jeśli documentType jest pusty
                 documentType: passengerForm.documentType || 'P',
                 serialName: passengerForm.serialName || null,
                 validUntil: passengerForm.validUntil || null,
                 issueCountry: passengerForm.issueCountry || null
             };
 
+            // Zapisz zaktualizowane dane pasażera
             const response = await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}`,
-                updatedPassenger,
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                }
+                updatedPassenger
             );
 
-            setSelectedPassenger(response.data);
+            // Pobierz zaktualizowane dane pasażera
+            const refreshedPassenger = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
+            const updatedPassengerData = refreshedPassenger.data.passenger || refreshedPassenger.data;
 
+            // Aktualizuj location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? response.data : p
+                    p.id === selectedPassenger.id ? updatedPassengerData : p
                 );
-                location.state.passengers = updatedPassengers;
+
+                location.state = {
+                    ...location.state,
+                    passengers: updatedPassengers
+                };
             }
 
+            setSelectedPassenger(updatedPassengerData);
             await refreshSrrCodes(selectedPassenger.id);
             handleCloseModal();
+
         } catch (error) {
-            console.error('Error updating passenger:', error.response?.data || error.message);
+            console.error('Error updating passenger:', error);
             alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
         }
     };
+    // Dodaj useEffect do monitorowania zmian w location.state
+    useEffect(() => {
+        if (!location.state?.passengers?.length) {
+            console.warn('No passengers data in location.state');
+            // Możesz tutaj dodać kod do pobrania danych
+        }
+    }, [location.state]);
 
     const handleSelectPassenger = (passengerId) => {
         const passenger = location.state?.passengers.find(p => p.id === passengerId);
@@ -238,11 +252,15 @@ const CheckinSite = () => {
                 }
             );
 
-            setSelectedPassenger(prev => ({
-                ...prev,
-                baggageList: [...(prev.baggageList || []), response.data],
-            }));
+            // Aktualizujemy stan pasażera w location.state
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? response.data : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
 
+            setSelectedPassenger(response.data);
             await refreshSrrCodes(selectedPassenger.id);
             setBaggageWeight('');
             setBaggageType('BAG');
@@ -250,10 +268,6 @@ const CheckinSite = () => {
         } catch (error) {
             console.error("Error adding baggage:", error.response ? error.response.data : error.message);
         }
-    };
-
-    const handleCommentChange = (event) => {
-        setComment(event.target.value);
     };
 
     const handleAddComment = async () => {
@@ -277,6 +291,14 @@ const CheckinSite = () => {
                 }
             );
 
+            // Aktualizujemy stan pasażera w location.state
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? response.data : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+
             setSelectedPassenger(response.data);
             setComment('');
             await refreshSrrCodes(selectedPassenger.id);
@@ -286,7 +308,9 @@ const CheckinSite = () => {
         }
     };
 
-
+    const handleCommentChange = (event) => {
+        setComment(event.target.value);
+    };
 
     const getSrrTooltip = (code, passenger) => {
         if (code.startsWith('BAG')) {
