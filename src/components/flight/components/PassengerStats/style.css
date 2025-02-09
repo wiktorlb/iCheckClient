@@ -90,3 +90,50 @@
     filter: brightness(1.1);
     cursor: pointer;
 }
+
+.flight-stats {
+    width: 100%;
+    background: #fff;
+    padding: 10px 0 0 0;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+    margin-bottom: 5px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+}
+
+.stat-item span:first-child {
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.stat-item span:last-child {
+    font-weight: bold;
+}
+
+.stats-progress-bar {
+    display: flex;
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progress-segment.boarded { background-color: #4CAF50; }
+.progress-segment.accepted { background-color: #2196F3; }
+.progress-segment.booked { background-color: #FFC107; }
+.progress-segment.allowed { background-color: #FF9800; }
+.progress-segment.standby { background-color: #F44336; }

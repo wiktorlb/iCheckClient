@@ -121,8 +121,8 @@ const FlightPassengers = () => {
                     />
                 )}
                 <main className="main">
-                    <ErrorMessage error={error} />
                     <PassengerStats passengers={passengers} />
+                    <ErrorMessage error={error} />
                     <SearchBar
                         value={searchTerm}
                         onChange={(e) => dispatch({

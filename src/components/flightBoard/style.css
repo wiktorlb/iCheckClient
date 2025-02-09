@@ -65,21 +65,22 @@ input[type="date"] {
 
 .flightBoard-title {
   padding: 1em 0;
-  background-color: #E6E8E6;
+  background-color: #191F2C;
   font-size: 16px;
   font-weight: bold;
 }
 
 .flight-table th,
 .flight-table td {
-  text-align: center;
+  /* text-align: center; */
   padding: 12px;
   border-bottom: 1px solid #ddd;
   font-size: 14px;
 }
 
 .flight-table th {
-  background-color: #E6E8E6;
+  background-color: #191F2C;
+  color: #FAF9F9;
 }
 
 .flight-table tr:nth-child(odd) {

@@ -1,11 +1,12 @@
 /* Dodajemy style dla layoutu */
-section {
+/* section {
     padding: 20px;
-}
+} */
 
 .content-wrapper {
     display: flex;
     gap: 20px; /* Odstęp między FlightInfo a główną zawartością */
+    padding: 20px;
 }
 
 .main {
