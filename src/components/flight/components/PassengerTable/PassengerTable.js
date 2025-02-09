@@ -121,24 +121,46 @@ const PassengerRow = memo(({
 /**
  * Komponent wyświetlający nazwę pasażera i kody SSR
  */
-const PassengerName = memo(({ passenger, getSrrTooltip }) => (
-    <>
-        {passenger.name} {passenger.surname} {passenger.title}
-        {passenger.srrCodes?.length > 0 && (
-            <div className="srr-codes">
-                {passenger.srrCodes.map((code, idx) => (
-                    <span
-                        key={idx}
-                        className={`srr-code ${code.toLowerCase()}`}
-                        data-tooltip={getSrrTooltip(code, passenger)}
-                    >
-                        {code}
-                    </span>
-                ))}
-            </div>
-        )}
-    </>
-));
+const PassengerName = memo(({ passenger, getSrrTooltip }) => {
+    const handleTooltipPosition = (event) => {
+        const element = event.currentTarget;
+        const rect = element.getBoundingClientRect();
+
+        // Oblicz pozycję tooltipa
+        let x = rect.left + (rect.width / 2);
+        let y = rect.top - 15; // 10px odstępu    120px idealna wartosc
+
+        // Sprawdź pozycję względem viewportu
+        if (rect.top < 100) { // 100px to przybliżona wysokość tooltipa
+            // Jeśli jest zbyt blisko góry, pokaż tooltip pod elementem
+            y = rect.bottom + 10;
+        }
+
+        // Ustaw style za pomocą CSS custom properties
+        element.style.setProperty('--tooltip-x', `${x}px`);
+        element.style.setProperty('--tooltip-y', `${y}px`);
+    };
+
+    return (
+        <>
+            {passenger.name} {passenger.surname} {passenger.title}
+            {passenger.srrCodes?.length > 0 && (
+                <div className="srr-codes">
+                    {passenger.srrCodes.map((code, idx) => (
+                        <span
+                            key={idx}
+                            className={`srr-code ${code.toLowerCase()}`}
+                            data-tooltip={getSrrTooltip(code, passenger)}
+                            onMouseEnter={handleTooltipPosition}
+                        >
+                            {code}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+});
 
 /**
  * Funkcja pomocnicza do określania klasy wiersza

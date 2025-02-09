@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../api/axiosConfig';
 import './style.css';
+import { useSrrTooltip } from '../hooks/useSrrTooltip';
+import FlightInfo from '../components/FlightInfo/FlightInfo';
 
 
 const { countries } = require('countries-list');
@@ -16,6 +18,8 @@ const CheckinSite = () => {
     const [baggageType, setBaggageType] = useState("BAG");
     const [comment, setComment] = useState('');
     const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
+    const getSrrTooltip = useSrrTooltip(); // Używamy hooka zamiast lokalnej implementacji
+    const [flightDetails, setFlightDetails] = useState(null);
 
     const [passengerForm, setPassengerForm] = useState({
         name: '',
@@ -270,7 +274,7 @@ const CheckinSite = () => {
         }
     };
 
-    const handleAddComment = async () => {
+    /*const handleAddComment = async () => {
         if (!selectedPassenger || !comment.trim()) return;
 
         const newComment = {
@@ -306,13 +310,58 @@ const CheckinSite = () => {
         } catch (error) {
             console.error("Error adding comment:", error.response ? error.response.data : error.message);
         }
+    }; */
+    const handleAddComment = async () => {
+        if (!selectedPassenger || !comment.trim()) return;
+
+        try {
+            const jwt = localStorage.getItem('jwt');
+            const tokenPayload = JSON.parse(atob(jwt.split('.')[1]));
+            const userId = tokenPayload.sub;
+
+            const newComment = {
+                text: comment,
+                date: new Date().toLocaleString(),
+                addedBy: userId
+            };
+
+            const response = await axiosInstance.put(
+                `/api/passengers/${selectedPassenger.id}/add-comment`,
+                newComment,
+                {
+                    headers: {
+                        Authorization: `Bearer ${jwt}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            // Aktualizujemy stan pasażera w location.state
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? response.data : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+
+            setSelectedPassenger(response.data);
+            setComment('');
+
+            // Odświeżamy kody SRR
+            await refreshSrrCodes(selectedPassenger.id);
+
+        } catch (error) {
+            console.error("Error adding comment:", error.response ? error.response.data : error.message);
+        }
     };
+
+
 
     const handleCommentChange = (event) => {
         setComment(event.target.value);
     };
 
-    const getSrrTooltip = (code, passenger) => {
+    /* const getSrrTooltip = (code, passenger) => {
         if (code.startsWith('BAG')) {
             if (!passenger.baggageList || !Array.isArray(passenger.baggageList)) {
                 return 'No baggage details available';
@@ -358,11 +407,33 @@ const CheckinSite = () => {
         }
 
         return 'No additional information available';
-    };
+    }; */
 
+    useEffect(() => {
+        const fetchFlightDetails = async () => {
+            if (location.state?.flightId) {
+                try {
+                    const response = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
+                    setFlightDetails(response.data);
+                } catch (error) {
+                    console.error('Error fetching flight details:', error);
+                }
+            }
+        };
+
+        fetchFlightDetails();
+    }, [location.state?.flightId]);
 
     return (
         <section>
+            {flightDetails && (
+                <FlightInfo
+                    flightNumber={flightDetails.flightNumber}
+                    departureTime={flightDetails.departureTime}
+                    route={flightDetails.route}
+                    status={flightDetails.state}
+                />
+            )}
             <main className="main">
                 <h1>Check-in Site</h1>
                 <div className="passenger-container">

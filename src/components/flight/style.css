@@ -1,12 +1,27 @@
+/* Dodajemy style dla layoutu */
+section {
+    padding: 20px;
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px; /* Odstęp między FlightInfo a główną zawartością */
+}
+
 .main {
     font-family: 'Roboto', sans-serif;
-    background-color: #FAF9F9;
+    background-color: #E6E8E6;
     padding: 20px;
     border-radius: 2px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    flex: 1; /* Zajmie pozostałą przestrzeń */
 }
 
 @media screen and (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
     .passenger-container {
         max-height: 80vh;
     }

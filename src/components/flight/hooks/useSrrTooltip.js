@@ -22,15 +22,38 @@ export const useSrrTooltip = () => {
 /**
  * Generuje tooltip dla bagażu
  */
-const getBaggageTooltip = (passenger, code) => {
+/* const getBaggageTooltip = (passenger, code) => {
     if (!passenger.baggageList?.length) return 'No baggage details available';
 
     const baggage = passenger.baggageList[parseInt(code.slice(3)) - 1];
     return baggage
-        ? `Baggage Details:\nID: ${baggage.id || 'N/A'}\nWeight: ${baggage.weight || 'N/A'} kg`
+        ? `Baggage Details:\nID: ${baggage.id || 'N/A'}\nType: ${baggage.type || 'N/A'}\nWeight: ${baggage.weight || 'N/A'} kg`
         : 'Baggage information not found';
 };
+ */
 
+const getBaggageTooltip = (passenger, code) => {
+    if (!passenger.baggageList?.length) return 'No baggage details available';
+
+    const baggage = passenger.baggageList[parseInt(code.slice(3)) - 1];
+    if (!baggage) return 'Baggage information not found';
+
+    // Mapowanie typów bagażu na bardziej czytelne nazwy
+    const baggageTypes = {
+        'BAG': 'Baggage',
+        'HAND_LUGGAGE': 'Hand Luggage',
+        'DAA': 'DAA',
+        'SPORT_EQUIPMENT': 'Sport Equipment',
+        'WHEELCHAIR': 'Wheelchair'
+    };
+
+    const readableType = baggageTypes[baggage.type] || baggage.type;
+
+    return `Baggage Details:\n` +
+        `ID: ${baggage.id || 'N/A'}\n` +
+        `Type: ${readableType || 'N/A'}\n` +
+        `Weight: ${baggage.weight || 'N/A'} kg`;
+};
 /**
  * Generuje tooltip dla dokumentów
  */

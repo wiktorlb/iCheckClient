@@ -41,10 +41,7 @@
 /* Tooltip styles */
 .srr-code::before {
     content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
     padding: 8px;
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
@@ -54,9 +51,11 @@
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.3s ease;
-    z-index: 1000;
+    z-index: 9999;
     min-width: 200px;
     text-align: left;
+    pointer-events: none;
+    transform: translateX(-50%);
 }
 
 .passenger-table tbody {
@@ -123,111 +122,55 @@
 
 /* Style dla kodów SSR */
 .srr-code[data-type="DOCS"] {
-    background-color: #bbdefb;
+    background-color: #bbdefb !important;
 }
 
 .srr-code[data-type="BAG"] {
-    background-color: #62c3d2;
+    background-color: #62c3d2 !important;
 }
 
 .srr-code[data-type="COM"] {
-    background-color: #fff9c4;
+    background-color: #fff9c4 !important;
 }
 
 /* Hover efekty dla tooltipa */
-.srr-code:hover::before,
+.srr-code:hover::before {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Pozycjonowanie tooltipa */
+.srr-code::before {
+    top: var(--tooltip-y);
+    left: var(--tooltip-x);
+}
+
+/* Zapewnienie, że kontenery nie będą ograniczać widoczności tooltipa */
+.passenger-container,
+.passenger-table,
+.main,
+section {
+    overflow: visible !important;
+}
+
+/* Dodaj strzałkę do tooltipa */
+.srr-code::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    /* border-top: 8px solid white; */
+    border-top-color: rgba(0, 0, 0, 0.8);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
 .srr-code:hover::after {
     visibility: visible;
     opacity: 1;
 }
-/*
-----------------------------------------------------------------------------------------
-
- */
- .srr-codes {
-     display: flex;
-     gap: 4px;
-     flex-wrap: wrap;
-     margin-top: 4px;
- }
-
- .srr-code {
-     font-size: 0.8em;
-     padding: 2px 6px;
-     border-radius: 4px;
-     position: relative;
-     cursor: pointer;
-     color: #333;
- }
-
- /* Specyficzne kolory dla różnych typów kodów SSR */
- .srr-code[data-type="DOCS"] {
-     background-color: #bbdefb;
-     /* Jasnoniebieski */
- }
-
- .srr-code[data-type="BAG"] {
-     background-color: #62c3d2;
-     /* Turkusowy */
- }
-
- .srr-code[data-type="COM"] {
-     background-color: #fff9c4;
-     /* Jasnożółty */
- }
-
- /* Style dla tooltipa */
- .srr-code::before {
-     content: attr(data-tooltip);
-     position: absolute;
-     bottom: 100%;
-     left: 50%;
-     transform: translateX(-50%);
-     padding: 8px;
-     background-color: rgba(0, 0, 0, 0.8);
-     color: white;
-     border-radius: 4px;
-     font-size: 12px;
-     white-space: pre-line;
-     visibility: hidden;
-     opacity: 0;
-     transition: opacity 0.3s ease;
-     z-index: 1000;
-     min-width: 200px;
-     text-align: left;
- }
-
- .srr-code:hover::before {
-     visibility: visible;
-     opacity: 1;
- }
-
- /* Dodaj strzałkę do tooltipa */
- .srr-code::after {
-     content: '';
-     position: absolute;
-     bottom: 100%;
-     left: 50%;
-     transform: translateX(-50%);
-     border: 6px solid transparent;
-     border-top-color: rgba(0, 0, 0, 0.8);
-     visibility: hidden;
-     opacity: 0;
-     transition: opacity 0.3s ease;
- }
-
- .srr-code:hover::after {
-     visibility: visible;
-     opacity: 1;
- }
-
- /* Zapobiegaj ucięciu tooltipa */
- .passenger-container {
-     overflow: visible;
- }
-
- .passenger-table {
-     overflow: visible;
- }
 
 

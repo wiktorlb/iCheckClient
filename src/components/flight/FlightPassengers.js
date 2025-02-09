@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useReducer } from 'react';
+import React, { useEffect, useMemo, useCallback, useReducer, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
 import PassengerStats from './components/PassengerStats/PassengerStats';
@@ -9,6 +9,7 @@ import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
 import { passengerReducer, initialState } from './reducers/PassengerReducer';
 import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';
+import FlightInfo from './components/FlightInfo/FlightInfo';
 import './style.css';
 
 /**
@@ -20,6 +21,7 @@ const FlightPassengers = () => {
     const navigate = useNavigate();
     const [state, dispatch] = useReducer(passengerReducer, initialState);
     const { passengers, selectedPassengers, error, searchTerm } = state;
+    const [flightDetails, setFlightDetails] = useState(null);
 
     // Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
     const getSrrTooltip = useSrrTooltip();
@@ -57,6 +59,25 @@ const FlightPassengers = () => {
         fetchPassengers();
     }, [flightId]);
 
+    // Efekt pobierający szczegóły lotu
+    useEffect(() => {
+        const fetchFlightDetails = async () => {
+            try {
+                const jwt = localStorage.getItem('jwt');
+                if (!jwt) return;
+
+                const response = await axiosInstance.get(`/api/flights/${flightId}`, {
+                    headers: { Authorization: `Bearer ${jwt}` }
+                });
+                setFlightDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching flight details:', error);
+            }
+        };
+
+        fetchFlightDetails();
+    }, [flightId]);
+
     // Funkcja obsługująca akcje na pasażerach (akceptacja/update)
     const handleAction = useCallback(async (action) => {
         const jwt = localStorage.getItem('jwt');
@@ -90,28 +111,36 @@ const FlightPassengers = () => {
 
     return (
         <section>
-            <main className="main">
-                <ErrorMessage error={error} />
-                <h1>Passengers List</h1>
-                <PassengerStats passengers={passengers} />
-                <SearchBar
-                    value={searchTerm}
-                    onChange={(e) => dispatch({
-                        type: 'SET_SEARCH_TERM',
-                        payload: e.target.value
-                    })}
-                />
-                <PassengerTable
-                    passengers={filteredPassengers}
-                    selectedPassengers={selectedPassengers}
-                    onToggleSelection={(id) => dispatch({
-                        type: 'TOGGLE_PASSENGER_SELECTION',
-                        payload: id
-                    })}
-                    getSrrTooltip={getSrrTooltip} // Dodaj to props
-                />
-
-            </main>
+            <div className="content-wrapper">
+                {flightDetails && (
+                    <FlightInfo
+                        flightNumber={flightDetails.flightNumber}
+                        departureTime={flightDetails.departureTime}
+                        route={flightDetails.route}
+                        status={flightDetails.state}
+                    />
+                )}
+                <main className="main">
+                    <ErrorMessage error={error} />
+                    <PassengerStats passengers={passengers} />
+                    <SearchBar
+                        value={searchTerm}
+                        onChange={(e) => dispatch({
+                            type: 'SET_SEARCH_TERM',
+                            payload: e.target.value
+                        })}
+                    />
+                    <PassengerTable
+                        passengers={filteredPassengers}
+                        selectedPassengers={selectedPassengers}
+                        onToggleSelection={(id) => dispatch({
+                            type: 'TOGGLE_PASSENGER_SELECTION',
+                            payload: id
+                        })}
+                        getSrrTooltip={getSrrTooltip}
+                    />
+                </main>
+            </div>
             <ActionPanel
                 visible={selectedPassengers.length > 0}
                 onAction={handleAction}
