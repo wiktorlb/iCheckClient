@@ -120,26 +120,29 @@ const FlightPassengers = () => {
                         status={flightDetails.state}
                     />
                 )}
-                <main className="main">
+                <div className="main-container">
                     <PassengerStats passengers={passengers} />
-                    <ErrorMessage error={error} />
-                    <SearchBar
-                        value={searchTerm}
-                        onChange={(e) => dispatch({
-                            type: 'SET_SEARCH_TERM',
-                            payload: e.target.value
-                        })}
-                    />
-                    <PassengerTable
-                        passengers={filteredPassengers}
-                        selectedPassengers={selectedPassengers}
-                        onToggleSelection={(id) => dispatch({
-                            type: 'TOGGLE_PASSENGER_SELECTION',
-                            payload: id
-                        })}
-                        getSrrTooltip={getSrrTooltip}
-                    />
-                </main>
+                    <main className="main">
+
+                        <ErrorMessage error={error} />
+                        <SearchBar
+                            value={searchTerm}
+                            onChange={(e) => dispatch({
+                                type: 'SET_SEARCH_TERM',
+                                payload: e.target.value
+                            })}
+                        />
+                        <PassengerTable
+                            passengers={filteredPassengers}
+                            selectedPassengers={selectedPassengers}
+                            onToggleSelection={(id) => dispatch({
+                                type: 'TOGGLE_PASSENGER_SELECTION',
+                                payload: id
+                            })}
+                            getSrrTooltip={getSrrTooltip}
+                        />
+                    </main>
+                </div>
             </div>
             <ActionPanel
                 visible={selectedPassengers.length > 0}

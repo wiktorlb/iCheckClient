@@ -14,12 +14,24 @@
     background-color: #E6E8E6;
     padding: 20px;
     border-radius: 2px;
-box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
-    flex: 1; /* Zajmie pozostałą przestrzeń */
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
 }
+
+.main-container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+ .flight-stats-info {
+     display: flex;
+     align-items: center;
+     justify-content: space-around;
+     padding: 1em;
+ }
 
 @media screen and (max-width: 768px) {
     .content-wrapper {
+
         flex-direction: column;
     }
 

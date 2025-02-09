@@ -133,7 +133,8 @@
 }
 
 .progress-segment.boarded { background-color: #4CAF50; }
-.progress-segment.accepted { background-color: #2196F3; }
-.progress-segment.booked { background-color: #FFC107; }
-.progress-segment.allowed { background-color: #FF9800; }
-.progress-segment.standby { background-color: #F44336; }
+.progress-segment.accepted { background-color: #0B8361; }
+/* .progress-segment.booked { background-color: #FFC107; }
+.progress-segment.allowed { background-color: #FF9800; } */
+.progress-segment.standby { background-color: #F4B266; }
+.progress-segment.off { background-color: #F05D5D; }
