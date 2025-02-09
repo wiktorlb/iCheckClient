@@ -39,3 +39,42 @@
         max-height: 80vh;
     }
 }
+
+/* Progress bar styles */
+.progress-bar-container {
+    margin: 0;
+}
+
+.single-progress-bar {
+    height: 8px;
+    background-color: #fff;
+    display: flex;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Nowe kolory dla segmentów */
+.progress-segment.boarded {
+    background-color: #2196F3; /* niebieski */
+}
+
+.progress-segment.none {
+    background-color: #9E9E9E; /* szary */
+}
+
+.progress-segment.acc {
+    background-color: #4CAF50; /* zielony */
+}
+
+.progress-segment.stby {
+    background-color: #FF9800; /* pomarańczowy */
+}
+
+.progress-segment.off {
+    background-color: #F44336; /* czerwony */
+}

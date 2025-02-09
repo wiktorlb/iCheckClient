@@ -22,5 +22,10 @@ export const StatsInfo = ({ stats }) => (
             <span>STANDBY</span>
             <span>{stats.standby}</span>
         </div>
+        <div className="stat-item">
+            <span>OFF</span>
+            <span>{stats.off}</span>
+        </div>
     </div>
+
 );

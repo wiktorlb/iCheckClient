@@ -109,6 +109,54 @@ const FlightPassengers = () => {
         }
     }, [selectedPassengers, passengers, navigate]);
 
+    // Komponent paska postępu
+    const ProgressBar = ({ stats, total }) => {
+        const getPercentage = (value) => (value / total) * 100;
+
+        return (
+            <div className="single-progress-bar">
+                <div className="progress-segment boarded"
+                    style={{ width: `${getPercentage(stats.boarded || 0)}%` }} />
+                <div className="progress-segment none"
+                    style={{ width: `${getPercentage(stats.none || 0)}%` }} />
+                <div className="progress-segment acc"
+                    style={{ width: `${getPercentage(stats.acc || 0)}%` }} />
+                <div className="progress-segment stby"
+                    style={{ width: `${getPercentage(stats.stby || 0)}%` }} />
+                <div className="progress-segment off"
+                    style={{ width: `${getPercentage(stats.off || 0)}%` }} />
+            </div>
+        );
+    };
+
+    // Aktualizacja obliczeń statystyk
+    const stats = useMemo(() => {
+        return passengers.reduce((acc, passenger) => {
+            const status = passenger.status?.toLowerCase();
+            if (!status) {
+                acc.none++;
+                return acc;
+            }
+            switch(status) {
+                case 'boarded':
+                    acc.boarded++;
+                    break;
+                case 'acc':
+                    acc.acc++;
+                    break;
+                case 'stby':
+                    acc.stby++;
+                    break;
+                case 'off':
+                    acc.off++;
+                    break;
+                default:
+                    acc.none++;
+            }
+            return acc;
+        }, { boarded: 0, none: 0, acc: 0, stby: 0, off: 0 });
+    }, [passengers]);
+
     return (
         <section>
             <div className="content-wrapper">
