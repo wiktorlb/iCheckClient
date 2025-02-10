@@ -12,9 +12,13 @@
 .main {
     font-family: 'Roboto', sans-serif;
     background-color: #E6E8E6;
-    padding: 20px;
+/*     padding: 20px; */
     border-radius: 2px;
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+}
+
+.table-spacer {
+    padding: 0 20px 20px20px;
 }
 
 .main-container {
@@ -22,11 +26,16 @@
     margin: 0 auto;
 }
 
- .flight-stats-info {
+ .statistics-container {
      display: flex;
      align-items: center;
      justify-content: space-around;
      padding: 1em;
+
+     font-weight: bold;
+ }
+ .stats-value {
+    text-align: center;
  }
 
 @media screen and (max-width: 768px) {

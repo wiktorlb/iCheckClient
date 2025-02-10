@@ -12,12 +12,14 @@
 
 /* Style dla nagłówka tabeli */
 .passenger-table thead {
+    display: flex;
     position: sticky;
     top: 0;
     z-index: 1;
     background-color: #191F2C;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     color: #FAF9F9;
+    padding: 0.5em;
 }
 
 /* Style dla kodów SSR */

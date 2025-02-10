@@ -12,6 +12,14 @@ import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/Pas
 import FlightInfo from './components/FlightInfo/FlightInfo';
 import './style.css';
 
+// Komponent elementu statystyk
+const StatsItem = ({ label, value }) => (
+    <div className="stats-item">
+        <div className="stats-label">{label}</div>
+        <div className="stats-value">{value}</div>
+    </div>
+);
+
 /**
  * Główny komponent zarządzający listą pasażerów lotu
  * @component
@@ -109,6 +117,54 @@ const FlightPassengers = () => {
         }
     }, [selectedPassengers, passengers, navigate]);
 
+    // Aktualizacja obliczeń statystyk
+    const stats = useMemo(() => {
+        const baseStats = passengers.reduce((acc, passenger) => {
+            const status = passenger.status?.toLowerCase();
+
+            // Liczenie bagaży
+            const baggageCount = passenger.baggageList?.length || 0;
+            acc.bags += baggageCount;
+
+            // Jeśli pasażer ma status standby, dodaj jego bagaże do SBAGS
+            if (status === 'stby' && baggageCount > 0) {
+                acc.sbags += baggageCount;
+            }
+
+            // Liczenie statusów
+            switch(status) {
+                case 'boarded':
+                    acc.boarded++;
+                    break;
+                case 'acc':
+                    acc.acc++;
+                    break;
+                case 'stby':
+                    acc.stby++;
+                    break;
+                case 'off':
+                    acc.off++;
+                    break;
+                default:
+                    acc.none++;
+            }
+            return acc;
+        }, {
+            boarded: 0,
+            none: 0,
+            acc: 0,
+            stby: 0,
+            off: 0,
+            bags: 0,
+            sbags: 0
+        });
+
+        return {
+            ...baseStats,
+            booked: passengers.length // Całkowita liczba pasażerów
+        };
+    }, [passengers]);
+
     // Komponent paska postępu
     const ProgressBar = ({ stats, total }) => {
         const getPercentage = (value) => (value / total) * 100;
@@ -129,34 +185,6 @@ const FlightPassengers = () => {
         );
     };
 
-    // Aktualizacja obliczeń statystyk
-    const stats = useMemo(() => {
-        return passengers.reduce((acc, passenger) => {
-            const status = passenger.status?.toLowerCase();
-            if (!status) {
-                acc.none++;
-                return acc;
-            }
-            switch(status) {
-                case 'boarded':
-                    acc.boarded++;
-                    break;
-                case 'acc':
-                    acc.acc++;
-                    break;
-                case 'stby':
-                    acc.stby++;
-                    break;
-                case 'off':
-                    acc.off++;
-                    break;
-                default:
-                    acc.none++;
-            }
-            return acc;
-        }, { boarded: 0, none: 0, acc: 0, stby: 0, off: 0 });
-    }, [passengers]);
-
     return (
         <section>
             <div className="content-wrapper">
@@ -169,26 +197,38 @@ const FlightPassengers = () => {
                     />
                 )}
                 <div className="main-container">
-                    <PassengerStats passengers={passengers} />
+                    <div className="statistics-container">
+                        <StatsItem label="BOARDED" value={stats.boarded} />
+                        <StatsItem label="ACCEPTED" value={stats.acc} />
+                        <StatsItem label="BOOKED" value={stats.booked} />
+                        <StatsItem label="ALLOWED" value='189'/* {stats.allowed}  *//>
+                        <StatsItem label="STANDBY" value={stats.stby} />
+                        <StatsItem label="BAGS" value={stats.bags} />
+                        <StatsItem label="SBAGS" value={stats.sbags} />
+                    </div>
                     <main className="main">
-
+                        <div className="progress-bar-container">
+                            <ProgressBar stats={stats} total={passengers.length} />
+                        </div>
                         <ErrorMessage error={error} />
-                        <SearchBar
-                            value={searchTerm}
-                            onChange={(e) => dispatch({
-                                type: 'SET_SEARCH_TERM',
-                                payload: e.target.value
-                            })}
-                        />
-                        <PassengerTable
-                            passengers={filteredPassengers}
-                            selectedPassengers={selectedPassengers}
-                            onToggleSelection={(id) => dispatch({
-                                type: 'TOGGLE_PASSENGER_SELECTION',
-                                payload: id
-                            })}
-                            getSrrTooltip={getSrrTooltip}
-                        />
+                        <div className="table-spacer">
+                            <SearchBar
+                                value={searchTerm}
+                                onChange={(e) => dispatch({
+                                    type: 'SET_SEARCH_TERM',
+                                    payload: e.target.value
+                                })}
+                            />
+                            <PassengerTable
+                                passengers={filteredPassengers}
+                                selectedPassengers={selectedPassengers}
+                                onToggleSelection={(id) => dispatch({
+                                    type: 'TOGGLE_PASSENGER_SELECTION',
+                                    payload: id
+                                })}
+                                getSrrTooltip={getSrrTooltip}
+                            />
+                        </div>
                     </main>
                 </div>
             </div>
