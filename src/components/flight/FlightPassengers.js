@@ -11,6 +11,38 @@ import { passengerReducer, initialState } from './reducers/PassengerReducer';
 import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';
 import FlightInfo from './components/FlightInfo/FlightInfo';
 import './style.css';
+import SeatMap from './components/SeatMap/SeatMap';
+
+/* const SeatMap = ({ seatMap }) => {
+    // Sprawdzamy, czy seatMap jest zdefiniowana i jest tablicą
+    useEffect(() => {
+        if (!seatMap) {
+            console.error('seatMap is undefined');
+        } else if (!Array.isArray(seatMap)) {
+            console.error('seatMap is not an array:', seatMap);
+        } else {
+            seatMap.forEach((row, rowIndex) => {
+                console.log(`Row ${rowIndex}:`, row);  // Logujemy każdą linię
+            });
+        }
+    }, [seatMap]); // Używamy useEffect do monitorowania zmian w seatMap
+
+    return (
+        <div>
+            {Array.isArray(seatMap) ? (
+                seatMap.map((row, rowIndex) => (
+                    <div key={rowIndex}>
+                        {row.map((seat, seatIndex) => (
+                            <span key={seatIndex}>{seat} </span>
+                        ))}
+                    </div>
+                ))
+            ) : (
+                <div>Error: seatMap is not valid</div> // Wyświetlamy komunikat o błędzie, jeśli seatMap jest nieprawidłowe
+            )}
+        </div>
+    );
+}; */
 
 // Komponent elementu statystyk
 const StatsItem = ({ label, value }) => (
@@ -132,7 +164,7 @@ const FlightPassengers = () => {
             }
 
             // Liczenie statusów
-            switch(status) {
+            switch (status) {
                 case 'boarded':
                     acc.boarded++;
                     break;
@@ -188,6 +220,7 @@ const FlightPassengers = () => {
     return (
         <section>
             <div className="content-wrapper">
+                <div className="main-container-flightData">
                 {flightDetails && (
                     <FlightInfo
                         flightNumber={flightDetails.flightNumber}
@@ -196,12 +229,17 @@ const FlightPassengers = () => {
                         status={flightDetails.state}
                     />
                 )}
+                {/* Render the seat map */}
+                {flightDetails && flightDetails.seatMap && (
+                    <SeatMap seatMap={flightDetails.seatMap} />
+                )}
+                </div>
                 <div className="main-container">
                     <div className="statistics-container">
                         <StatsItem label="BOARDED" value={stats.boarded} />
                         <StatsItem label="ACCEPTED" value={stats.acc} />
                         <StatsItem label="BOOKED" value={stats.booked} />
-                        <StatsItem label="ALLOWED" value='189'/* {stats.allowed}  *//>
+                        <StatsItem label="ALLOWED" value='189' />
                         <StatsItem label="STANDBY" value={stats.stby} />
                         <StatsItem label="BAGS" value={stats.bags} />
                         <StatsItem label="SBAGS" value={stats.sbags} />

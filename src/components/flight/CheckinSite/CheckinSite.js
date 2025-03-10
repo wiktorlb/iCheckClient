@@ -4,7 +4,7 @@ import axiosInstance from '../../../api/axiosConfig';
 import './style.css';
 import { useSrrTooltip } from '../hooks/useSrrTooltip';
 import FlightInfo from '../components/FlightInfo/FlightInfo';
-
+import SeatMap from '../components/SeatMap/SeatMap';
 
 const { countries } = require('countries-list');
 
@@ -18,7 +18,7 @@ const CheckinSite = () => {
     const [baggageType, setBaggageType] = useState("BAG");
     const [comment, setComment] = useState('');
     const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
-    const getSrrTooltip = useSrrTooltip(); // Używamy hooka zamiast lokalnej implementacji
+    const getSrrTooltip = useSrrTooltip();
     const [flightDetails, setFlightDetails] = useState(null);
 
     const [passengerForm, setPassengerForm] = useState({
@@ -41,7 +41,6 @@ const CheckinSite = () => {
                 gender: selectedPassenger.gender || '',
                 dateOfBirth: selectedPassenger.dateOfBirth || '',
                 citizenship: selectedPassenger.citizenship || '',
-                // Ustaw domyślną wartość 'P' jeśli documentType jest null
                 documentType: selectedPassenger.documentType || 'P',
                 serialName: selectedPassenger.serialName || '',
                 validUntil: selectedPassenger.validUntil || '',
@@ -188,17 +187,14 @@ const CheckinSite = () => {
                 issueCountry: passengerForm.issueCountry || null
             };
 
-            // Zapisz zaktualizowane dane pasażera
             const response = await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}`,
                 updatedPassenger
             );
 
-            // Pobierz zaktualizowane dane pasażera
             const refreshedPassenger = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
             const updatedPassengerData = refreshedPassenger.data.passenger || refreshedPassenger.data;
 
-            // Aktualizuj location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? updatedPassengerData : p
@@ -219,11 +215,10 @@ const CheckinSite = () => {
             alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
         }
     };
-    // Dodaj useEffect do monitorowania zmian w location.state
+
     useEffect(() => {
         if (!location.state?.passengers?.length) {
             console.warn('No passengers data in location.state');
-            // Możesz tutaj dodać kod do pobrania danych
         }
     }, [location.state]);
 
@@ -256,7 +251,6 @@ const CheckinSite = () => {
                 }
             );
 
-            // Aktualizujemy stan pasażera w location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? response.data : p
@@ -274,43 +268,6 @@ const CheckinSite = () => {
         }
     };
 
-    /*const handleAddComment = async () => {
-        if (!selectedPassenger || !comment.trim()) return;
-
-        const newComment = {
-            text: comment,
-            date: new Date().toLocaleString(),
-            addedBy: "Admin",
-        };
-
-        try {
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}/add-comment`,
-                newComment,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            // Aktualizujemy stan pasażera w location.state
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? response.data : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-
-            setSelectedPassenger(response.data);
-            setComment('');
-            await refreshSrrCodes(selectedPassenger.id);
-
-        } catch (error) {
-            console.error("Error adding comment:", error.response ? error.response.data : error.message);
-        }
-    }; */
     const handleAddComment = async () => {
         if (!selectedPassenger || !comment.trim()) return;
 
@@ -336,7 +293,6 @@ const CheckinSite = () => {
                 }
             );
 
-            // Aktualizujemy stan pasażera w location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? response.data : p
@@ -347,7 +303,6 @@ const CheckinSite = () => {
             setSelectedPassenger(response.data);
             setComment('');
 
-            // Odświeżamy kody SRR
             await refreshSrrCodes(selectedPassenger.id);
 
         } catch (error) {
@@ -355,59 +310,9 @@ const CheckinSite = () => {
         }
     };
 
-
-
     const handleCommentChange = (event) => {
         setComment(event.target.value);
     };
-
-    /* const getSrrTooltip = (code, passenger) => {
-        if (code.startsWith('BAG')) {
-            if (!passenger.baggageList || !Array.isArray(passenger.baggageList)) {
-                return 'No baggage details available';
-            }
-
-            const bagIndex = parseInt(code.slice(3)) - 1;
-            const baggage = passenger.baggageList[bagIndex];
-
-            if (baggage) {
-                return `Baggage Details:\n` +
-                    `ID: ${baggage.id || 'N/A'}\n` +
-                    `Weight: ${baggage.weight || 'N/A'} kg`;
-            }
-            return 'Baggage information not found';
-        }
-
-        if (code === 'DOCS') {
-            if (passenger.documentType || passenger.citizenship || passenger.validUntil || passenger.issueCountry) {
-                const details = [];
-
-                if (passenger.documentType) details.push(`Type: ${passenger.documentType}`);
-                if (passenger.citizenship) details.push(`Citizenship: ${passenger.citizenship}`);
-                if (passenger.serialName) details.push(`Serial Number: ${passenger.serialName}`);
-                if (passenger.validUntil) details.push(`Valid Until: ${passenger.validUntil}`);
-                if (passenger.issueCountry) details.push(`Issue Country: ${passenger.issueCountry}`);
-
-                return details.length > 0
-                    ? `Document Details:\n${details.join('\n')}`
-                    : 'Document information not available';
-            }
-            return 'Document information not available';
-        }
-
-        if (code === 'COM') {
-            if (passenger.comments && passenger.comments.length > 0) {
-                return passenger.comments.map(comment =>
-                    `Comment: ${comment.text}\n` +
-                    `Added by: ${comment.addedBy}\n` +
-                    `Date: ${comment.date}`
-                ).join('\n\n');
-            }
-            return 'No comments available';
-        }
-
-        return 'No additional information available';
-    }; */
 
     useEffect(() => {
         const fetchFlightDetails = async () => {
@@ -424,18 +329,50 @@ const CheckinSite = () => {
         fetchFlightDetails();
     }, [location.state?.flightId]);
 
+    const handleAssignSeat = async () => {
+        if (!selectedPassenger?.id) {
+            console.error('No passenger selected');
+            return;
+        }
+
+        const seatNumber = prompt("Wprowadź numer miejsca:");
+        if (!seatNumber) return;
+
+        try {
+            await axiosInstance.put(
+                `/api/flights/${location.state.flightId}/passengers/${selectedPassenger.id}/seat`,
+                { seatNumber },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}`);
+        } catch (error) {
+            console.error('Error assigning seat:', error.response ? error.response.data : error.message);
+        }
+    };
+
     return (
-        <section>
-            {flightDetails && (
-                <FlightInfo
-                    flightNumber={flightDetails.flightNumber}
-                    departureTime={flightDetails.departureTime}
-                    route={flightDetails.route}
-                    status={flightDetails.state}
-                />
-            )}
-            <main className="main">
-                <h1>Check-in Site</h1>
+        <section className="checkin-site">
+            <div className="checkin-container">
+                {flightDetails && (
+                    <FlightInfo
+                        flightNumber={flightDetails.flightNumber}
+                        departureTime={flightDetails.departureTime}
+                        route={flightDetails.route}
+                        status={flightDetails.state}
+                    />
+                )}
+                {flightDetails && flightDetails.seatMap && (
+                    <SeatMap seatMap={flightDetails.seatMap} />
+                )}
+            </div>
+            <div className="checkin-actions">
+                <h1>Check-in Actions</h1>
                 <div className="passenger-container">
                     <table className="passenger-table">
                         <thead>
@@ -457,7 +394,7 @@ const CheckinSite = () => {
                                     <td>
                                         <input
                                             type="radio"
-                                            name="passengerSelect" // dodaj name aby radio buttons działały jako grupa
+                                            name="passengerSelect"
                                             checked={selectedPassenger?.id === passenger.id}
                                             onChange={() => handleSelectPassenger(passenger.id)}
                                         />
@@ -496,6 +433,7 @@ const CheckinSite = () => {
                         >
                             API
                         </button>
+                        <button disabled={!selectedPassenger} onClick={handleAssignSeat}>Assign Seat</button>
                         <button disabled={!selectedPassenger}>Seat</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
@@ -521,7 +459,6 @@ const CheckinSite = () => {
                     <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
                 </div>
 
-                {/* Formularz komentarza */}
                 <div className="comment-section">
                     <h2>Add a Comment</h2>
                     <textarea
@@ -533,7 +470,6 @@ const CheckinSite = () => {
                     />
                     <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
 
-                    {/* Lista komentarzy */}
                     {selectedPassenger && selectedPassenger.comments?.length > 0 && (
                         <div className="comments-list">
                             <h3>Comments</h3>
@@ -548,9 +484,8 @@ const CheckinSite = () => {
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
 
-            {/* Modal z danymi pasażera */}
             {showModal && selectedPassenger && (
                 <div className="modal">
                     <div className="modal-content">

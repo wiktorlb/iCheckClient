@@ -1,0 +1,39 @@
+.seatmap-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+margin-top: 1.5em;
+    background-color: #E6E8E6;
+    border-radius: 10px 10px 5px 5px;
+    padding: 0.7em 0;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 90%;
+        justify-content: space-between;
+        margin: 0 auto;
+}
+
+.row-number {
+    font-weight: bold;
+    width: 20px;
+}
+
+.seat-group {
+    font-family: monospace;
+    letter-spacing: 2px;
+    padding: 3px 6px;
+    border-radius: 5px;
+
+    letter-spacing: 0.8em;
+        font-weight: bold;
+}
+
+.seat-name-group {
+    width: 80%;
+        display: flex;
+        justify-content: space-between;
+}

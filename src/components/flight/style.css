@@ -15,10 +15,14 @@
 /*     padding: 20px; */
     border-radius: 2px;
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    height: 90%;
+
+
+    padding-bottom: 1em;
 }
 
 .table-spacer {
-    padding: 0 20px 20px20px;
+    padding: 0 20px 0px 20px;
 }
 
 .main-container {
@@ -86,4 +90,24 @@
 
 .progress-segment.off {
     background-color: #F44336; /* czerwony */
+}
+
+
+.main-container-flightData {
+display: flex;
+flex-direction: column;
+}
+
+.checkin-site {
+    display: flex;
+    justify-content: space-between; /* Ustawia elementy w jednej linii */
+}
+
+.checkin-container {
+    flex: 1; /* Zajmuje dostępne miejsce */
+    margin-right: 20px; /* Odstęp między komponentami */
+}
+
+.checkin-actions {
+    flex: 1; /* Zajmuje dostępne miejsce */
 }

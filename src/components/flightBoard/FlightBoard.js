@@ -18,6 +18,7 @@ const FlightBoard = () => {
       axiosInstance
         .get('/api/flights', { headers: { Authorization: `Bearer ${jwt}` } })
         .then((response) => {
+          console.log('API Response:', response.data); // Log the response data
           if (Array.isArray(response.data)) {
             setFlights(response.data);
           } else {
@@ -95,15 +96,15 @@ const FlightBoard = () => {
                 <tr key={flight.id}>
                   <td>{startIndex + index + 1}</td>
                   <td>
-                    <span className={flight.state.toLowerCase()}>
+                    <span className={flight.status ? flight.status.toLowerCase() : 'unknown'}>
                       <Link to={`/flights/${flight.id}/passengers`} className="action-link">
                         {flight.flightNumber}
                       </Link>
                     </span>
                   </td>
-                  <td>{flight.route}</td>
-                  <td>{flight.state}</td>
-                  <td>{flight.departureTime}</td>
+                  <td>{flight.route || 'N/A'}</td>
+                  <td>{flight.status || 'Unknown'}</td>
+                  <td>{flight.departureTime || 'TBD'}</td>
                   <td>
                     <Link to={`/flights/${flight.id}/passengers`} className="action-link">ENTER</Link>
                     <button
