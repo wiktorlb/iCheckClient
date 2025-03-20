@@ -4,7 +4,7 @@ import axiosInstance from '../../../api/axiosConfig';
 import './style.css';
 import { useSrrTooltip } from '../hooks/useSrrTooltip';
 import FlightInfo from '../components/FlightInfo/FlightInfo';
-import SeatMap from '../components/SeatMap/SeatMap';
+
 
 const { countries } = require('countries-list');
 
@@ -18,7 +18,7 @@ const CheckinSite = () => {
     const [baggageType, setBaggageType] = useState("BAG");
     const [comment, setComment] = useState('');
     const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
-    const getSrrTooltip = useSrrTooltip();
+    const getSrrTooltip = useSrrTooltip(); // Używamy hooka zamiast lokalnej implementacji
     const [flightDetails, setFlightDetails] = useState(null);
 
     const [passengerForm, setPassengerForm] = useState({
@@ -41,6 +41,7 @@ const CheckinSite = () => {
                 gender: selectedPassenger.gender || '',
                 dateOfBirth: selectedPassenger.dateOfBirth || '',
                 citizenship: selectedPassenger.citizenship || '',
+                // Ustaw domyślną wartość 'P' jeśli documentType jest null
                 documentType: selectedPassenger.documentType || 'P',
                 serialName: selectedPassenger.serialName || '',
                 validUntil: selectedPassenger.validUntil || '',
@@ -187,14 +188,17 @@ const CheckinSite = () => {
                 issueCountry: passengerForm.issueCountry || null
             };
 
+            // Zapisz zaktualizowane dane pasażera
             const response = await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}`,
                 updatedPassenger
             );
 
+            // Pobierz zaktualizowane dane pasażera
             const refreshedPassenger = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
             const updatedPassengerData = refreshedPassenger.data.passenger || refreshedPassenger.data;
 
+            // Aktualizuj location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? updatedPassengerData : p
@@ -215,10 +219,11 @@ const CheckinSite = () => {
             alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
         }
     };
-
+    // Dodaj useEffect do monitorowania zmian w location.state
     useEffect(() => {
         if (!location.state?.passengers?.length) {
             console.warn('No passengers data in location.state');
+            // Możesz tutaj dodać kod do pobrania danych
         }
     }, [location.state]);
 
@@ -251,6 +256,7 @@ const CheckinSite = () => {
                 }
             );
 
+            // Aktualizujemy stan pasażera w location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? response.data : p
@@ -293,6 +299,7 @@ const CheckinSite = () => {
                 }
             );
 
+            // Aktualizujemy stan pasażera w location.state
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? response.data : p
@@ -303,6 +310,7 @@ const CheckinSite = () => {
             setSelectedPassenger(response.data);
             setComment('');
 
+            // Odświeżamy kody SRR
             await refreshSrrCodes(selectedPassenger.id);
 
         } catch (error) {
@@ -310,9 +318,12 @@ const CheckinSite = () => {
         }
     };
 
+
+
     const handleCommentChange = (event) => {
         setComment(event.target.value);
     };
+
 
     useEffect(() => {
         const fetchFlightDetails = async () => {
@@ -329,18 +340,19 @@ const CheckinSite = () => {
         fetchFlightDetails();
     }, [location.state?.flightId]);
 
-    const handleAssignSeat = async () => {
+    // Dodaj nową funkcję do przypisania miejsca
+    /* const handleAssignSeat = async () => {
         if (!selectedPassenger?.id) {
             console.error('No passenger selected');
             return;
         }
 
-        const seatNumber = prompt("Wprowadź numer miejsca:");
-        if (!seatNumber) return;
+        const seatNumber = prompt("Wprowadź numer miejsca:"); // Prośba o numer miejsca
+        if (!seatNumber) return; // Jeśli nie podano numeru, zakończ
 
         try {
             await axiosInstance.put(
-                `/api/flights/${location.state.flightId}/passengers/${selectedPassenger.id}/seat`,
+                `/api/flights/${flightDetails.flightId}/passengers/${selectedPassenger.id}/seat`, ///api/flights/${location.state.flightId}/passengers/${selectedPassenger.id}/seat
                 { seatNumber },
                 {
                     headers: {
@@ -351,28 +363,68 @@ const CheckinSite = () => {
             );
 
             console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}`);
+            // Możesz dodać logikę do odświeżenia danych pasażera, jeśli to konieczne
+        } catch (error) {
+            console.error('Error assigning seat:', error.response ? error.response.data : error.message);
+        }
+    }; */
+    const handleAssignSeat = async () => {
+        if (!selectedPassenger?.id) {
+            console.error('No passenger selected');
+            return;
+        }
+
+        const seatNumber = prompt("Wprowadź numer miejsca:"); // Prośba o numer miejsca
+        if (!seatNumber) return; // Jeśli nie podano numeru, zakończ
+
+        if (!location.state?.flightId) {
+            console.error('Flight ID is undefined');
+            return;
+        }
+
+        try {
+            // Sending seat number to the backend
+            await axiosInstance.post(
+                `/api/flights/67c6e738aa5e5515fcf8a918/passengers/${selectedPassenger.id}/assign-seat`,
+                { seatNumber }, // Przekazywanie tylko numeru miejsca
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            // After assigning seat, update the local state with the new seat number
+            const updatedPassengers = location.state.passengers.map((passenger) =>
+                passenger.id === selectedPassenger.id ? { ...passenger, seatNumber } : passenger
+            );
+
+            location.state.passengers = updatedPassengers; // Update the state with the new seat
+
+            console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}`);
+
+            // Optionally refresh or update passenger data if necessary
+            setSelectedPassenger(prev => ({ ...prev, seatNumber }));
         } catch (error) {
             console.error('Error assigning seat:', error.response ? error.response.data : error.message);
         }
     };
 
+
+
     return (
-        <section className="checkin-site">
-            <div className="checkin-container">
-                {flightDetails && (
-                    <FlightInfo
-                        flightNumber={flightDetails.flightNumber}
-                        departureTime={flightDetails.departureTime}
-                        route={flightDetails.route}
-                        status={flightDetails.state}
-                    />
-                )}
-                {flightDetails && flightDetails.seatMap && (
-                    <SeatMap seatMap={flightDetails.seatMap} />
-                )}
-            </div>
-            <div className="checkin-actions">
-                <h1>Check-in Actions</h1>
+        <section>
+            {flightDetails && (
+                <FlightInfo
+                    flightNumber={flightDetails.flightNumber}
+                    departureTime={flightDetails.departureTime}
+                    route={flightDetails.route}
+                    status={flightDetails.state}
+                />
+            )}
+            <main className="main">
+                <h1>Check-in Site</h1>
                 <div className="passenger-container">
                     <table className="passenger-table">
                         <thead>
@@ -394,7 +446,7 @@ const CheckinSite = () => {
                                     <td>
                                         <input
                                             type="radio"
-                                            name="passengerSelect"
+                                            name="passengerSelect" // dodaj name aby radio buttons działały jako grupa
                                             checked={selectedPassenger?.id === passenger.id}
                                             onChange={() => handleSelectPassenger(passenger.id)}
                                         />
@@ -433,8 +485,7 @@ const CheckinSite = () => {
                         >
                             API
                         </button>
-                        <button disabled={!selectedPassenger} onClick={handleAssignSeat}>Assign Seat</button>
-                        <button disabled={!selectedPassenger}>Seat</button>
+                        <button disabled={!selectedPassenger} onClick={handleAssignSeat}>Seat</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
@@ -459,6 +510,7 @@ const CheckinSite = () => {
                     <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
                 </div>
 
+                {/* Formularz komentarza */}
                 <div className="comment-section">
                     <h2>Add a Comment</h2>
                     <textarea
@@ -470,6 +522,7 @@ const CheckinSite = () => {
                     />
                     <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
 
+                    {/* Lista komentarzy */}
                     {selectedPassenger && selectedPassenger.comments?.length > 0 && (
                         <div className="comments-list">
                             <h3>Comments</h3>
@@ -484,8 +537,9 @@ const CheckinSite = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
 
+            {/* Modal z danymi pasażera */}
             {showModal && selectedPassenger && (
                 <div className="modal">
                     <div className="modal-content">

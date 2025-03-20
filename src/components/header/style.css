@@ -10,6 +10,7 @@
   .logo {
     font-size: 1.7em;
     font-weight: bold;
+    cursor: pointer;
   }
 
   .nav a {

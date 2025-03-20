@@ -5,6 +5,13 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #FAF9F9 !important;
   }
+
+  section {
+    width: 90%;
+    margin: 0 auto;
+    padding-top: 2em;
+  }
+
   .spacer {
     display: flex;
     justify-self: center;

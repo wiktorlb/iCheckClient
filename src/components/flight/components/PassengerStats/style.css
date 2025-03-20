@@ -72,12 +72,12 @@
 
 .progress-segment.acc,
 .legend-color.acc {
-    background-color: #66bb6a;
+    background-color: #0B8361;
 }
 
 .progress-segment.stby,
 .legend-color.stby {
-    background-color: #ffd54f;
+    background-color: #F4B266;
     color: #333;
     /* Ciemniejszy tekst dla jasnego tła */
     text-shadow: none;

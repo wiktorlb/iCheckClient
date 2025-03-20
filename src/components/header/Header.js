@@ -13,9 +13,13 @@ const Header = ({ onLogout }) => {
     navigate('/'); // Po wylogowaniu przekierowanie na stronę logowania
   };
 
+  const handleHome = () => {
+    navigate('/flightBoard');
+  }
+
   return (
     <header className="header">
-      <div className="logo">iCheck</div>
+      <div className="logo"><a onClick={handleHome}>iCheck</a></div>
       <nav className="nav">
         <Link to="/management">USERS</Link>
         <Link to="/flightboard">FLIGHTS</Link>

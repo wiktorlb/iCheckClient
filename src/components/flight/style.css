@@ -6,7 +6,6 @@
 .content-wrapper {
     display: flex;
     gap: 20px; /* Odstęp między FlightInfo a główną zawartością */
-    padding: 20px;
 }
 
 .main {
@@ -71,43 +70,7 @@
     transition: width 0.3s ease;
 }
 
-/* Nowe kolory dla segmentów */
-.progress-segment.boarded {
-    background-color: #2196F3; /* niebieski */
-}
-
-.progress-segment.none {
-    background-color: #9E9E9E; /* szary */
-}
-
-.progress-segment.acc {
-    background-color: #4CAF50; /* zielony */
-}
-
-.progress-segment.stby {
-    background-color: #FF9800; /* pomarańczowy */
-}
-
-.progress-segment.off {
-    background-color: #F44336; /* czerwony */
-}
-
-
 .main-container-flightData {
 display: flex;
 flex-direction: column;
-}
-
-.checkin-site {
-    display: flex;
-    justify-content: space-between; /* Ustawia elementy w jednej linii */
-}
-
-.checkin-container {
-    flex: 1; /* Zajmuje dostępne miejsce */
-    margin-right: 20px; /* Odstęp między komponentami */
-}
-
-.checkin-actions {
-    flex: 1; /* Zajmuje dostępne miejsce */
 }

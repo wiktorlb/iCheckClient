@@ -1,46 +1,22 @@
-/* import React, { useEffect } from 'react';
-import './style.css'; // Upewnij się, że masz odpowiednie style
-
-const SeatMap = ({ seatMap }) => {
-    useEffect(() => {
-        if (!seatMap) {
-            console.error('seatMap is undefined');
-        } else if (!Array.isArray(seatMap)) {
-            console.error('seatMap is not an array:', seatMap);
-        }
-    }, [seatMap]);
-
-    return (
-        <div className="seatmap-container">
-            {Array.isArray(seatMap) ? (
-                seatMap.map((row, rowIndex) => (
-                    <div key={rowIndex} className="seat-row">
-                        {row.map((seat, seatIndex) => (
-                            <span
-                                key={seatIndex}
-                                className={seat === 'X' ? 'occupied' : 'available'}
-                                title={seat === 'X' ? 'Zajęte' : 'Wolne'}
-                            >
-                                {seat}
-                            </span>
-                        ))}
-                    </div>
-                ))
-            ) : (
-                <div>Error: seatMap is not valid</div>
-            )}
-        </div>
-    );
-};
-
-export default SeatMap; */
-
-
-
 import React from 'react';
 import './style.css';
 
+import { useEffect, useState } from "react";
+
 const SeatMap = ({ seatMap }) => {
+/*
+zmienic na axios
+
+ */
+    const [occupiedSeats, setOccupiedSeats] = useState([]);
+
+    useEffect(() => {
+        fetch(`http://localhost:8080/flights/12345/occupied-seats`)
+            .then(response => response.json())
+            .then(data => setOccupiedSeats(data))
+            .catch(error => console.error("Error fetching occupied seats:", error));
+    }, []);
+
     if (!Array.isArray(seatMap)) {
         console.error('seatMap is not an array:', seatMap);
         return <div>Error: Invalid seat data</div>;
@@ -57,15 +33,21 @@ const SeatMap = ({ seatMap }) => {
                 }
 
                 const rowNumber = seats[0].match(/\d+/)[0]; // Pobiera numer rzędu
-                const firstGroup = seats.slice(0, 3).map(seat => seat.replace(/\d+/, '')).join('');
-                const secondGroup = seats.slice(3, 6).map(seat => seat.replace(/\d+/, '')).join('');
 
                 return (
                     <div key={rowIndex} className="seat-row">
                         <span className="row-number">{rowNumber}</span>
                         <div className="seat-name-group">
-                            <span className="seat-group">{firstGroup}</span>
-                            <span className="seat-group">{secondGroup}</span>
+                            {seats.map((seat, seatIndex) => {
+                                const seatLabel = seat.trim();
+                                const isOccupied = occupiedSeats.includes(seatLabel);
+
+                                return (
+                                    <span key={seatIndex} className={`seat ${isOccupied ? 'occupied' : ''}`}>
+                                        {seatLabel}
+                                    </span>
+                                );
+                            })}
                         </div>
                     </div>
                 );
