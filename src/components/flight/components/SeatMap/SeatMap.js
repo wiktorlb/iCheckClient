@@ -1,7 +1,7 @@
-/* import React, { useEffect } from 'react';
-import './style.css'; // Upewnij się, że masz odpowiednie style
+import React, { useEffect } from 'react';
+import './style.css';
 
-const SeatMap = ({ seatMap }) => {
+const SeatMap = ({ seatMap, occupiedSeats = [] }) => {
     useEffect(() => {
         if (!seatMap) {
             console.error('seatMap is undefined');
@@ -10,62 +10,69 @@ const SeatMap = ({ seatMap }) => {
         }
     }, [seatMap]);
 
-    return (
-        <div className="seatmap-container">
-            {Array.isArray(seatMap) ? (
-                seatMap.map((row, rowIndex) => (
-                    <div key={rowIndex} className="seat-row">
-                        {row.map((seat, seatIndex) => (
-                            <span
-                                key={seatIndex}
-                                className={seat === 'X' ? 'occupied' : 'available'}
-                                title={seat === 'X' ? 'Zajęte' : 'Wolne'}
-                            >
-                                {seat}
-                            </span>
-                        ))}
-                    </div>
-                ))
-            ) : (
-                <div>Error: seatMap is not valid</div>
-            )}
-        </div>
-    );
-};
-
-export default SeatMap; */
-
-
-
-import React from 'react';
-import './style.css';
-
-const SeatMap = ({ seatMap }) => {
     if (!Array.isArray(seatMap)) {
-        console.error('seatMap is not an array:', seatMap);
-        return <div>Error: Invalid seat data</div>;
+        return <div className="error">Błąd: Nieprawidłowe dane miejsc</div>;
     }
+
+    // Funkcja sprawdzająca, czy miejsce jest zajęte
+    const isSeatOccupied = (seatNumber) => {
+        return occupiedSeats.includes(seatNumber);
+    };
 
     return (
         <div className="seatmap-container">
             {seatMap.map((row, rowIndex) => {
-                const seats = row.split(','); // Podział miejsc po przecinku
-
-                if (seats.length !== 6) {
-                    console.error(`Invalid seat row at index ${rowIndex}:`, row);
-                    return <div key={rowIndex} className="seat-row error">Invalid row</div>;
+                // Sprawdzamy, czy wiersz jest stringiem
+                if (typeof row !== 'string') {
+                    return <div key={rowIndex} className="seat-row error">Nieprawidłowy format wiersza</div>;
                 }
 
-                const rowNumber = seats[0].match(/\d+/)[0]; // Pobiera numer rzędu
-                const firstGroup = seats.slice(0, 3).map(seat => seat.replace(/\d+/, '')).join('');
-                const secondGroup = seats.slice(3, 6).map(seat => seat.replace(/\d+/, '')).join('');
+                // Podział miejsc po przecinku
+                const seats = row.split(',');
+
+                if (seats.length !== 6) {
+                    return <div key={rowIndex} className="seat-row error">Nieprawidłowa liczba miejsc w wierszu</div>;
+                }
+
+                // Pobieranie numeru rzędu z pierwszego miejsca
+                const rowNumber = seats[0].replace(/[A-Z]/g, '');
+
+                // Przetwarzanie pierwszej grupy miejsc (3 miejsca)
+                const firstGroupSeats = seats.slice(0, 3).map(seat => {
+                    const seatLetter = seat.replace(/\d+/g, '');
+                    const isOccupied = isSeatOccupied(seat);
+                    return (
+                        <span
+                            key={seat}
+                            className={`seat ${isOccupied ? 'occupied' : 'available'}`}
+                            title={isOccupied ? 'Zajęte' : 'Wolne'}
+                        >
+                            {seatLetter}
+                        </span>
+                    );
+                });
+
+                // Przetwarzanie drugiej grupy miejsc (3 miejsca)
+                const secondGroupSeats = seats.slice(3, 6).map(seat => {
+                    const seatLetter = seat.replace(/\d+/g, '');
+                    const isOccupied = isSeatOccupied(seat);
+                    return (
+                        <span
+                            key={seat}
+                            className={`seat ${isOccupied ? 'occupied' : 'available'}`}
+                            title={isOccupied ? 'Zajęte' : 'Wolne'}
+                        >
+                            {seatLetter}
+                        </span>
+                    );
+                });
 
                 return (
                     <div key={rowIndex} className="seat-row">
                         <span className="row-number">{rowNumber}</span>
                         <div className="seat-name-group">
-                            <span className="seat-group">{firstGroup}</span>
-                            <span className="seat-group">{secondGroup}</span>
+                            <div className="seat-group">{firstGroupSeats}</div>
+                            <div className="seat-group">{secondGroupSeats}</div>
                         </div>
                     </div>
                 );

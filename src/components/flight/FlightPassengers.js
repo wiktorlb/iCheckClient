@@ -103,12 +103,9 @@ const FlightPassengers = () => {
     useEffect(() => {
         const fetchFlightDetails = async () => {
             try {
-                const jwt = localStorage.getItem('jwt');
-                if (!jwt) return;
-
-                const response = await axiosInstance.get(`/api/flights/${flightId}`, {
-                    headers: { Authorization: `Bearer ${jwt}` }
-                });
+                const response = await axiosInstance.get(`/api/flights/${flightId}`);
+                console.log('Flight details response:', response.data);
+                console.log('SeatMap data:', response.data.seatMap);
                 setFlightDetails(response.data);
             } catch (error) {
                 console.error('Error fetching flight details:', error);
@@ -134,12 +131,23 @@ const FlightPassengers = () => {
                 });
             }
 
-            const selectedDetails = getSelectedPassengerDetails(
-                passengers,
-                selectedPassengers,
-                newStatus
-            );
-            navigate('/checkin', { state: { passengers: selectedDetails, action } });
+            const selectedDetails = getSelectedPassengerDetails(passengers, selectedPassengers, newStatus);
+
+
+            if (selectedDetails.length === 0) {
+                console.error('⚠️ Brak wybranych pasażerów!');
+                return;
+            }
+
+            const flightId = selectedDetails[0]?.flightId;
+
+            if (!flightId) {
+                console.error('❌ Brak flightId w wybranych pasażerach!', selectedDetails);
+                return;
+            }
+
+            navigate('/checkin', { state: { passengers: selectedDetails, flightId, action } });
+
         } catch (error) {
             console.error('Error updating passengers:', error);
             dispatch({
@@ -148,7 +156,6 @@ const FlightPassengers = () => {
             });
         }
     }, [selectedPassengers, passengers, navigate]);
-
     // Aktualizacja obliczeń statystyk
     const stats = useMemo(() => {
         const baseStats = passengers.reduce((acc, passenger) => {
@@ -231,7 +238,10 @@ const FlightPassengers = () => {
                 )}
                 {/* Render the seat map */}
                 {flightDetails && flightDetails.seatMap && (
-                    <SeatMap seatMap={flightDetails.seatMap} />
+                    <SeatMap
+                        seatMap={flightDetails.seatMap}
+                        occupiedSeats={flightDetails.occupiedSeats || []}
+                    />
                 )}
                 </div>
                 <div className="main-container">

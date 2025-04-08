@@ -319,6 +319,9 @@ const CheckinSite = () => {
             if (location.state?.flightId) {
                 try {
                     const response = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
+                    console.log('CheckinSite - Flight details response:', response.data);
+                    console.log('CheckinSite - SeatMap data:', response.data.seatMap);
+                    console.log('CheckinSite - Occupied seats data:', response.data.occupiedSeats);
                     setFlightDetails(response.data);
                 } catch (error) {
                     console.error('Error fetching flight details:', error);
@@ -330,8 +333,8 @@ const CheckinSite = () => {
     }, [location.state?.flightId]);
 
     const handleAssignSeat = async () => {
-        if (!selectedPassenger?.id) {
-            console.error('No passenger selected');
+        if (!selectedPassenger?.id || !location.state?.flightId) {
+            console.error('Brak danych: flightId lub passengerId');
             return;
         }
 
@@ -339,9 +342,13 @@ const CheckinSite = () => {
         if (!seatNumber) return;
 
         try {
-            await axiosInstance.put(
-                `/api/flights/${location.state.flightId}/passengers/${selectedPassenger.id}/seat`,
-                { seatNumber },
+            const response = await axiosInstance.post(
+                `/api/flights/assign-seat`,  // 🚀 Poprawiony endpoint
+                {
+                    flightId: location.state.flightId,
+                    passengerId: selectedPassenger.id,
+                    seatNumber: seatNumber
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('jwt')}`,
@@ -350,11 +357,17 @@ const CheckinSite = () => {
                 }
             );
 
-            console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}`);
+            console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}:`, response.data);
+
+            // Opcjonalnie: Zaktualizuj UI po przypisaniu miejsca
+            setSelectedPassenger((prev) => ({ ...prev, seatNumber }));
+
         } catch (error) {
-            console.error('Error assigning seat:', error.response ? error.response.data : error.message);
+            console.error('Błąd przy przypisywaniu miejsca:', error.response ? error.response.data : error.message);
+            alert(`Błąd: ${error.response?.data || error.message}`);
         }
     };
+
 
     return (
         <section className="checkin-site">
@@ -368,7 +381,10 @@ const CheckinSite = () => {
                     />
                 )}
                 {flightDetails && flightDetails.seatMap && (
-                    <SeatMap seatMap={flightDetails.seatMap} />
+                    <SeatMap
+                        seatMap={flightDetails.seatMap}
+                        occupiedSeats={flightDetails.occupiedSeats || []}
+                    />
                 )}
             </div>
             <div className="checkin-actions">
@@ -434,7 +450,6 @@ const CheckinSite = () => {
                             API
                         </button>
                         <button disabled={!selectedPassenger} onClick={handleAssignSeat}>Assign Seat</button>
-                        <button disabled={!selectedPassenger}>Seat</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>

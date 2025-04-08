@@ -103,11 +103,6 @@ flex-direction: column;
     justify-content: space-between; /* Ustawia elementy w jednej linii */
 }
 
-.checkin-container {
-    flex: 1; /* Zajmuje dostępne miejsce */
-    margin-right: 20px; /* Odstęp między komponentami */
-}
-
 .checkin-actions {
     flex: 1; /* Zajmuje dostępne miejsce */
 }
