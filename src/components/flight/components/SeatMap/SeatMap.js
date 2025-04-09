@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import './style.css';
 
-const SeatMap = ({ seatMap, occupiedSeats = [] }) => {
+const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }) => {
     useEffect(() => {
         if (!seatMap) {
             console.error('seatMap is undefined');
@@ -17,6 +17,17 @@ const SeatMap = ({ seatMap, occupiedSeats = [] }) => {
     // Funkcja sprawdzająca, czy miejsce jest zajęte
     const isSeatOccupied = (seatNumber) => {
         return occupiedSeats.includes(seatNumber);
+    };
+
+    // Funkcja obsługująca kliknięcie na miejsce
+    const handleSeatClick = (seat) => {
+        if (isSeatOccupied(seat)) {
+            return; // Nie reaguj na kliknięcie zajętego miejsca
+        }
+
+        if (selectedPassenger && onSeatClick) {
+            onSeatClick(seat);
+        }
     };
 
     return (
@@ -46,6 +57,7 @@ const SeatMap = ({ seatMap, occupiedSeats = [] }) => {
                             key={seat}
                             className={`seat ${isOccupied ? 'occupied' : 'available'}`}
                             title={isOccupied ? 'Zajęte' : 'Wolne'}
+                            onClick={() => handleSeatClick(seat)}
                         >
                             {seatLetter}
                         </span>
@@ -61,6 +73,7 @@ const SeatMap = ({ seatMap, occupiedSeats = [] }) => {
                             key={seat}
                             className={`seat ${isOccupied ? 'occupied' : 'available'}`}
                             title={isOccupied ? 'Zajęte' : 'Wolne'}
+                            onClick={() => handleSeatClick(seat)}
                         >
                             {seatLetter}
                         </span>

@@ -18,6 +18,7 @@ const CheckinSite = () => {
     const [baggageType, setBaggageType] = useState("BAG");
     const [comment, setComment] = useState('');
     const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
+    const [currentSrrCodes, setCurrentSrrCodes] = useState({});
     const getSrrTooltip = useSrrTooltip();
     const [flightDetails, setFlightDetails] = useState(null);
 
@@ -84,9 +85,14 @@ const CheckinSite = () => {
             const passengerData = response.data.passenger || response.data;
 
             if (passengerData) {
+                const newSrrCodes = passengerData.srrCodes || [];
                 setPassengerSrrCodes(prev => ({
                     ...prev,
-                    [passengerId]: passengerData.srrCodes || []
+                    [passengerId]: newSrrCodes
+                }));
+                setCurrentSrrCodes(prev => ({
+                    ...prev,
+                    [passengerId]: newSrrCodes
                 }));
             }
         } catch (error) {
@@ -314,36 +320,60 @@ const CheckinSite = () => {
         setComment(event.target.value);
     };
 
-    useEffect(() => {
-        const fetchFlightDetails = async () => {
-            if (location.state?.flightId) {
-                try {
-                    const response = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
-                    console.log('CheckinSite - Flight details response:', response.data);
-                    console.log('CheckinSite - SeatMap data:', response.data.seatMap);
-                    console.log('CheckinSite - Occupied seats data:', response.data.occupiedSeats);
-                    setFlightDetails(response.data);
-                } catch (error) {
-                    console.error('Error fetching flight details:', error);
-                }
+    const fetchFlightDetails = async () => {
+        if (location.state?.flightId) {
+            try {
+                const response = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
+                console.log('CheckinSite - Flight details response:', response.data);
+                console.log('CheckinSite - SeatMap data:', response.data.seatMap);
+                console.log('CheckinSite - Occupied seats data:', response.data.occupiedSeats);
+                setFlightDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching flight details:', error);
             }
-        };
+        }
+    };
 
+    useEffect(() => {
         fetchFlightDetails();
     }, [location.state?.flightId]);
 
-    const handleAssignSeat = async () => {
+    const addSrrCode = async (passengerId, srrCode) => {
+        try {
+            const response = await axiosInstance.post(
+                `/api/passengers/${passengerId}/add-srr-code`,
+                { srrCode },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            console.log(`Kod SSR ${srrCode} dodany do pasażera:`, response.data);
+
+            return response.data;
+        } catch (error) {
+            console.error(`Błąd przy dodawaniu kodu SSR ${srrCode}:`, error.response ? error.response.data : error.message);
+            throw error;
+        }
+    };
+
+    const handleAssignSeat = async (seatNumber) => {
         if (!selectedPassenger?.id || !location.state?.flightId) {
             console.error('Brak danych: flightId lub passengerId');
             return;
         }
 
-        const seatNumber = prompt("Wprowadź numer miejsca:");
-        if (!seatNumber) return;
+        if (!seatNumber) {
+            seatNumber = prompt("Wprowadź numer miejsca:");
+            if (!seatNumber) return;
+        }
 
         try {
             const response = await axiosInstance.post(
-                `/api/flights/assign-seat`,  // 🚀 Poprawiony endpoint
+                `/api/flights/assign-seat`,
                 {
                     flightId: location.state.flightId,
                     passengerId: selectedPassenger.id,
@@ -359,15 +389,29 @@ const CheckinSite = () => {
 
             console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}:`, response.data);
 
-            // Opcjonalnie: Zaktualizuj UI po przypisaniu miejsca
-            setSelectedPassenger((prev) => ({ ...prev, seatNumber }));
+            const passengerResponse = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
+            const updatedPassenger = passengerResponse.data.passenger || passengerResponse.data;
+
+            setSelectedPassenger(updatedPassenger);
+
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === selectedPassenger.id ? updatedPassenger : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+
+            await addSrrCode(selectedPassenger.id, 'SEAT');
+            await refreshSrrCodes(selectedPassenger.id);
+
+            const flightResponse = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
+            setFlightDetails(flightResponse.data);
 
         } catch (error) {
             console.error('Błąd przy przypisywaniu miejsca:', error.response ? error.response.data : error.message);
             alert(`Błąd: ${error.response?.data || error.message}`);
         }
     };
-
 
     return (
         <section className="checkin-site">
@@ -384,6 +428,8 @@ const CheckinSite = () => {
                     <SeatMap
                         seatMap={flightDetails.seatMap}
                         occupiedSeats={flightDetails.occupiedSeats || []}
+                        onSeatClick={handleAssignSeat}
+                        selectedPassenger={selectedPassenger}
                     />
                 )}
             </div>
@@ -416,13 +462,31 @@ const CheckinSite = () => {
                                         />
                                     </td>
                                     <td>{index + 1}</td>
-                                    <td>{passenger.name} {passenger.surname} {passenger.title} {passengerSrrCodes[passenger.id]?.length > 0 && (
+                                    <td>{passenger.name} {passenger.surname} {passenger.title} {currentSrrCodes[passenger.id]?.length > 0 && (
                                         <div className="srr-codes">
-                                            {passengerSrrCodes[passenger.id].map((code, idx) => (
+                                            {currentSrrCodes[passenger.id].map((code, idx) => (
                                                 <span
                                                     key={idx}
-                                                    className={`srr-code ${code.toLowerCase()}`}
+                                                    className={`srr-code ${code === 'SEAT' ? 'seat-code' : code.toLowerCase()}`}
                                                     data-tooltip={getSrrTooltip(code, passenger)}
+                                                    onMouseEnter={(event) => {
+                                                        const element = event.currentTarget;
+                                                        const rect = element.getBoundingClientRect();
+
+                                                        // Oblicz pozycję tooltipa
+                                                        let x = rect.left + (rect.width / 2);
+                                                        let y = rect.top - 15;
+
+                                                        // Sprawdź pozycję względem viewportu
+                                                        if (rect.top < 100) {
+                                                            // Jeśli jest zbyt blisko góry, pokaż tooltip pod elementem
+                                                            y = rect.bottom + 10;
+                                                        }
+
+                                                        // Ustaw style za pomocą CSS custom properties
+                                                        element.style.setProperty('--tooltip-x', `${x}px`);
+                                                        element.style.setProperty('--tooltip-y', `${y}px`);
+                                                    }}
                                                 >
                                                     {code}
                                                 </span>
@@ -449,7 +513,6 @@ const CheckinSite = () => {
                         >
                             API
                         </button>
-                        <button disabled={!selectedPassenger} onClick={handleAssignSeat}>Assign Seat</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
                         <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>

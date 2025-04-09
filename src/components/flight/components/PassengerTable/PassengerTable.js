@@ -149,7 +149,7 @@ const PassengerName = memo(({ passenger, getSrrTooltip }) => {
                     {passenger.srrCodes.map((code, idx) => (
                         <span
                             key={idx}
-                            className={`srr-code ${code.toLowerCase()}`}
+                            className={`srr-code`}
                             data-tooltip={getSrrTooltip(code, passenger)}
                             onMouseEnter={handleTooltipPosition}
                         >

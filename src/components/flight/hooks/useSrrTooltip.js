@@ -15,21 +15,15 @@ export const useSrrTooltip = () => {
         if (code === 'COM') {
             return getCommentTooltip(passenger);
         }
+        if (code === 'SEAT') {
+            return getSeatTooltip(passenger);
+        }
         return 'No additional information available';
     }, []);
 };
 
 /**
  * Generuje tooltip dla bagażu
- */
-/* const getBaggageTooltip = (passenger, code) => {
-    if (!passenger.baggageList?.length) return 'No baggage details available';
-
-    const baggage = passenger.baggageList[parseInt(code.slice(3)) - 1];
-    return baggage
-        ? `Baggage Details:\nID: ${baggage.id || 'N/A'}\nType: ${baggage.type || 'N/A'}\nWeight: ${baggage.weight || 'N/A'} kg`
-        : 'Baggage information not found';
-};
  */
 
 const getBaggageTooltip = (passenger, code) => {
@@ -109,6 +103,15 @@ const getCommentTooltip = (passenger) => {
         `Added by: ${comment.addedBy}\n` +
         `Date: ${comment.date}`
     ).join('\n\n');
+};
+
+/**
+ * Generuje tooltip dla przypisanego miejsca
+ */
+const getSeatTooltip = (passenger) => {
+    if (!passenger.seatNumber) return 'Brak przypisanego miejsca';
+
+    return `SEAT: ` + `${passenger.seatNumber}`;
 };
 
 export default useSrrTooltip;

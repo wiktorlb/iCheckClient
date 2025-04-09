@@ -87,4 +87,87 @@
   margin-right: 20px;
 }
 
+/* Style dla kodów SSR */
+.srr-codes {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.srr-code {
+    position: relative;
+    cursor: pointer;
+    font-size: 0.8em;
+    padding: 2px 6px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    color: #333;
+}
+
+/* Specjalne style dla kodu SEAT */
+.srr-code.seat-code {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Tooltip styles */
+.srr-code::before {
+    content: attr(data-tooltip);
+    position: fixed;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: pre-line;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+    min-width: 200px;
+    text-align: left;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+/* Hover efekty dla tooltipa */
+.srr-code:hover::before {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Pozycjonowanie tooltipa */
+.srr-code::before {
+    top: var(--tooltip-y);
+    left: var(--tooltip-x);
+}
+
+/* Zapewnienie, że kontenery nie będą ograniczać widoczności tooltipa */
+.passenger-container,
+.passenger-table,
+.main,
+section {
+    overflow: visible !important;
+}
+
+/* Dodaj strzałkę do tooltipa */
+.srr-code::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.srr-code:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+
 
