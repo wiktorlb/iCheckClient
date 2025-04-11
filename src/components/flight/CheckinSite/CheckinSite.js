@@ -328,11 +328,21 @@ const CheckinSite = () => {
     const fetchFlightDetails = async () => {
         if (location.state?.flightId) {
             try {
-                const response = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
-                console.log('CheckinSite - Flight details response:', response.data);
-                console.log('CheckinSite - SeatMap data:', response.data.seatMap);
-                console.log('CheckinSite - Occupied seats data:', response.data.occupiedSeats);
-                setFlightDetails(response.data);
+                // Pobierz szczegóły lotu
+                const flightResponse = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
+                console.log('Flight details response:', flightResponse.data);
+
+                // Pobierz wszystkich pasażerów lotu
+                const passengersResponse = await axiosInstance.get(`/api/passengers/flights/${location.state.flightId}/passengers-with-srr`);
+                console.log('Passengers response:', passengersResponse.data);
+
+                // Połącz dane
+                const flightDetails = {
+                    ...flightResponse.data,
+                    passengers: passengersResponse.data
+                };
+
+                setFlightDetails(flightDetails);
             } catch (error) {
                 console.error('Error fetching flight details:', error);
             }
@@ -388,6 +398,7 @@ const CheckinSite = () => {
         }
 
         try {
+            // Przypisanie miejsca
             const response = await axiosInstance.post(
                 `/api/flights/assign-seat`,
                 {
@@ -405,11 +416,19 @@ const CheckinSite = () => {
 
             console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}:`, response.data);
 
+            // Pobierz zaktualizowane dane pasażera
             const passengerResponse = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
             const updatedPassenger = passengerResponse.data.passenger || passengerResponse.data;
 
+            // Upewnij się, że pasażer ma przypisany numer miejsca
+            if (!updatedPassenger.seatNumber) {
+                updatedPassenger.seatNumber = seatNumber;
+            }
+
+            // Aktualizuj stan pasażera
             setSelectedPassenger(updatedPassenger);
 
+            // Aktualizuj listę pasażerów
             if (location.state?.passengers) {
                 const updatedPassengers = location.state.passengers.map(p =>
                     p.id === selectedPassenger.id ? updatedPassenger : p
@@ -417,9 +436,11 @@ const CheckinSite = () => {
                 location.state.passengers = updatedPassengers;
             }
 
+            // Dodaj kod SSR i odśwież kody
             await addSrrCode(selectedPassenger.id, 'SEAT');
             await refreshSrrCodes(selectedPassenger.id);
 
+            // Odśwież szczegóły lotu
             await fetchFlightDetails();
 
         } catch (error) {
@@ -461,6 +482,7 @@ const CheckinSite = () => {
                 )}
                 {flightDetails && flightDetails.seatMap && (
                     <SeatMap
+                        flightId={location.state?.flightId}
                         seatMap={flightDetails.seatMap}
                         occupiedSeats={flightDetails.occupiedSeats || []}
                         onSeatClick={handleAssignSeat}

@@ -1,7 +1,37 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axiosInstance from '../../../../api/axiosConfig';
 import './style.css';
 
-const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }) => {
+const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }) => {
+    const [passengers, setPassengers] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchPassengers = async () => {
+            if (!flightId) return;
+
+            try {
+                const response = await axiosInstance.get(`/api/passengers/flights/${flightId}/passengers-with-srr`);
+                console.log('Passengers response:', response.data);
+                setPassengers(response.data);
+            } catch (error) {
+                console.error('Error fetching passengers:', error);
+                setError('Błąd podczas pobierania danych pasażerów');
+            }
+        };
+
+        fetchPassengers();
+    }, [flightId]);
+
+    useEffect(() => {
+        console.log('SeatMap props:', {
+            seatMap,
+            occupiedSeats,
+            selectedPassenger,
+            passengers
+        });
+    }, [seatMap, occupiedSeats, selectedPassenger, passengers]);
+
     useEffect(() => {
         if (!seatMap) {
             console.error('seatMap is undefined');
@@ -11,12 +41,27 @@ const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }
     }, [seatMap]);
 
     if (!Array.isArray(seatMap)) {
+        console.error('seatMap is not an array:', seatMap);
         return <div className="error">Błąd: Nieprawidłowe dane miejsc</div>;
     }
 
     // Funkcja sprawdzająca, czy miejsce jest zajęte
     const isSeatOccupied = (seatNumber) => {
         return occupiedSeats.includes(seatNumber);
+    };
+
+    // Funkcja zwracająca pasażera przypisanego do danego miejsca
+    const getPassengerForSeat = (seatNumber) => {
+        return passengers.find(passenger => passenger.seatNumber === seatNumber);
+    };
+
+    // Funkcja generująca tooltip dla miejsca
+    const getSeatTooltip = (seatNumber) => {
+        const passenger = getPassengerForSeat(seatNumber);
+        if (passenger) {
+            return `${passenger.name} ${passenger.surname}\nStatus: ${passenger.status}\nKody SSR: ${passenger.srrcodes?.join(', ') || 'brak'}`;
+        }
+        return isSeatOccupied(seatNumber) ? 'Zajęte' : 'Wolne';
     };
 
     // Funkcja obsługująca kliknięcie na miejsce
@@ -29,6 +74,10 @@ const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }
             onSeatClick(seat);
         }
     };
+
+    if (error) {
+        return <div className="error">{error}</div>;
+    }
 
     return (
         <div className="seatmap-container">
@@ -52,11 +101,13 @@ const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }
                 const firstGroupSeats = seats.slice(0, 3).map(seat => {
                     const seatLetter = seat.replace(/\d+/g, '');
                     const isOccupied = isSeatOccupied(seat);
+                    const tooltip = getSeatTooltip(seat);
+
                     return (
                         <span
                             key={seat}
                             className={`seat ${isOccupied ? 'occupied' : 'available'}`}
-                            title={isOccupied ? 'Zajęte' : 'Wolne'}
+                            title={tooltip}
                             onClick={() => handleSeatClick(seat)}
                         >
                             {seatLetter}
@@ -68,11 +119,13 @@ const SeatMap = ({ seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }
                 const secondGroupSeats = seats.slice(3, 6).map(seat => {
                     const seatLetter = seat.replace(/\d+/g, '');
                     const isOccupied = isSeatOccupied(seat);
+                    const tooltip = getSeatTooltip(seat);
+
                     return (
                         <span
                             key={seat}
                             className={`seat ${isOccupied ? 'occupied' : 'available'}`}
-                            title={isOccupied ? 'Zajęte' : 'Wolne'}
+                            title={tooltip}
                             onClick={() => handleSeatClick(seat)}
                         >
                             {seatLetter}

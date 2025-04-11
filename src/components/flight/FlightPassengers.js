@@ -239,6 +239,7 @@ const FlightPassengers = () => {
                 {/* Render the seat map */}
                 {flightDetails && flightDetails.seatMap && (
                     <SeatMap
+                        flightId={flightId}
                         seatMap={flightDetails.seatMap}
                         occupiedSeats={flightDetails.occupiedSeats || []}
                     />
