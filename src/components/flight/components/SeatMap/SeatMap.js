@@ -59,7 +59,8 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
     const getSeatTooltip = (seatNumber) => {
         const passenger = getPassengerForSeat(seatNumber);
         if (passenger) {
-            return `${passenger.name} ${passenger.surname}\nStatus: ${passenger.status}\nKody SSR: ${passenger.srrcodes?.join(', ') || 'brak'}`;
+            const srrCodes = passenger.srrcodes || passenger.srrCodes || [];
+            return `${passenger.name} ${passenger.surname}\nStatus: ${passenger.status}\nKody SSR: ${srrCodes.length > 0 ? srrCodes.join(', ') : 'brak'}`;
         }
         return isSeatOccupied(seatNumber) ? 'Zajęte' : 'Wolne';
     };
