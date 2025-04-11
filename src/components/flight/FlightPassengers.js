@@ -135,14 +135,14 @@ const FlightPassengers = () => {
 
 
             if (selectedDetails.length === 0) {
-                console.error('⚠️ Brak wybranych pasażerów!');
+                console.error('Brak wybranych pasażerów!');
                 return;
             }
 
             const flightId = selectedDetails[0]?.flightId;
 
             if (!flightId) {
-                console.error('❌ Brak flightId w wybranych pasażerach!', selectedDetails);
+                console.error('Brak flightId w wybranych pasażerach!', selectedDetails);
                 return;
             }
 

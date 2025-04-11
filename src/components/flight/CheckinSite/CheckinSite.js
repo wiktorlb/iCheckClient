@@ -270,6 +270,8 @@ const CheckinSite = () => {
             setBaggageWeight('');
             setBaggageType('BAG');
 
+            await fetchFlightDetails();
+
         } catch (error) {
             console.error("Error adding baggage:", error.response ? error.response.data : error.message);
         }
@@ -311,6 +313,8 @@ const CheckinSite = () => {
             setComment('');
 
             await refreshSrrCodes(selectedPassenger.id);
+
+            await fetchFlightDetails();
 
         } catch (error) {
             console.error("Error adding comment:", error.response ? error.response.data : error.message);
@@ -415,6 +419,8 @@ const CheckinSite = () => {
 
             await addSrrCode(selectedPassenger.id, 'SEAT');
             await refreshSrrCodes(selectedPassenger.id);
+
+            await fetchFlightDetails();
 
         } catch (error) {
             console.error('Błąd przy przypisywaniu miejsca:', error.response ? error.response.data : error.message);
