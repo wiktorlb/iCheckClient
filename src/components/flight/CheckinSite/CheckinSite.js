@@ -74,6 +74,7 @@ const CheckinSite = () => {
                     srrCodesMap[passenger.id] = codes;
                 }
                 setPassengerSrrCodes(srrCodesMap);
+                setCurrentSrrCodes(srrCodesMap);
             }
         };
         loadSrrCodes();
@@ -353,6 +354,17 @@ const CheckinSite = () => {
 
             console.log(`Kod SSR ${srrCode} dodany do pasażera:`, response.data);
 
+            // Aktualizacja stanu kodów SSR
+            const newSrrCodes = response.data.srrCodes || [];
+            setPassengerSrrCodes(prev => ({
+                ...prev,
+                [passengerId]: newSrrCodes
+            }));
+            setCurrentSrrCodes(prev => ({
+                ...prev,
+                [passengerId]: newSrrCodes
+            }));
+
             return response.data;
         } catch (error) {
             console.error(`Błąd przy dodawaniu kodu SSR ${srrCode}:`, error.response ? error.response.data : error.message);
@@ -404,14 +416,31 @@ const CheckinSite = () => {
             await addSrrCode(selectedPassenger.id, 'SEAT');
             await refreshSrrCodes(selectedPassenger.id);
 
-            const flightResponse = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
-            setFlightDetails(flightResponse.data);
-
         } catch (error) {
             console.error('Błąd przy przypisywaniu miejsca:', error.response ? error.response.data : error.message);
             alert(`Błąd: ${error.response?.data || error.message}`);
         }
     };
+
+    useEffect(() => {
+        const fetchPassengerData = async () => {
+            if (location.state?.passengers) {
+                const updatedPassengers = await Promise.all(
+                    location.state.passengers.map(async (passenger) => {
+                        try {
+                            const response = await axiosInstance.get(`/api/passengers/${passenger.id}`);
+                            return response.data.passenger || response.data;
+                        } catch (error) {
+                            console.error(`Błąd przy pobieraniu danych pasażera ${passenger.id}:`, error);
+                            return passenger;
+                        }
+                    })
+                );
+                location.state.passengers = updatedPassengers;
+            }
+        };
+        fetchPassengerData();
+    }, [location.state?.passengers]);
 
     return (
         <section className="checkin-site">
