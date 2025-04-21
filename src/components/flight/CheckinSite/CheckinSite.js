@@ -147,6 +147,7 @@ const CheckinSite = () => {
         if (!selectedPassenger) return;
 
         try {
+            // Aktualizacja statusu pasażera
             await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}/status`,
                 JSON.stringify(status),
@@ -158,6 +159,28 @@ const CheckinSite = () => {
                 }
             );
 
+            // Jeśli status to OFF, zwolnij miejsce
+            if (status === 'OFF' && selectedPassenger.seatNumber) {
+                try {
+                    await axiosInstance.post(
+                        `/api/flights/release-seat`,
+                        {
+                            flightId: location.state.flightId,
+                            passengerId: selectedPassenger.id,
+                            seatNumber: selectedPassenger.seatNumber
+                        },
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+                } catch (error) {
+                    console.error('Błąd przy zwalnianiu miejsca:', error.response ? error.response.data : error.message);
+                }
+            }
+
             const updatedPassengers = location.state.passengers.map((p) =>
                 p.id === selectedPassenger.id ? { ...p, status } : p
             );
@@ -165,6 +188,9 @@ const CheckinSite = () => {
             setSelectedPassenger((prev) => ({ ...prev, status }));
             location.state.passengers = updatedPassengers;
             await refreshSrrCodes(selectedPassenger.id);
+
+            // Odśwież szczegóły lotu, aby zaktualizować mapę miejsc
+            await fetchFlightDetails();
 
         } catch (error) {
             console.error('Error updating passenger status:', error.response ? error.response.data : error.message);
@@ -500,6 +526,7 @@ const CheckinSite = () => {
                                 <th>No.</th>
                                 <th>Name</th>
                                 <th>Gender</th>
+                                <th>Seat</th>
                                 <th>State</th>
                             </tr>
                         </thead>
@@ -551,6 +578,7 @@ const CheckinSite = () => {
                                         </div>
                                     )}</td>
                                     <td>{passenger.gender}</td>
+                                    <td>{passenger.seatNumber}</td>
                                     <td>{passenger.status}</td>
                                 </tr>
                             ))}
