@@ -1,17 +1,32 @@
+.search-bars-container {
+    display: flex;
+    gap: 20px;
+    margin: 15px 0;
+}
+
 .search-bar {
     display: flex;
     width: 25%;
     padding: 10px;
-    margin: 15px 0;
     border: none;
     background: #FAF9F9;
     color: #191F2C;
     font-size: 16px;
-/*     border-bottom: 2px solid #191F2C; */
     transition: border-color 0.3s ease;
 }
 
 .search-bar:focus {
     outline: none;
-/*     border-bottom: 2px solid #F59E0B; */
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 768px) {
+    .search-bars-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-bar {
+        width: 100%;
+    }
 }

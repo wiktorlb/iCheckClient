@@ -136,9 +136,10 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
 
                 return (
                     <div key={rowIndex} className="seat-row">
-                        <span className="row-number">{rowNumber}</span>
+                       {/*  <span className="row-number">{rowNumber}</span> */}
                         <div className="seat-name-group">
                             <div className="seat-group">{firstGroupSeats}</div>
+                            <span className="row-number">{rowNumber}</span>
                             <div className="seat-group">{secondGroupSeats}</div>
                         </div>
                     </div>

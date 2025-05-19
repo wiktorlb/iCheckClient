@@ -4,6 +4,7 @@ import axiosInstance from '../../api/axiosConfig';
 import PassengerStats from './components/PassengerStats/PassengerStats';
 import PassengerTable from './components/PassengerTable/PassengerTable';
 import SearchBar from './components/SearchBar/SearchBar';
+import SearchBarSSR from './components/SearchBarSSR/SearchBarSSR';
 import ActionPanel from './components/ActionPanel/ActionPanel';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
@@ -12,37 +13,6 @@ import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/Pas
 import FlightInfo from './components/FlightInfo/FlightInfo';
 import './style.css';
 import SeatMap from './components/SeatMap/SeatMap';
-
-/* const SeatMap = ({ seatMap }) => {
-    // Sprawdzamy, czy seatMap jest zdefiniowana i jest tablicą
-    useEffect(() => {
-        if (!seatMap) {
-            console.error('seatMap is undefined');
-        } else if (!Array.isArray(seatMap)) {
-            console.error('seatMap is not an array:', seatMap);
-        } else {
-            seatMap.forEach((row, rowIndex) => {
-                console.log(`Row ${rowIndex}:`, row);  // Logujemy każdą linię
-            });
-        }
-    }, [seatMap]); // Używamy useEffect do monitorowania zmian w seatMap
-
-    return (
-        <div>
-            {Array.isArray(seatMap) ? (
-                seatMap.map((row, rowIndex) => (
-                    <div key={rowIndex}>
-                        {row.map((seat, seatIndex) => (
-                            <span key={seatIndex}>{seat} </span>
-                        ))}
-                    </div>
-                ))
-            ) : (
-                <div>Error: seatMap is not valid</div> // Wyświetlamy komunikat o błędzie, jeśli seatMap jest nieprawidłowe
-            )}
-        </div>
-    );
-}; */
 
 // Komponent elementu statystyk
 const StatsItem = ({ label, value }) => (
@@ -62,16 +32,22 @@ const FlightPassengers = () => {
     const [state, dispatch] = useReducer(passengerReducer, initialState);
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
+    const [srrSearchTerm, setSrrSearchTerm] = useState('');
 
     // Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
     const getSrrTooltip = useSrrTooltip();
 
     // Memoizacja filtrowanych pasażerów dla lepszej wydajności
     const filteredPassengers = useMemo(() =>
-        passengers.filter(passenger =>
-            passenger.surname.toLowerCase().includes(searchTerm.toLowerCase())
-        ),
-        [passengers, searchTerm]
+        passengers.filter(passenger => {
+            const matchesSurname = passenger.surname.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSrr = !srrSearchTerm ||
+                (passenger.srrCodes && passenger.srrCodes.some(code =>
+                    code.toUpperCase().includes(srrSearchTerm.toUpperCase())
+                ));
+            return matchesSurname && matchesSrr;
+        }),
+        [passengers, searchTerm, srrSearchTerm]
     );
 
     // Efekt pobierający dane pasażerów przy montowaniu komponentu lub zmianie ID lotu
@@ -228,22 +204,22 @@ const FlightPassengers = () => {
         <section>
             <div className="content-wrapper">
                 <div className="main-container-flightData">
-                {flightDetails && (
-                    <FlightInfo
-                        flightNumber={flightDetails.flightNumber}
-                        departureTime={flightDetails.departureTime}
-                        route={flightDetails.route}
-                        status={flightDetails.state}
-                    />
-                )}
-                {/* Render the seat map */}
-                {flightDetails && flightDetails.seatMap && (
-                    <SeatMap
-                        flightId={flightId}
-                        seatMap={flightDetails.seatMap}
-                        occupiedSeats={flightDetails.occupiedSeats || []}
-                    />
-                )}
+                    {flightDetails && (
+                        <FlightInfo
+                            flightNumber={flightDetails.flightNumber}
+                            departureTime={flightDetails.departureTime}
+                            route={flightDetails.route}
+                            status={flightDetails.state}
+                        />
+                    )}
+                    {/* Render the seat map */}
+                    {flightDetails && flightDetails.seatMap && (
+                        <SeatMap
+                            flightId={flightId}
+                            seatMap={flightDetails.seatMap}
+                            occupiedSeats={flightDetails.occupiedSeats || []}
+                        />
+                    )}
                 </div>
                 <div className="main-container">
                     <div className="statistics-container">
@@ -261,13 +237,20 @@ const FlightPassengers = () => {
                         </div>
                         <ErrorMessage error={error} />
                         <div className="table-spacer">
-                            <SearchBar
-                                value={searchTerm}
-                                onChange={(e) => dispatch({
-                                    type: 'SET_SEARCH_TERM',
-                                    payload: e.target.value
-                                })}
-                            />
+                            <div className="search-bars-container">
+                                <SearchBar
+                                    value={searchTerm}
+                                    onChange={(e) => dispatch({
+                                        type: 'SET_SEARCH_TERM',
+                                        payload: e.target.value
+                                    })}
+                                    placeholder="Search by surname..."
+                                />
+                                <SearchBarSSR
+                                    value={srrSearchTerm}
+                                    onChange={(e) => setSrrSearchTerm(e.target.value)}
+                                />
+                            </div>
                             <PassengerTable
                                 passengers={filteredPassengers}
                                 selectedPassengers={selectedPassengers}

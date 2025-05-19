@@ -6,7 +6,7 @@
 .content-wrapper {
     display: flex;
     gap: 1em; /* Odstęp między FlightInfo a główną zawartością */
-    padding: 1.5em;
+    padding: 1.4em;
 }
 
 .main {
