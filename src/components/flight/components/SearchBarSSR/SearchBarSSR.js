@@ -55,48 +55,46 @@ export const SearchBarSSR = memo(({ value, onChange }) => {
         };
     }, []);
 
-    const handleInputClick = () => {
+    const handleInputChange = (e) => {
+        onChange(e);
         setIsOpen(true);
     };
 
-    const handleCodeSelect = (code) => {
-        onChange({ target: { value: code } });
+    const handleSelectCode = (code) => {
+        onChange({ target: { value: code.code } });
         setIsOpen(false);
     };
 
     return (
-        <div className="search-bar-container" ref={dropdownRef}>
+        <div className="search-bar-ssr" ref={dropdownRef}>
             <input
                 type="text"
-                placeholder="Search by SSR code..."
                 value={value}
-                onChange={onChange}
-                onClick={handleInputClick}
-                className="search-bar"
+                onChange={handleInputChange}
+                onFocus={() => setIsOpen(true)}
+                placeholder="Search by SSR code..."
+                className="search-input"
             />
-            {isOpen && (
+            {isOpen && !loading && !error && (
                 <div className="ssr-dropdown">
-                    {loading ? (
-                        <div className="ssr-option loading">Loading...</div>
-                    ) : error ? (
-                        <div className="ssr-option error">{error}</div>
-                    ) : filteredCodes.length > 0 ? (
+                    {filteredCodes.length > 0 ? (
                         filteredCodes.map((code) => (
                             <div
-                                key={code._id}
+                                key={code.code}
                                 className="ssr-option"
-                                onClick={() => handleCodeSelect(code.code)}
-                                title={code.description}
+                                onClick={() => handleSelectCode(code)}
                             >
                                 <span className="ssr-code">{code.code}</span>
                                 <span className="ssr-description">{code.description}</span>
                             </div>
                         ))
                     ) : (
-                        <div className="ssr-option no-results">No matching codes found</div>
+                        <div className="no-results">No matching SSR codes found</div>
                     )}
                 </div>
             )}
+            {loading && <div className="loading">Loading SSR codes...</div>}
+            {error && <div className="error">{error}</div>}
         </div>
     );
 });

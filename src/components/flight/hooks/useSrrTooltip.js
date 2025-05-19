@@ -1,11 +1,52 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
+import axiosInstance from '../../../api/axiosConfig';
 
 /**
  * Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
  * @returns {Function} Funkcja generująca tooltip
  */
 export const useSrrTooltip = () => {
+    const [ssrCodes, setSsrCodes] = useState({});
+
+    useEffect(() => {
+        const fetchSSRCodes = async () => {
+            try {
+                const response = await axiosInstance.get('/api/ssr-codes');
+                const codesMap = response.data.reduce((acc, code) => {
+                    acc[code.code] = code;
+                    return acc;
+                }, {});
+                setSsrCodes(codesMap);
+            } catch (error) {
+                console.error('Error fetching SSR codes:', error);
+            }
+        };
+
+        fetchSSRCodes();
+    }, []);
+
     return useCallback((code, passenger) => {
+        const ssrCode = ssrCodes[code];
+
+        if (ssrCode) {
+            let tooltip = `${ssrCode.code}: ${ssrCode.description}\n`;
+
+            // Dodaj szczegóły w zależności od kategorii kodu SSR
+            switch (ssrCode.category) {
+                case 'BAGGAGE':
+                    return getBaggageTooltip(passenger, code) + '\n\n' + tooltip;
+                case 'DOCUMENTATION':
+                    return getDocumentTooltip(passenger) + '\n\n' + tooltip;
+                case 'SPECIAL_ASSISTANCE':
+                    return tooltip + '\nSpecial assistance required';
+                case 'SEAT':
+                    return getSeatTooltip(passenger) + '\n\n' + tooltip;
+                default:
+                    return tooltip;
+            }
+        }
+
+        // Fallback dla starych kodów SSR
         if (code.startsWith('BAG')) {
             return getBaggageTooltip(passenger, code);
         }
@@ -18,8 +59,9 @@ export const useSrrTooltip = () => {
         if (code === 'SEAT') {
             return getSeatTooltip(passenger);
         }
+
         return 'No additional information available';
-    }, []);
+    }, [ssrCodes]);
 };
 
 /**
