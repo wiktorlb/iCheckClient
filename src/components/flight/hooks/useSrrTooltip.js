@@ -43,7 +43,7 @@ const getBaggageTooltip = (passenger, code) => {
 
     const readableType = baggageTypes[baggage.type] || baggage.type;
 
-    return `Baggage Details:\n` +
+    return `BAGGAGE DETAILS:\n` +
         `ID: ${baggage.id || 'N/A'}\n` +
         `Type: ${readableType || 'N/A'}\n` +
         `Weight: ${baggage.weight || 'N/A'} kg`;
@@ -88,7 +88,7 @@ const getDocumentTooltip = (passenger) => {
     if (passenger.issueCountry) details.push(`Issue Country: ${passenger.issueCountry}`);
 
     return details.length > 0
-        ? `Document Details:\n${details.join('\n')}`
+        ? `DOCUMENT DETAILS:\n${details.join('\n')}`
         : 'No document information available';
 };
 

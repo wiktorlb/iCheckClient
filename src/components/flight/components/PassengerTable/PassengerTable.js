@@ -39,6 +39,7 @@ const TableHeader = () => (
             <th>Select</th>
             <th>No.</th>
             <th>Name</th>
+            <th>Seat</th>
             <th>Gender</th>
             <th>State</th>
         </tr>
@@ -112,6 +113,7 @@ const PassengerRow = memo(({
             <td>
                 <PassengerName passenger={passenger} getSrrTooltip={getSrrTooltip} />
             </td>
+            <td>{passenger.seatNumber}</td>
             <td>{passenger.gender}</td>
             <td>{passenger.status}</td>
         </tr>

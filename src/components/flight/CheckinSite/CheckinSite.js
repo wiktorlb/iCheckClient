@@ -148,7 +148,7 @@ const CheckinSite = () => {
 
         try {
             // Aktualizacja statusu pasażera
-            await axiosInstance.put(
+            const response = await axiosInstance.put(
                 `/api/passengers/${selectedPassenger.id}/status`,
                 JSON.stringify(status),
                 {
@@ -159,7 +159,7 @@ const CheckinSite = () => {
                 }
             );
 
-            // Jeśli status to OFF, zwolnij miejsce
+            // Jeśli status to OFF i pasażer ma przypisane miejsce, zwolnij je
             if (status === 'OFF' && selectedPassenger.seatNumber) {
                 try {
                     await axiosInstance.post(
@@ -176,18 +176,40 @@ const CheckinSite = () => {
                             },
                         }
                     );
+
+                    // Aktualizuj dane pasażera w stanie
+                    const updatedPassenger = {
+                        ...selectedPassenger,
+                        status: 'OFF',
+                        seatNumber: null // Usuń przypisanie miejsca
+                    };
+                    setSelectedPassenger(updatedPassenger);
+
+                    // Aktualizuj listę pasażerów
+                    if (location.state?.passengers) {
+                        const updatedPassengers = location.state.passengers.map(p =>
+                            p.id === selectedPassenger.id ? updatedPassenger : p
+                        );
+                        location.state.passengers = updatedPassengers;
+                    }
                 } catch (error) {
                     console.error('Błąd przy zwalnianiu miejsca:', error.response ? error.response.data : error.message);
                 }
+            } else {
+                // Aktualizuj tylko status pasażera
+                const updatedPassenger = {
+                    ...selectedPassenger,
+                    status
+                };
+                setSelectedPassenger(updatedPassenger);
+
+                if (location.state?.passengers) {
+                    const updatedPassengers = location.state.passengers.map(p =>
+                        p.id === selectedPassenger.id ? updatedPassenger : p
+                    );
+                    location.state.passengers = updatedPassengers;
+                }
             }
-
-            const updatedPassengers = location.state.passengers.map((p) =>
-                p.id === selectedPassenger.id ? { ...p, status } : p
-            );
-
-            setSelectedPassenger((prev) => ({ ...prev, status }));
-            location.state.passengers = updatedPassengers;
-            await refreshSrrCodes(selectedPassenger.id);
 
             // Odśwież szczegóły lotu, aby zaktualizować mapę miejsc
             await fetchFlightDetails();
@@ -204,6 +226,10 @@ const CheckinSite = () => {
         }
 
         try {
+            // Pobierz aktualne kody SSR przed aktualizacją
+            const currentSrrCodes = passengerSrrCodes[selectedPassenger.id] || [];
+            const hasSeatCode = currentSrrCodes.includes('SEAT');
+
             const updatedPassenger = {
                 id: selectedPassenger.id,
                 flightId: selectedPassenger.flightId,
@@ -240,6 +266,12 @@ const CheckinSite = () => {
             }
 
             setSelectedPassenger(updatedPassengerData);
+
+            // Jeśli pasażer miał kod SEAT i ma przypisane miejsce, przywróć go
+            if (hasSeatCode && updatedPassengerData.seatNumber) {
+                await addSrrCode(selectedPassenger.id, 'SEAT');
+            }
+
             await refreshSrrCodes(selectedPassenger.id);
             handleCloseModal();
 
@@ -556,15 +588,20 @@ const CheckinSite = () => {
                                                     onMouseEnter={(event) => {
                                                         const element = event.currentTarget;
                                                         const rect = element.getBoundingClientRect();
+                                                        const tooltipHeight = 100; // Zmniejszona wysokość tooltipa
+                                                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
                                                         // Oblicz pozycję tooltipa
                                                         let x = rect.left + (rect.width / 2);
-                                                        let y = rect.top - 15;
+                                                        let y;
 
-                                                        // Sprawdź pozycję względem viewportu
-                                                        if (rect.top < 100) {
-                                                            // Jeśli jest zbyt blisko góry, pokaż tooltip pod elementem
-                                                            y = rect.bottom + 10;
+                                                        // Sprawdź, czy tooltip zmieści się nad elementem
+                                                        if (rect.top - tooltipHeight > 0) {
+                                                            // Tooltip nad elementem
+                                                            y = rect.top + scrollTop - 10;
+                                                        } else {
+                                                            // Tooltip pod elementem
+                                                            y = rect.bottom + scrollTop + 10;
                                                         }
 
                                                         // Ustaw style za pomocą CSS custom properties

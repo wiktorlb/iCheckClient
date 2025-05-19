@@ -7,6 +7,26 @@
     border-radius: 8px;
     max-width: 600px;
     margin: 0 auto;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.seatmap-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.seatmap-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.seatmap-container::-webkit-scrollbar-thumb {
+    background: #191F2C;
+    border-radius: 4px;
+}
+
+.seatmap-container::-webkit-scrollbar-thumb:hover {
+    background: #2c3e50;
 }
 
 .seat-row {
