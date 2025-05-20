@@ -1,0 +1,119 @@
+/* Reusing styles from FlightPassengers */
+.content-wrapper {
+    display: flex;
+    gap: 1em;
+    padding: 1.4em;
+}
+
+.main-container-flightData {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.statistics-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 1em;
+    font-weight: bold;
+}
+
+.main {
+    font-family: 'Roboto', sans-serif;
+    background-color: #E6E8E6;
+    border-radius: 2px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    height: 90%;
+    padding-bottom: 1em;
+}
+
+.table-spacer {
+    padding: 0 20px 0px 20px;
+}
+
+/* Progress bar styles */
+.progress-bar-container {
+    margin: 0;
+}
+
+.single-progress-bar {
+    height: 8px;
+    background-color: #fff;
+    display: flex;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progress-segment.boarded {
+    background-color: #2196F3;
+}
+
+.progress-segment.none {
+    background-color: #9E9E9E;
+}
+
+.progress-segment.acc {
+    background-color: #4CAF50;
+}
+
+.progress-segment.stby {
+    background-color: #FF9800;
+}
+
+.progress-segment.off {
+    background-color: #F44336;
+}
+
+/* Actions container styles */
+.actions-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+.right-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background-color: #191F2C;
+    color: white;
+}
+
+.actions-container button:hover:not(:disabled) {
+    background-color: #2c3e50;
+}
+
+.actions-container button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media screen and (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .passenger-container {
+        max-height: 80vh;
+    }
+}

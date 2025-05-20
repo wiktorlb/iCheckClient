@@ -7,15 +7,30 @@ import { StatsProgressBar } from './StatsProgressBar';
  * Komponent wyświetlający statystyki pasażerów
  * @component
  * @param {Object} props
- * @param {Array} props.passengers - Lista pasażerów
+ * @param {Array} [props.passengers] - Lista pasażerów
+ * @param {Object} [props.stats] - Pre-calculated stats object
  */
-export const PassengerStats = ({ passengers }) => {
+export const PassengerStats = ({ passengers, stats: providedStats }) => {
     const stats = useMemo(() => {
-        const initialStats = { boarded: 0, accepted: 0, booked: 0, allowed: 0, standby: 0, none: 0, off: 0 };
+        if (providedStats) {
+            return providedStats;
+        }
+
+        if (!passengers) {
+            return {
+                boarded: 0,
+                accepted: 0,
+                booked: 0,
+                allowed: 0,
+                standby: 0,
+                none: 0,
+                off: 0
+            };
+        }
+
         return passengers.reduce((acc, passenger) => {
             const status = passenger.status?.toLowerCase() || 'none';
             switch (status) {
-
                 case 'boarded': acc.boarded++; break;
                 case 'acc': acc.accepted++; break;
                 case 'booked': acc.booked++; break;
@@ -26,13 +41,21 @@ export const PassengerStats = ({ passengers }) => {
                 default: break;
             }
             return acc;
-        }, initialStats);
-    }, [passengers]);
+        }, {
+            boarded: 0,
+            accepted: 0,
+            booked: 0,
+            allowed: 0,
+            standby: 0,
+            none: 0,
+            off: 0
+        });
+    }, [passengers, providedStats]);
 
     return (
         <>
             <StatsInfo stats={stats} />
-            <StatsProgressBar stats={stats} totalPassengers={passengers.length} />
+            <StatsProgressBar stats={stats} totalPassengers={passengers?.length || 0} />
         </>
     );
 };

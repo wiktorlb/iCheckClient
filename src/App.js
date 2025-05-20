@@ -1,16 +1,3 @@
-/* import React, { useState, useEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
-import LoginForm from './components/LoginForm';
-import FlightBoard from './components/flightBoard/FlightBoard';
-import AddFlightForm from './components/flightBoard/AddFlightForm';
-import RegisterForm from './components/RegisterForm';
-import Header from './components/header/Header';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import FlightPassengers from './components/flight/FlightPassengers';
-import UploadPassengers from './components/flight/UploadPassengers';
-import UserManagement from './components/UserManagement';
-import CheckinSite from './components/flight/CheckinSite'; */
-
 import React, { useState, useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
@@ -23,6 +10,7 @@ import FlightPassengers from './components/flight/FlightPassengers';
 import UploadPassengers from './components/flight/UploadPassengers/UploadPassengers';
 import UserManagement from './components/UserManagement';
 import CheckinSite from './components/flight/CheckinSite/CheckinSite';
+import Boarding from './components/flight/Boarding/Boarding';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -151,6 +139,18 @@ const App = () => {
         <Route
           path="/checkin"
           element={isLoggedIn ? <CheckinSite /> : <Navigate to="/login" />}
+        />
+
+        {/* Ścieżka do strony boarding */}
+        <Route
+          path="/flights/:flightId/boarding"
+          element={
+            isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
+              <Boarding />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
         />
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}

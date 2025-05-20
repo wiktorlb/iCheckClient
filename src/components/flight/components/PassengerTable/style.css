@@ -15,11 +15,12 @@
     border-collapse: separate;
     border-spacing: 0;
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Style dla nagłówka tabeli */
 .passenger-table thead {
-    display: flex;
     position: sticky;
     top: 0;
     z-index: 1;
@@ -27,6 +28,13 @@
     color: #ffffff;
     padding: 0;
     height: 60px;
+    display: table;
+    width: 100%;
+}
+
+.passenger-table-header-row {
+    display: table-row;
+    width: 100%;
 }
 
 .passenger-table-header-row th {
@@ -43,12 +51,14 @@
     display: block;
     overflow-y: auto;
     height: calc(100% - 60px);
+    width: 100%;
 }
 
 .passenger-table tbody tr {
+    display: table;
+    width: 100%;
     border-bottom: 1px solid #e2e8f0;
     transition: all 0.2s ease;
-    /*height: 70px; */
     height: 5em;
 }
 
@@ -178,33 +188,33 @@
 /* Szerokości kolumn */
 .passenger-table th:nth-child(1),
 .passenger-table td:nth-child(1) {
-    width: 8%;
+   min-width: 8%;
 }
 
 .passenger-table th:nth-child(2),
 .passenger-table td:nth-child(2) {
-    width: 5%;
+    min-width: 5%;
 }
 
 .passenger-table th:nth-child(3),
 .passenger-table td:nth-child(3) {
-    width: 40%;
+    min-width: 55%;
     text-align: left;
 }
 
 .passenger-table th:nth-child(4),
 .passenger-table td:nth-child(4) {
-    width: 12%;
+    min-width: 12%;
 }
 
 .passenger-table th:nth-child(5),
 .passenger-table td:nth-child(5) {
-    width: 10%;
+    min-width: 15%;
 }
 
 .passenger-table th:nth-child(6),
 .passenger-table td:nth-child(6) {
-    width: 10%;
+    min-width: 15%;
 }
 
 /* Zapewnienie, że kontenery nie będą ograniczać widoczności tooltipa */

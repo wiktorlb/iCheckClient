@@ -53,6 +53,12 @@ export const passengerReducer = (state, action) => {
                 )
             };
 
+        case 'CLEAR_SELECTION':
+            return {
+                ...state,
+                selectedPassengers: []
+            };
+
         default:
             return state;
     }

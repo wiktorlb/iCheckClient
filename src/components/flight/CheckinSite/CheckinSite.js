@@ -287,12 +287,24 @@ const CheckinSite = () => {
         }
     }, [location.state]);
 
-    const handleSelectPassenger = (passengerId) => {
-        const passenger = location.state?.passengers.find(p => p.id === passengerId);
-        if (passenger) {
-            setSelectedPassenger(passenger);
-        } else {
-            console.error('Passenger not found');
+    const handleSelectPassenger = async (passengerId) => {
+        try {
+            // Pobierz pełne dane pasażera z serwera
+            const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
+            const passengerData = response.data.passenger || response.data;
+
+            // Aktualizuj dane pasażera w stanie
+            setSelectedPassenger(passengerData);
+
+            // Aktualizuj listę pasażerów
+            if (location.state?.passengers) {
+                const updatedPassengers = location.state.passengers.map(p =>
+                    p.id === passengerId ? passengerData : p
+                );
+                location.state.passengers = updatedPassengers;
+            }
+        } catch (error) {
+            console.error('Error fetching passenger data:', error);
         }
     };
 
@@ -528,162 +540,172 @@ const CheckinSite = () => {
     }, [location.state?.passengers]);
 
     return (
-        <section className="checkin-site">
-            <div className="checkin-container">
-                {flightDetails && (
-                    <FlightInfo
-                        flightNumber={flightDetails.flightNumber}
-                        departureTime={flightDetails.departureTime}
-                        route={flightDetails.route}
-                        status={flightDetails.state}
-                    />
-                )}
-                {flightDetails && flightDetails.seatMap && (
-                    <SeatMap
-                        flightId={location.state?.flightId}
-                        seatMap={flightDetails.seatMap}
-                        occupiedSeats={flightDetails.occupiedSeats || []}
-                        onSeatClick={handleAssignSeat}
-                        selectedPassenger={selectedPassenger}
-                    />
-                )}
-            </div>
-            <div className="checkin-actions">
-                <h1>Check-in Actions</h1>
-                <div className="passenger-container">
-                    <table className="passenger-table">
-                        <thead>
-                            <tr>
-                                <th>Select</th>
-                                <th>No.</th>
-                                <th>Name</th>
-                                <th>Gender</th>
-                                <th>Seat</th>
-                                <th>State</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {location.state?.passengers.map((passenger, index) => (
-                                <tr key={passenger.id} className={
-                                    passenger.status === 'ACC' ? 'row-accepted' :
-                                    passenger.status === 'STBY' ? 'row-standby' :
-                                    passenger.status === 'OFF' ? 'row-offloaded' : ''
-                                }>
-                                    <td>
-                                        <input
-                                            type="radio"
-                                            name="passengerSelect"
-                                            checked={selectedPassenger?.id === passenger.id}
-                                            onChange={() => handleSelectPassenger(passenger.id)}
-                                        />
-                                    </td>
-                                    <td>{index + 1}</td>
-                                    <td>{passenger.name} {passenger.surname} {passenger.title} {currentSrrCodes[passenger.id]?.length > 0 && (
-                                        <div className="srr-codes">
-                                            {currentSrrCodes[passenger.id].map((code, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className={`srr-code ${code === 'SEAT' ? 'seat-code' : code.toLowerCase()}`}
-                                                    data-tooltip={getSrrTooltip(code, passenger)}
-                                                    onMouseEnter={(event) => {
-                                                        const element = event.currentTarget;
-                                                        const rect = element.getBoundingClientRect();
-                                                        const tooltipHeight = 100; // Zmniejszona wysokość tooltipa
-                                                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                                                        // Oblicz pozycję tooltipa
-                                                        let x = rect.left + (rect.width / 2);
-                                                        let y;
-
-                                                        // Sprawdź, czy tooltip zmieści się nad elementem
-                                                        if (rect.top - tooltipHeight > 0) {
-                                                            // Tooltip nad elementem
-                                                            y = rect.top + scrollTop - 10;
-                                                        } else {
-                                                            // Tooltip pod elementem
-                                                            y = rect.bottom + scrollTop + 10;
-                                                        }
-
-                                                        // Ustaw style za pomocą CSS custom properties
-                                                        element.style.setProperty('--tooltip-x', `${x}px`);
-                                                        element.style.setProperty('--tooltip-y', `${y}px`);
-                                                    }}
-                                                >
-                                                    {code}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}</td>
-                                    <td>{passenger.gender}</td>
-                                    <td>{passenger.seatNumber}</td>
-                                    <td>{passenger.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="actions-container">
-                    <div className="left-actions">
-                        <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
-                        <button onClick={() => navigate(-1)}>Back</button>
-                    </div>
-                    <div className="right-actions">
-                        <button
-                            disabled={!selectedPassenger}
-                            onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
-                        >
-                            API
-                        </button>
-                        <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
-                        <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
-                        <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
-                    </div>
-                </div>
-
-                <div className="baggage-form">
-                    <label>Wybierz typ bagażu:</label>
-                    <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
-                        <option value="BAG">BAG</option>
-                        <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
-                        <option value="DAA">DAA</option>
-                        <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
-                        <option value="WHEELCHAIR">WHEELCHAIR</option>
-                    </select>
-                    <input
-                        type="number"
-                        placeholder="Enter baggage weight"
-                        value={baggageWeight}
-                        onChange={(e) => setBaggageWeight(e.target.value)}
-                    />
-                    <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
-                </div>
-
-                <div className="comment-section">
-                    <h2>Add a Comment</h2>
-                    <textarea
-                        value={comment}
-                        onChange={handleCommentChange}
-                        placeholder="Write your comment here..."
-                        rows="4"
-                        cols="50"
-                    />
-                    <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
-
-                    {selectedPassenger && selectedPassenger.comments?.length > 0 && (
-                        <div className="comments-list">
-                            <h3>Comments</h3>
-                            <ul>
-                                {selectedPassenger.comments.map((comment, index) => (
-                                    <li key={index}>
-                                        <p>{comment.text}</p>
-                                        <small>{comment.date} - {comment.addedBy}</small>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+        <section>
+            <div className="content-wrapper">
+                <div className="main-container-flightData">
+                    {flightDetails && (
+                        <FlightInfo
+                            flightNumber={flightDetails.flightNumber}
+                            departureTime={flightDetails.departureTime}
+                            route={flightDetails.route}
+                            status={flightDetails.state}
+                        />
+                    )}
+                    {flightDetails && flightDetails.seatMap && (
+                        <SeatMap
+                            flightId={location.state?.flightId}
+                            seatMap={flightDetails.seatMap}
+                            occupiedSeats={flightDetails.occupiedSeats || []}
+                            onSeatClick={handleAssignSeat}
+                            selectedPassenger={selectedPassenger}
+                        />
                     )}
                 </div>
+                <div className="main-container">
+                    <main className="main">
+                        <div className="table-spacer">
+                            <div className="passenger-container">
+                                <table className="passenger-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Select</th>
+                                            <th>No.</th>
+                                            <th>Name</th>
+                                            <th>Gender</th>
+                                            <th>Seat</th>
+                                            <th>State</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {location.state?.passengers.map((passenger, index) => {
+                                            const passengerData = {
+                                                ...passenger,
+                                                srrCodes: currentSrrCodes[passenger.id] || []
+                                            };
+
+                                            return (
+                                                <tr key={passenger.id} className={
+                                                    passenger.status === 'ACC' ? 'row-accepted' :
+                                                    passenger.status === 'STBY' ? 'row-standby' :
+                                                    passenger.status === 'OFF' ? 'row-offloaded' : ''
+                                                }>
+                                                    <td>
+                                                        <input
+                                                            type="radio"
+                                                            name="passengerSelect"
+                                                            checked={selectedPassenger?.id === passenger.id}
+                                                            onChange={() => handleSelectPassenger(passenger.id)}
+                                                        />
+                                                    </td>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        {passenger.name} {passenger.surname} {passenger.title}
+                                                        {passengerData.srrCodes?.length > 0 && (
+                                                            <div className="srr-codes">
+                                                                {passengerData.srrCodes.map((code, idx) => (
+                                                                    <span
+                                                                        key={idx}
+                                                                        className={`srr-code ${code === 'SEAT' ? 'seat-code' : code.toLowerCase()}`}
+                                                                        data-tooltip={getSrrTooltip(code, passengerData)}
+                                                                        onMouseEnter={(event) => {
+                                                                            const element = event.currentTarget;
+                                                                            const rect = element.getBoundingClientRect();
+                                                                            const tooltipHeight = 100;
+                                                                            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                                                                            let x = rect.left + (rect.width / 2);
+                                                                            let y;
+
+                                                                            if (rect.top - tooltipHeight > 0) {
+                                                                                y = rect.top + scrollTop - 10;
+                                                                            } else {
+                                                                                y = rect.bottom + scrollTop + 10;
+                                                                            }
+
+                                                                            element.style.setProperty('--tooltip-x', `${x}px`);
+                                                                            element.style.setProperty('--tooltip-y', `${y}px`);
+                                                                        }}
+                                                                    >
+                                                                        {code}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td>{passenger.gender}</td>
+                                                    <td>{passenger.seatNumber}</td>
+                                                    <td>{passenger.status}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <div className="actions-container">
+                <div className="left-actions">
+                    <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
+                    <button onClick={() => navigate(-1)}>Back</button>
+                </div>
+                <div className="right-actions">
+                    <button
+                        disabled={!selectedPassenger}
+                        onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
+                    >
+                        API
+                    </button>
+                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
+                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
+                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
+                </div>
+            </div>
+
+            <div className="baggage-form">
+                <label>Wybierz typ bagażu:</label>
+                <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
+                    <option value="BAG">BAG</option>
+                    <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
+                    <option value="DAA">DAA</option>
+                    <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
+                    <option value="WHEELCHAIR">WHEELCHAIR</option>
+                </select>
+                <input
+                    type="number"
+                    placeholder="Enter baggage weight"
+                    value={baggageWeight}
+                    onChange={(e) => setBaggageWeight(e.target.value)}
+                />
+                <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
+            </div>
+
+            <div className="comment-section">
+                <h2>Add a Comment</h2>
+                <textarea
+                    value={comment}
+                    onChange={handleCommentChange}
+                    placeholder="Write your comment here..."
+                    rows="4"
+                    cols="50"
+                />
+                <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
+
+                {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                    <div className="comments-list">
+                        <h3>Comments</h3>
+                        <ul>
+                            {selectedPassenger.comments.map((comment, index) => (
+                                <li key={index}>
+                                    <p>{comment.text}</p>
+                                    <small>{comment.date} - {comment.addedBy}</small>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
 
             {showModal && selectedPassenger && (
@@ -800,7 +822,6 @@ const CheckinSite = () => {
                                 </select>
                             </label>
                         </div>
-
                         <div className="modal-footer">
                             <button onClick={handleSavePassenger} className="save-btn">Save</button>
                             <button onClick={handleCloseModal} className="cancel-btn">Cancel</button>

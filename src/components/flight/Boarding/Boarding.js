@@ -1,18 +1,16 @@
-import React, { useEffect, useMemo, useCallback, useReducer, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axiosInstance from '../../api/axiosConfig';
-import PassengerStats from './components/PassengerStats/PassengerStats';
-import PassengerTable from './components/PassengerTable/PassengerTable';
-import SearchBar from './components/SearchBar/SearchBar';
-import SearchBarSSR from './components/SearchBarSSR/SearchBarSSR';
-import ActionPanel from './components/ActionPanel/ActionPanel';
-import ErrorMessage from './components/ErrorMessage/ErrorMessage';
-import { useSrrTooltip } from './hooks/useSrrTooltip';
-import { passengerReducer, initialState } from './reducers/PassengerReducer';
-import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';
-import FlightInfo from './components/FlightInfo/FlightInfo';
+import React, { useEffect, useMemo, useReducer, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axiosInstance from '../../../api/axiosConfig';
+import PassengerTable from '../components/PassengerTable/PassengerTable';
+import SearchBar from '../components/SearchBar/SearchBar';
+import SearchBarSSR from '../components/SearchBarSSR/SearchBarSSR';
+import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
+import { useSrrTooltip } from '../hooks/useSrrTooltip';
+import { passengerReducer, initialState } from '../reducers/PassengerReducer';
+import FlightInfo from '../components/FlightInfo/FlightInfo';
+import SeatMap from '../components/SeatMap/SeatMap';
+import ActionPanel from '../components/ActionPanel/ActionPanel';
 import './style.css';
-import SeatMap from './components/SeatMap/SeatMap';
 
 // Komponent elementu statystyk
 const StatsItem = ({ label, value }) => (
@@ -22,13 +20,8 @@ const StatsItem = ({ label, value }) => (
     </div>
 );
 
-/**
- * Główny komponent zarządzający listą pasażerów lotu
- * @component
- */
-const FlightPassengers = () => {
+const Boarding = () => {
     const { flightId } = useParams();
-    const navigate = useNavigate();
     const [state, dispatch] = useReducer(passengerReducer, initialState);
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
@@ -50,88 +43,6 @@ const FlightPassengers = () => {
         [passengers, searchTerm, srrSearchTerm]
     );
 
-    // Efekt pobierający dane pasażerów przy montowaniu komponentu lub zmianie ID lotu
-    useEffect(() => {
-        const fetchPassengers = async () => {
-            try {
-                const jwt = localStorage.getItem('jwt');
-                if (!jwt) return;
-
-                const response = await axiosInstance.get(
-                    `/api/passengers/flights/${flightId}/passengers-with-srr`,
-                    { headers: { Authorization: `Bearer ${jwt}` } }
-                );
-
-                dispatch({ type: 'SET_PASSENGERS', payload: response.data });
-            } catch (error) {
-                console.error('Error fetching passengers:', error);
-                dispatch({
-                    type: 'SET_ERROR',
-                    payload: 'Failed to fetch passengers.'
-                });
-            }
-        };
-
-        fetchPassengers();
-    }, [flightId]);
-
-    // Efekt pobierający szczegóły lotu
-    useEffect(() => {
-        const fetchFlightDetails = async () => {
-            try {
-                const response = await axiosInstance.get(`/api/flights/${flightId}`);
-                console.log('Flight details response:', response.data);
-                console.log('SeatMap data:', response.data.seatMap);
-                setFlightDetails(response.data);
-            } catch (error) {
-                console.error('Error fetching flight details:', error);
-            }
-        };
-
-        fetchFlightDetails();
-    }, [flightId]);
-
-    // Funkcja obsługująca akcje na pasażerach (akceptacja/update)
-    const handleAction = useCallback(async (action) => {
-        const jwt = localStorage.getItem('jwt');
-        if (!jwt) return;
-
-        const newStatus = action === 'accept' ? 'ACC' : action === 'offload' ? 'OFF' : '';
-
-        try {
-            if (newStatus) {
-                await updatePassengersStatus(selectedPassengers, newStatus, jwt);
-                dispatch({
-                    type: 'UPDATE_PASSENGERS_STATUS',
-                    payload: { selectedPassengers, newStatus }
-                });
-            }
-
-            const selectedDetails = getSelectedPassengerDetails(passengers, selectedPassengers, newStatus);
-
-
-            if (selectedDetails.length === 0) {
-                console.error('Brak wybranych pasażerów!');
-                return;
-            }
-
-            const flightId = selectedDetails[0]?.flightId;
-
-            if (!flightId) {
-                console.error('Brak flightId w wybranych pasażerach!', selectedDetails);
-                return;
-            }
-
-            navigate('/checkin', { state: { passengers: selectedDetails, flightId, action } });
-
-        } catch (error) {
-            console.error('Error updating passengers:', error);
-            dispatch({
-                type: 'SET_ERROR',
-                payload: 'Failed to update passengers.'
-            });
-        }
-    }, [selectedPassengers, passengers, navigate]);
     // Aktualizacja obliczeń statystyk
     const stats = useMemo(() => {
         const baseStats = passengers.reduce((acc, passenger) => {
@@ -176,9 +87,97 @@ const FlightPassengers = () => {
 
         return {
             ...baseStats,
-            booked: passengers.length // Całkowita liczba pasażerów
+            booked: passengers.length
         };
     }, [passengers]);
+
+    // Efekt pobierający dane pasażerów przy montowaniu komponentu lub zmianie ID lotu
+    useEffect(() => {
+        const fetchPassengers = async () => {
+            try {
+                const jwt = localStorage.getItem('jwt');
+                if (!jwt) return;
+
+                const response = await axiosInstance.get(
+                    `/api/passengers/flights/${flightId}/passengers-with-srr`,
+                    { headers: { Authorization: `Bearer ${jwt}` } }
+                );
+
+                dispatch({ type: 'SET_PASSENGERS', payload: response.data });
+            } catch (error) {
+                console.error('Error fetching passengers:', error);
+                dispatch({
+                    type: 'SET_ERROR',
+                    payload: 'Failed to fetch passengers.'
+                });
+            }
+        };
+
+        fetchPassengers();
+    }, [flightId]);
+
+    // Efekt pobierający szczegóły lotu
+    useEffect(() => {
+        const fetchFlightDetails = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/flights/${flightId}`);
+                setFlightDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching flight details:', error);
+            }
+        };
+
+        fetchFlightDetails();
+    }, [flightId]);
+
+    // Funkcja obsługująca zmianę statusu pasażera na boarded
+    const handleBoardPassenger = async () => {
+        if (!selectedPassengers.length) return;
+
+        // Clear selection immediately
+        dispatch({ type: 'CLEAR_SELECTION' });
+
+        try {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) return;
+
+            // Aktualizacja statusu dla wszystkich wybranych pasażerów
+            await Promise.all(selectedPassengers.map(async (passengerId) => {
+                await axiosInstance.put(
+                    `/api/passengers/${passengerId}/status`,
+                    JSON.stringify('BOARDED'),
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${jwt}`,
+                        },
+                    }
+                );
+            }));
+
+            // Odświeżenie listy pasażerów
+            const response = await axiosInstance.get(
+                `/api/passengers/flights/${flightId}/passengers-with-srr`,
+                { headers: { Authorization: `Bearer ${jwt}` } }
+            );
+
+            dispatch({ type: 'SET_PASSENGERS', payload: response.data });
+
+        } catch (error) {
+            console.error('Error updating passenger status:', error);
+            dispatch({
+                type: 'SET_ERROR',
+                payload: 'Failed to update passenger status.'
+            });
+        }
+    };
+
+    // Funkcja obsługująca akcje na pasażerach
+    const handleAction = async (action) => {
+        if (action === 'board') {
+            await handleBoardPassenger();
+        }
+    };
 
     // Komponent paska postępu
     const ProgressBar = ({ stats, total }) => {
@@ -212,7 +211,6 @@ const FlightPassengers = () => {
                             status={flightDetails.state}
                         />
                     )}
-                    {/* Render the seat map */}
                     {flightDetails && flightDetails.seatMap && (
                         <SeatMap
                             flightId={flightId}
@@ -267,10 +265,10 @@ const FlightPassengers = () => {
             <ActionPanel
                 visible={selectedPassengers.length > 0}
                 onAction={handleAction}
-                mode="passengers"
+                mode="boarding"
             />
         </section>
     );
 };
 
-export default FlightPassengers;
+export default Boarding;

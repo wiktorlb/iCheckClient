@@ -8,7 +8,7 @@ export const StatsInfo = ({ stats }) => (
         </div>
         <div className="stat-item">
             <span>ACCEPTED</span>
-            <span>{stats.accepted}</span>
+            <span>{stats.acc}</span>
         </div>
         <div className="stat-item">
             <span>BOOKED</span>
@@ -16,16 +16,19 @@ export const StatsInfo = ({ stats }) => (
         </div>
         <div className="stat-item">
             <span>ALLOWED</span>
-            <span>{stats.allowed}</span>
+            <span>{stats.allowed || 0}</span>
         </div>
         <div className="stat-item">
             <span>STANDBY</span>
-            <span>{stats.standby}</span>
+            <span>{stats.stby}</span>
         </div>
         <div className="stat-item">
-            <span>OFF</span>
-            <span>{stats.off}</span>
+            <span>BAGS</span>
+            <span>{stats.bags}</span>
+        </div>
+        <div className="stat-item">
+            <span>SBAGS</span>
+            <span>{stats.sbags}</span>
         </div>
     </div>
-
 );
