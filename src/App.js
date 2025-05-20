@@ -11,6 +11,8 @@ import UploadPassengers from './components/flight/UploadPassengers/UploadPasseng
 import UserManagement from './components/UserManagement';
 import CheckinSite from './components/flight/CheckinSite/CheckinSite';
 import Boarding from './components/flight/Boarding/Boarding';
+import BaggageList from './components/flight/BaggageList/BaggageList';
+/* import Users from './components/UserManagement/Users'; */
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -152,6 +154,30 @@ const App = () => {
             )
           }
         />
+
+        {/* Ścieżka do listy bagażu */}
+        <Route
+          path="/flights/:flightId/baggage-list"
+          element={
+            isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
+              <BaggageList />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
+        />
+
+        {/* Ścieżka do strony zarządzania użytkownikami */}
+    {/*     <Route
+          path="/users"
+          element={
+            isLoggedIn && userRole === 'ADMIN' ? (
+              <Users />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
+        /> */}
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}
         <Route path="/" element={<Navigate to="/login" />} />

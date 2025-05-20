@@ -172,6 +172,7 @@ const getRowClassName = (status) => {
         case 'ACC': return 'row-accepted';
         case 'STBY': return 'row-standby';
         case 'OFF': return 'row-offloaded';
+        case 'BOARDED': return 'row-boarded';
         default: return '';
     }
 };

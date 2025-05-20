@@ -2,30 +2,136 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5em 4em;
+    padding: 1em 4em;
     background-color: #191F2C;
     color: #FAF9F9;
+    position: relative;
+    z-index: 100;
   }
 
   .logo {
-    font-size: 1.7em;
+    font-size: 2em;
     font-weight: bold;
   }
 
-  .nav a {
+  .nav {
     display: flex;
-    justify-content: center;
+    align-items: center;
+  }
+
+  .nav a {
     margin: 0 1em;
     color: #FAF9F9;
     text-decoration: none;
-    font-weight: 400;
-    font-size: 0.9em;
-    min-width: 7.4em;
+    font-weight: 500;
+    font-size: 1em;
+    min-width: 5.7em;
+    text-align: center;
   }
 
   .nav a:hover {
-    font-weight: 600;
+    font-weight: 700;
   }
-  .nav {
-    align-items: center;
+
+  .nav a.active {
+    font-weight: 700;
+    color: #2196F3;
+  }
+
+  .nav-item-container {
+    position: relative;
+    display: inline-block;
+    margin: 0 1em;
+    height: 100%;
+  }
+
+  .nav-link {
+    color: #FAF9F9;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1em;
+    min-width: 5.7em;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.5em 0;
+  }
+
+  .nav-link:hover {
+    font-weight: 700;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #191F2C;
+    min-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1001;
+    visibility: visible;
+    opacity: 1;
+    display: block !important;
+    border: 1px solid #2196F3;
+    margin-top: 10px;
+    pointer-events: auto;
+  }
+
+  .dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #FAF9F9;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .dropdown-menu button:hover {
+    background-color: #2196F3;
+  }
+
+  .tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: 1em;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-top: 8px;
+    min-width: 250px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 8px 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent #ff4444 transparent;
+  }
+
+  .logout-link {
+    color: #ff4444 !important;
+  }
+
+  .logout-link:hover {
+    color: #ff0000 !important;
   }

@@ -13,6 +13,7 @@ import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/Pas
 import FlightInfo from './components/FlightInfo/FlightInfo';
 import './style.css';
 import SeatMap from './components/SeatMap/SeatMap';
+import BaggageList from './components/BaggageList/BaggageList';
 
 // Komponent elementu statystyk
 const StatsItem = ({ label, value }) => (

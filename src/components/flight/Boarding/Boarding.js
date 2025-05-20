@@ -10,6 +10,7 @@ import { passengerReducer, initialState } from '../reducers/PassengerReducer';
 import FlightInfo from '../components/FlightInfo/FlightInfo';
 import SeatMap from '../components/SeatMap/SeatMap';
 import ActionPanel from '../components/ActionPanel/ActionPanel';
+import BaggageList from '../components/BaggageList/BaggageList';
 import './style.css';
 
 // Komponent elementu statystyk
@@ -99,7 +100,7 @@ const Boarding = () => {
                 if (!jwt) return;
 
                 const response = await axiosInstance.get(
-                    `/api/passengers/flights/${flightId}/passengers-with-srr`,
+                    `/api/passengers/flights/${flightId}/passengers-with-srr-filtered`,
                     { headers: { Authorization: `Bearer ${jwt}` } }
                 );
 
