@@ -55,6 +55,12 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
         return passengers.find(passenger => passenger.seatNumber === seatNumber);
     };
 
+    // Funkcja sprawdzająca, czy pasażer jest zboardowany
+    const isPassengerBoarded = (seatNumber) => {
+        const passenger = getPassengerForSeat(seatNumber);
+        return passenger && passenger.status === 'BOARDED';
+    };
+
     // Funkcja generująca tooltip dla miejsca
     const getSeatTooltip = (seatNumber) => {
         const passenger = getPassengerForSeat(seatNumber);
@@ -102,12 +108,13 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
                 const firstGroupSeats = seats.slice(0, 3).map(seat => {
                     const seatLetter = seat.replace(/\d+/g, '');
                     const isOccupied = isSeatOccupied(seat);
+                    const isBoarded = isPassengerBoarded(seat);
                     const tooltip = getSeatTooltip(seat);
 
                     return (
                         <span
                             key={seat}
-                            className={`seat ${isOccupied ? 'occupied' : 'available'}`}
+                            className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
                             title={tooltip}
                             onClick={() => handleSeatClick(seat)}
                         >
@@ -120,12 +127,13 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
                 const secondGroupSeats = seats.slice(3, 6).map(seat => {
                     const seatLetter = seat.replace(/\d+/g, '');
                     const isOccupied = isSeatOccupied(seat);
+                    const isBoarded = isPassengerBoarded(seat);
                     const tooltip = getSeatTooltip(seat);
 
                     return (
                         <span
                             key={seat}
-                            className={`seat ${isOccupied ? 'occupied' : 'available'}`}
+                            className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
                             title={tooltip}
                             onClick={() => handleSeatClick(seat)}
                         >

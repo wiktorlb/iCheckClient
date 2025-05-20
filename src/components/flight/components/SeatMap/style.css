@@ -74,7 +74,12 @@
     cursor: not-allowed;
 }
 
-.seat:hover:not(.occupied) {
+.seat.boarded {
+    background-color: #2196F3;
+    cursor: not-allowed;
+}
+
+.seat:hover:not(.occupied):not(.boarded) {
     transform: scale(1.1);
 }
 
