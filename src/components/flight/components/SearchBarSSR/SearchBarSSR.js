@@ -3,8 +3,15 @@ import axiosInstance from '../../../../api/axiosConfig';
 import './style.css';
 
 /**
- * Komponent paska wyszukiwania po kodach SSR
+ * SSR Search Bar Component
+ *
+ * A specialized search input component for filtering passengers by SSR codes.
+ * Provides real-time filtering functionality for passenger lists based on SSR code patterns.
+ *
  * @component
+ * @param {Object} props
+ * @param {string} props.value - Current search input value
+ * @param {Function} props.onChange - Handler for search input changes
  */
 export const SearchBarSSR = memo(({ value, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);

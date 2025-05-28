@@ -1,6 +1,24 @@
 import React from 'react';
 import './style.css';
 
+/**
+ * Baggage List Component
+ *
+ * Displays a comprehensive list of passenger baggage items.
+ * Features include:
+ * - Baggage item selection
+ * - Status-based highlighting
+ * - Detailed baggage information display
+ * - Integration with passenger information
+ *
+ * @component
+ * @param {Object} props
+ * @param {Array} props.baggageItems - List of baggage items to display
+ * @param {Array} props.selectedItems - Array of selected baggage item IDs
+ * @param {Function} props.onToggleSelection - Handler for baggage item selection
+ * @param {Function} props.getSrrTooltip - Function to generate tooltips for SSR codes
+ */
+
 const BaggageList = ({ passengers }) => {
   const generateBaggageList = () => {
     const baggageList = [];

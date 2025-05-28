@@ -15,7 +15,17 @@ import './style.css';
 import SeatMap from './components/SeatMap/SeatMap';
 import BaggageList from './components/BaggageList/BaggageList';
 
-// Komponent elementu statystyk
+/**
+ * Stats Item Component
+ *
+ * Renders a single statistics item with label and value.
+ * Used in the statistics container to display flight metrics.
+ *
+ * @component
+ * @param {Object} props
+ * @param {string} props.label - The label for the statistic
+ * @param {number|string} props.value - The value to display
+ */
 const StatsItem = ({ label, value }) => (
     <div className="stats-item">
         <div className="stats-label">{label}</div>
@@ -24,7 +34,16 @@ const StatsItem = ({ label, value }) => (
 );
 
 /**
- * Główny komponent zarządzający listą pasażerów lotu
+ * Flight Passengers Component
+ *
+ * Main component for managing and displaying flight passenger information.
+ * Features include:
+ * - Passenger list management
+ * - Search functionality (by surname and SSR codes)
+ * - Passenger statistics
+ * - Status management
+ * - Integration with seat map
+ *
  * @component
  */
 const FlightPassengers = () => {
@@ -35,10 +54,8 @@ const FlightPassengers = () => {
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
 
-    // Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
     const getSrrTooltip = useSrrTooltip();
 
-    // Memoizacja filtrowanych pasażerów dla lepszej wydajności
     const filteredPassengers = useMemo(() =>
         passengers.filter(passenger => {
             const matchesSurname = passenger.surname.toLowerCase().includes(searchTerm.toLowerCase());
@@ -51,7 +68,6 @@ const FlightPassengers = () => {
         [passengers, searchTerm, srrSearchTerm]
     );
 
-    // Efekt pobierający dane pasażerów przy montowaniu komponentu lub zmianie ID lotu
     useEffect(() => {
         const fetchPassengers = async () => {
             try {
@@ -76,7 +92,6 @@ const FlightPassengers = () => {
         fetchPassengers();
     }, [flightId]);
 
-    // Efekt pobierający szczegóły lotu
     useEffect(() => {
         const fetchFlightDetails = async () => {
             try {
@@ -92,7 +107,6 @@ const FlightPassengers = () => {
         fetchFlightDetails();
     }, [flightId]);
 
-    // Funkcja obsługująca akcje na pasażerach (akceptacja/update)
     const handleAction = useCallback(async (action) => {
         const jwt = localStorage.getItem('jwt');
         if (!jwt) return;
@@ -133,21 +147,21 @@ const FlightPassengers = () => {
             });
         }
     }, [selectedPassengers, passengers, navigate]);
-    // Aktualizacja obliczeń statystyk
+
     const stats = useMemo(() => {
         const baseStats = passengers.reduce((acc, passenger) => {
             const status = passenger.status?.toLowerCase();
 
-            // Liczenie bagaży
+
             const baggageCount = passenger.baggageList?.length || 0;
             acc.bags += baggageCount;
 
-            // Jeśli pasażer ma status standby, dodaj jego bagaże do SBAGS
+
             if (status === 'stby' && baggageCount > 0) {
                 acc.sbags += baggageCount;
             }
 
-            // Liczenie statusów
+
             switch (status) {
                 case 'boarded':
                     acc.boarded++;
@@ -177,11 +191,21 @@ const FlightPassengers = () => {
 
         return {
             ...baseStats,
-            booked: passengers.length // Całkowita liczba pasażerów
+            booked: passengers.length
         };
     }, [passengers]);
 
-    // Komponent paska postępu
+    /**
+     * Progress Bar Component
+     *
+     * Visual representation of passenger status distribution.
+     * Shows segments for different passenger statuses (boarded, accepted, standby, etc.).
+     *
+     * @component
+     * @param {Object} props
+     * @param {Object} props.stats - Statistics object containing passenger counts
+     * @param {number} props.total - Total number of passengers
+     */
     const ProgressBar = ({ stats, total }) => {
         const getPercentage = (value) => (value / total) * 100;
 

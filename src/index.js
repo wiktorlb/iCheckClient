@@ -1,10 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css'; // Jeśli masz plik CSS
-import App from './App'; // Import głównego komponentu aplikacji
-import { BrowserRouter as Router } from 'react-router-dom'; // Import Routera do obsługi routingu
+import './index.css';
+import App from './App';
+import { BrowserRouter as Router } from 'react-router-dom';
 
-// Użyj createRoot zamiast render
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Router>

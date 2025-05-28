@@ -18,7 +18,6 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
-  // Sprawdzamy token po załadowaniu komponentu
   useEffect(() => {
     const token = localStorage.getItem('jwt');
     if (token) {
@@ -26,17 +25,15 @@ const App = () => {
 
       try {
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        setUserRole(decodedToken.role); // Ustawiamy rolę na podstawie tokenu
+        setUserRole(decodedToken.role);
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     }
-  }, []); // Uruchamiamy tylko raz, przy pierwszym renderze
+  }, []);
 
-  // Funkcja logowania
   const handleLogin = () => {
     setIsLoggedIn(true);
-    // Pobieranie roli z tokenu po zalogowaniu
     const token = localStorage.getItem('jwt');
     if (token) {
       try {
@@ -48,11 +45,10 @@ const App = () => {
     }
   };
 
-  // Funkcja wylogowania
   const handleLogout = () => {
     localStorage.removeItem('jwt');
     setIsLoggedIn(false);
-    setUserRole(null); // Reset roli po wylogowaniu
+    setUserRole(null);
   };
 
   return (
@@ -166,18 +162,6 @@ const App = () => {
             )
           }
         />
-
-        {/* Ścieżka do strony zarządzania użytkownikami */}
-    {/*     <Route
-          path="/users"
-          element={
-            isLoggedIn && userRole === 'ADMIN' ? (
-              <Users />
-            ) : (
-              <Navigate to="/flightboard" />
-            )
-          }
-        /> */}
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}
         <Route path="/" element={<Navigate to="/login" />} />

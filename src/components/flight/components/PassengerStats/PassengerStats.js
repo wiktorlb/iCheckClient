@@ -4,11 +4,21 @@ import { StatsInfo } from './StatsInfo';
 import { StatsProgressBar } from './StatsProgressBar';
 
 /**
- * Komponent wyświetlający statystyki pasażerów
+ * Passenger Statistics Component
+ *
+ * Displays comprehensive statistics about passengers on a flight.
+ * Shows key metrics including boarded, accepted, booked, and standby passengers,
+ * as well as baggage information.
+ *
  * @component
  * @param {Object} props
- * @param {Array} [props.passengers] - Lista pasażerów
- * @param {Object} [props.stats] - Pre-calculated stats object
+ * @param {Object} props.stats - Statistics object containing passenger counts
+ * @param {number} props.stats.boarded - Number of boarded passengers
+ * @param {number} props.stats.acc - Number of accepted passengers
+ * @param {number} props.stats.booked - Total number of booked passengers
+ * @param {number} props.stats.stby - Number of standby passengers
+ * @param {number} props.stats.bags - Total number of bags
+ * @param {number} props.stats.sbags - Number of standby bags
  */
 export const PassengerStats = ({ passengers, stats: providedStats }) => {
     const stats = useMemo(() => {

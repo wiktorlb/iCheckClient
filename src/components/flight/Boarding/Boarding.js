@@ -13,7 +13,36 @@ import ActionPanel from '../components/ActionPanel/ActionPanel';
 import BaggageList from '../components/BaggageList/BaggageList';
 import './style.css';
 
-// Komponent elementu statystyk
+/**
+ * Boarding Component
+ *
+ * Manages the passenger boarding process for flights.
+ * Features include:
+ * - Real-time passenger boarding status updates
+ * - Boarding pass scanning and validation
+ * - Passenger status management
+ * - Integration with seat map
+ * - Boarding statistics and progress tracking
+ *
+ * @component
+ * @param {Object} props
+ * @param {string} props.flightId - Unique identifier for the flight
+ * @param {Array} props.passengers - List of passengers for the flight
+ * @param {Function} props.onBoardingComplete - Callback function when boarding is completed
+ * @param {Object} props.seatMap - Seat map configuration for the aircraft
+ */
+
+/**
+ * Statistics Item Component
+ *
+ * Renders a single statistics item with label and value.
+ * Used in the statistics container to display boarding metrics.
+ *
+ * @component
+ * @param {Object} props
+ * @param {string} props.label - The label for the statistic
+ * @param {number|string} props.value - The value to display
+ */
 const StatsItem = ({ label, value }) => (
     <div className="stats-item">
         <div className="stats-label">{label}</div>
@@ -28,10 +57,8 @@ const Boarding = () => {
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
 
-    // Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
     const getSrrTooltip = useSrrTooltip();
 
-    // Memoizacja filtrowanych pasażerów dla lepszej wydajności
     const filteredPassengers = useMemo(() =>
         passengers.filter(passenger => {
             const matchesSurname = passenger.surname.toLowerCase().includes(searchTerm.toLowerCase());
@@ -44,21 +71,17 @@ const Boarding = () => {
         [passengers, searchTerm, srrSearchTerm]
     );
 
-    // Aktualizacja obliczeń statystyk
     const stats = useMemo(() => {
         const baseStats = passengers.reduce((acc, passenger) => {
             const status = passenger.status?.toLowerCase();
 
-            // Liczenie bagaży
             const baggageCount = passenger.baggageList?.length || 0;
             acc.bags += baggageCount;
 
-            // Jeśli pasażer ma status standby, dodaj jego bagaże do SBAGS
             if (status === 'stby' && baggageCount > 0) {
                 acc.sbags += baggageCount;
             }
 
-            // Liczenie statusów
             switch (status) {
                 case 'boarded':
                     acc.boarded++;
@@ -92,7 +115,6 @@ const Boarding = () => {
         };
     }, [passengers]);
 
-    // Efekt pobierający dane pasażerów przy montowaniu komponentu lub zmianie ID lotu
     useEffect(() => {
         const fetchPassengers = async () => {
             try {
@@ -117,7 +139,6 @@ const Boarding = () => {
         fetchPassengers();
     }, [flightId]);
 
-    // Efekt pobierający szczegóły lotu
     useEffect(() => {
         const fetchFlightDetails = async () => {
             try {
@@ -131,18 +152,15 @@ const Boarding = () => {
         fetchFlightDetails();
     }, [flightId]);
 
-    // Funkcja obsługująca zmianę statusu pasażera na boarded
     const handleBoardPassenger = async () => {
         if (!selectedPassengers.length) return;
 
-        // Clear selection immediately
         dispatch({ type: 'CLEAR_SELECTION' });
 
         try {
             const jwt = localStorage.getItem('jwt');
             if (!jwt) return;
 
-            // Aktualizacja statusu dla wszystkich wybranych pasażerów
             await Promise.all(selectedPassengers.map(async (passengerId) => {
                 await axiosInstance.put(
                     `/api/passengers/${passengerId}/status`,
@@ -156,7 +174,6 @@ const Boarding = () => {
                 );
             }));
 
-            // Odświeżenie listy pasażerów
             const response = await axiosInstance.get(
                 `/api/passengers/flights/${flightId}/passengers-with-srr`,
                 { headers: { Authorization: `Bearer ${jwt}` } }
@@ -173,14 +190,23 @@ const Boarding = () => {
         }
     };
 
-    // Funkcja obsługująca akcje na pasażerach
     const handleAction = async (action) => {
         if (action === 'board') {
             await handleBoardPassenger();
         }
     };
 
-    // Komponent paska postępu
+    /**
+     * Progress Bar Component
+     *
+     * Visual representation of passenger boarding status distribution.
+     * Shows segments for different passenger statuses (boarded, accepted, standby, etc.).
+     *
+     * @component
+     * @param {Object} props
+     * @param {Object} props.stats - Statistics object containing passenger counts
+     * @param {number} props.total - Total number of passengers
+     */
     const ProgressBar = ({ stats, total }) => {
         const getPercentage = (value) => (value / total) * 100;
 

@@ -2,6 +2,22 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../../../api/axiosConfig';
 import './style.css';
 
+/**
+ * Seat Map Component
+ *
+ * Interactive seat map visualization for aircraft cabin layout.
+ * Features include:
+ * - Visual representation of seat layout
+ * - Occupancy status display
+ * - Seat selection functionality
+ * - Responsive design
+ *
+ * @component
+ * @param {Object} props
+ * @param {string} props.flightId - Unique identifier for the flight
+ * @param {Object} props.seatMap - Seat map configuration data
+ * @param {Array} props.occupiedSeats - List of occupied seat numbers
+ */
 const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }) => {
     const [passengers, setPassengers] = useState([]);
     const [error, setError] = useState(null);

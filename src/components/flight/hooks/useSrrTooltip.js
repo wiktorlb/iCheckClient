@@ -31,7 +31,6 @@ export const useSrrTooltip = () => {
         if (ssrCode) {
             let tooltip = `${ssrCode.code}: ${ssrCode.description}\n`;
 
-            // Dodaj szczegóły w zależności od kategorii kodu SSR
             switch (ssrCode.category) {
                 case 'BAGGAGE':
                     return getBaggageTooltip(passenger, code) + '\n\n' + tooltip;
@@ -46,7 +45,6 @@ export const useSrrTooltip = () => {
             }
         }
 
-        // Fallback dla starych kodów SSR
         if (code.startsWith('BAG')) {
             return getBaggageTooltip(passenger, code);
         }
@@ -65,7 +63,7 @@ export const useSrrTooltip = () => {
 };
 
 /**
- * Generuje tooltip dla bagażu
+ * Generates a tooltip for baggage
  */
 
 const getBaggageTooltip = (passenger, code) => {
@@ -74,7 +72,6 @@ const getBaggageTooltip = (passenger, code) => {
     const baggage = passenger.baggageList[parseInt(code.slice(3)) - 1];
     if (!baggage) return 'Baggage information not found';
 
-    // Mapowanie typów bagażu na bardziej czytelne nazwy
     const baggageTypes = {
         'BAG': 'Baggage',
         'HAND_LUGGAGE': 'Hand Luggage',
@@ -90,12 +87,12 @@ const getBaggageTooltip = (passenger, code) => {
         `Type: ${readableType || 'N/A'}\n` +
         `Weight: ${baggage.weight || 'N/A'} kg`;
 };
+
 /**
- * Generuje tooltip dla dokumentów
+ * Generates a tooltip for documents
  */
 const getDocumentTooltip = (passenger) => {
     console.log('Full passenger data:', passenger);
-    // Dodajmy console.log do debugowania
     console.log('Document data:', {
         type: passenger.documentType,
         serial: passenger.serialName,
@@ -104,7 +101,6 @@ const getDocumentTooltip = (passenger) => {
         issueCountry: passenger.issueCountry
     });
 
-    // Mapowanie typów dokumentów na czytelne nazwy
     const documentTypes = {
         'P': 'Passport',
         'ID': 'ID Card'
@@ -112,7 +108,6 @@ const getDocumentTooltip = (passenger) => {
 
     const details = [];
 
-    // Sprawdzamy i dodajemy każde pole, jeśli istnieje
     if (passenger.documentType) {
         const readableType = documentTypes[passenger.documentType] || passenger.documentType;
         details.push(`Document Type: ${readableType}`);
@@ -120,7 +115,6 @@ const getDocumentTooltip = (passenger) => {
     if (passenger.serialName) details.push(`Serial Number: ${passenger.serialName}`);
     if (passenger.citizenship) details.push(`Citizenship: ${passenger.citizenship}`);
     if (passenger.validUntil) {
-        // Formatowanie daty, jeśli jest to data
         const date = new Date(passenger.validUntil);
         const formattedDate = isNaN(date.getTime())
             ? passenger.validUntil
@@ -135,7 +129,7 @@ const getDocumentTooltip = (passenger) => {
 };
 
 /**
- * Generuje tooltip dla komentarzy
+ * Generates a tooltip for comments
  */
 const getCommentTooltip = (passenger) => {
     if (!passenger.comments?.length) return 'No comments available';
@@ -148,7 +142,7 @@ const getCommentTooltip = (passenger) => {
 };
 
 /**
- * Generuje tooltip dla przypisanego miejsca
+ * Generates a tooltip for assigned seat
  */
 const getSeatTooltip = (passenger) => {
     if (!passenger.seatNumber) return 'Brak przypisanego miejsca';

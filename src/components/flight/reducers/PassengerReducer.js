@@ -1,5 +1,5 @@
 /**
- * Stan początkowy reducera
+ * INITIAL STATE
  */
 export const initialState = {
     passengers: [],

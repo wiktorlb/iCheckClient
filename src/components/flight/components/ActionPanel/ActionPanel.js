@@ -1,12 +1,17 @@
 import React, { memo } from 'react';
 import './style.css';
 /**
- * Komponent panelu akcji
+ * Action Panel Component
+ *
+ * A dynamic action panel that provides context-specific operations for selected items.
+ * Supports different modes (passengers, baggage) and displays relevant action buttons
+ * based on the current context.
+ *
  * @component
  * @param {Object} props
- * @param {boolean} props.visible - Czy panel jest widoczny
- * @param {Function} props.onAction - Funkcja obsługująca akcje
- * @param {string} props.mode - Tryb panelu ('passengers' lub 'boarding')
+ * @param {boolean} props.visible - Controls the visibility of the action panel
+ * @param {Function} props.onAction - Callback function for action button clicks
+ * @param {string} props.mode - The current mode of the panel ('passengers' or 'baggage')
  */
 export const ActionPanel = memo(({ visible, onAction, mode = 'passengers' }) => {
     if (!visible) return null;

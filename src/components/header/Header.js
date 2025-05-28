@@ -10,12 +10,10 @@ const Header = ({ onLogout }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const handleLogout = () => {
-    // Wywołanie funkcji przekazanej jako prop (onLogout) z App.js
     onLogout();
-    navigate('/'); // Po wylogowaniu przekierowanie na stronę logowania
+    navigate('/');
   };
 
-  // Extract flightId from the current path
   const getFlightIdFromPath = (path) => {
     const match = path.match(/\/flights\/([^\/]+)/);
     return match ? match[1] : null;
@@ -24,7 +22,6 @@ const Header = ({ onLogout }) => {
   const currentFlightId = getFlightIdFromPath(location.pathname);
   const isFlightPage = currentFlightId !== null;
 
-  // Check if current path matches the navigation item
   const isActive = (path) => {
     if (path === '/flightboard') {
       return location.pathname === '/flightboard';

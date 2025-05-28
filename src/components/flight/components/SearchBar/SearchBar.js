@@ -3,8 +3,16 @@ import './style.css';
 import searchIcon from './search-icon.png';
 
 /**
- * Komponent paska wyszukiwania
+ * Search Bar Component
+ *
+ * A reusable search input component for filtering passenger lists by surname.
+ * Provides real-time filtering functionality with a clean and intuitive interface.
+ *
  * @component
+ * @param {Object} props
+ * @param {string} props.value - Current search input value
+ * @param {Function} props.onChange - Handler for search input changes
+ * @param {string} props.placeholder - Placeholder text for the search input
  */
 export const SearchBar = memo(({ value, onChange }) => (
     <div className="search-bar-container">

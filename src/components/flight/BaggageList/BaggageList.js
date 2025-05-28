@@ -102,7 +102,7 @@ const BaggageList = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'baggage_list.txt';
+    a.download = `baggage_list_${flightDetails.flightNumber}.txt`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
