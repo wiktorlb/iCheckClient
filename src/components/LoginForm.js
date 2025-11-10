@@ -7,11 +7,11 @@ const LoginForm = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false); // Dodano stan ładowania
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Włączenie ekranu ładowania
+    setLoading(true);
     try {
       const response = await axiosInstance.post('/api/auth/login', {
         username,
@@ -36,7 +36,7 @@ const LoginForm = ({ onLogin }) => {
       setErrorMessage('Invalid credentials or server error');
       console.error('Login error:', error.response?.data || error.message);
     } finally {
-      setLoading(false); // Wyłączenie ekranu ładowania
+      setLoading(false);
     }
   };
 

@@ -22,6 +22,10 @@
     background-color: #FF0000;
 }
 
+.board-btn {
+    background-color: #2196F3;
+}
+
 .fixed-action-panel button {
     padding: 10px 15px;
     border: none;
@@ -42,4 +46,8 @@
 
 .offload-btn:hover {
     background-color: #b20000;
+}
+
+.board-btn:hover {
+    background-color: #1976D2;
 }

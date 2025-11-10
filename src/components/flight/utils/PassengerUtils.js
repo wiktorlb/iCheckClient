@@ -23,12 +23,24 @@ export const updatePassengersStatus = async (selectedPassengers, newStatus, jwt)
 /**
  * Pobiera szczegóły wybranych pasażerów
  */
-export const getSelectedPassengerDetails = (passengers, selectedPassengers, newStatus) => {
+/* export const getSelectedPassengerDetails = (passengers, selectedPassengers, newStatus) => {
     return passengers
         .filter(passenger => selectedPassengers.includes(passenger.id))
         .map(passenger => ({
             ...passenger,
             status: newStatus || passenger.status
+        }));
+}; */
+
+export const getSelectedPassengerDetails = (passengers, selectedIds, status) => {
+    return passengers
+        .filter(p => selectedIds.includes(p.id))
+        .map(p => ({
+            id: p.id,
+            name: p.name,
+            surname: p.surname,
+            status: status || p.status,
+            flightId: p.flightId  // 🛠️ Dodane flightId!
         }));
 };
 

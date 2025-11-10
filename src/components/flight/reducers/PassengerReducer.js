@@ -1,5 +1,5 @@
 /**
- * Stan początkowy reducera
+ * INITIAL STATE
  */
 export const initialState = {
     passengers: [],
@@ -51,6 +51,12 @@ export const passengerReducer = (state, action) => {
                         ? { ...passenger, status: action.payload.newStatus }
                         : passenger
                 )
+            };
+
+        case 'CLEAR_SELECTION':
+            return {
+                ...state,
+                selectedPassengers: []
             };
 
         default:

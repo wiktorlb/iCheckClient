@@ -1,5 +1,5 @@
 .flight-info-container {
-    width: 15em;
+    width: 100%; /* 15em */
     background-color: #E6E8E6;
     border-radius: 10px 10px 5px 5px;
     box-shadow: 0 3px 15px rgba(0,0,0,0.2);

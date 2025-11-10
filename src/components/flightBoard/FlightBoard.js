@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
 import './style.css';
 
@@ -10,6 +10,7 @@ const FlightBoard = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt');
@@ -18,6 +19,7 @@ const FlightBoard = () => {
       axiosInstance
         .get('/api/flights', { headers: { Authorization: `Bearer ${jwt}` } })
         .then((response) => {
+          console.log('API Response:', response.data); // Log the response data
           if (Array.isArray(response.data)) {
             setFlights(response.data);
           } else {
@@ -92,20 +94,21 @@ const FlightBoard = () => {
             </thead>
             <tbody>
               {currentFlights.map((flight, index) => (
-                <tr key={flight.id}>
+                <tr
+                  key={flight.id}
+                  onClick={() => navigate(`/flights/${flight.id}/passengers`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td>{startIndex + index + 1}</td>
                   <td>
-                    <span className={flight.state.toLowerCase()}>
-                      <Link to={`/flights/${flight.id}/passengers`} className="action-link">
-                        {flight.flightNumber}
-                      </Link>
+                    <span className={flight.status ? flight.status.toLowerCase() : 'unknown'}>
+                      {flight.flightNumber}
                     </span>
                   </td>
-                  <td>{flight.route}</td>
-                  <td>{flight.state}</td>
-                  <td>{flight.departureTime}</td>
-                  <td>
-                    <Link to={`/flights/${flight.id}/passengers`} className="action-link">ENTER</Link>
+                  <td>{flight.route || 'N/A'}</td>
+                  <td>{flight.status || 'Unknown'}</td>
+                  <td>{flight.departureTime || 'TBD'}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => deleteFlight(flight.id)}
                       className="delete-button"

@@ -1,16 +1,3 @@
-/* import React, { useState, useEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
-import LoginForm from './components/LoginForm';
-import FlightBoard from './components/flightBoard/FlightBoard';
-import AddFlightForm from './components/flightBoard/AddFlightForm';
-import RegisterForm from './components/RegisterForm';
-import Header from './components/header/Header';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import FlightPassengers from './components/flight/FlightPassengers';
-import UploadPassengers from './components/flight/UploadPassengers';
-import UserManagement from './components/UserManagement';
-import CheckinSite from './components/flight/CheckinSite'; */
-
 import React, { useState, useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
@@ -23,12 +10,14 @@ import FlightPassengers from './components/flight/FlightPassengers';
 import UploadPassengers from './components/flight/UploadPassengers/UploadPassengers';
 import UserManagement from './components/UserManagement';
 import CheckinSite from './components/flight/CheckinSite/CheckinSite';
+import Boarding from './components/flight/Boarding/Boarding';
+import BaggageList from './components/flight/BaggageList/BaggageList';
+/* import Users from './components/UserManagement/Users'; */
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
-  // Sprawdzamy token po załadowaniu komponentu
   useEffect(() => {
     const token = localStorage.getItem('jwt');
     if (token) {
@@ -36,17 +25,15 @@ const App = () => {
 
       try {
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        setUserRole(decodedToken.role); // Ustawiamy rolę na podstawie tokenu
+        setUserRole(decodedToken.role);
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     }
-  }, []); // Uruchamiamy tylko raz, przy pierwszym renderze
+  }, []);
 
-  // Funkcja logowania
   const handleLogin = () => {
     setIsLoggedIn(true);
-    // Pobieranie roli z tokenu po zalogowaniu
     const token = localStorage.getItem('jwt');
     if (token) {
       try {
@@ -58,11 +45,10 @@ const App = () => {
     }
   };
 
-  // Funkcja wylogowania
   const handleLogout = () => {
     localStorage.removeItem('jwt');
     setIsLoggedIn(false);
-    setUserRole(null); // Reset roli po wylogowaniu
+    setUserRole(null);
   };
 
   return (
@@ -151,6 +137,30 @@ const App = () => {
         <Route
           path="/checkin"
           element={isLoggedIn ? <CheckinSite /> : <Navigate to="/login" />}
+        />
+
+        {/* Ścieżka do strony boarding */}
+        <Route
+          path="/flights/:flightId/boarding"
+          element={
+            isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
+              <Boarding />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
+        />
+
+        {/* Ścieżka do listy bagażu */}
+        <Route
+          path="/flights/:flightId/baggage-list"
+          element={
+            isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
+              <BaggageList />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
         />
 
         {/* Domyślna ścieżka, przekierowuje do logowania */}

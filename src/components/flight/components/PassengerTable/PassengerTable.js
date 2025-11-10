@@ -2,7 +2,15 @@ import React, { memo } from 'react';
 import './style.css';
 
 /**
- * Komponent tabeli pasażerów
+ * Passenger Table Component
+ *
+ * A comprehensive table component for displaying passenger information in a flight management system.
+ * Features include:
+ * - Passenger selection functionality
+ * - Status-based row highlighting
+ * - SSR code display with tooltips
+ * - Responsive design
+ *
  * @component
  */
 export const PassengerTable = memo(({
@@ -31,7 +39,12 @@ export const PassengerTable = memo(({
 });
 
 /**
- * Komponent nagłówka tabeli
+ * Table Header Component
+ *
+ * Renders the header row of the passenger table with column titles.
+ * Includes columns for selection, passenger number, name, seat, gender, and status.
+ *
+ * @component
  */
 const TableHeader = () => (
     <thead className="passenger-table-header">
@@ -39,6 +52,7 @@ const TableHeader = () => (
             <th>Select</th>
             <th>No.</th>
             <th>Name</th>
+            <th>Seat</th>
             <th>Gender</th>
             <th>State</th>
         </tr>
@@ -46,7 +60,12 @@ const TableHeader = () => (
 );
 
 /**
- * Komponent ciała tabeli
+ * Table Body Component
+ *
+ * Renders the main content of the passenger table.
+ * Maps through the passenger list and renders individual passenger rows.
+ *
+ * @component
  */
 const TableBody = memo(({
     passengers,
@@ -69,7 +88,12 @@ const TableBody = memo(({
 ));
 
 /**
- * Komponent wiersza pasażera
+ * Passenger Row Component
+ *
+ * Renders a single row in the passenger table.
+ * Handles row selection, status-based styling, and click events.
+ *
+ * @component
  */
 const PassengerRow = memo(({
     passenger,
@@ -112,6 +136,7 @@ const PassengerRow = memo(({
             <td>
                 <PassengerName passenger={passenger} getSrrTooltip={getSrrTooltip} />
             </td>
+            <td>{passenger.seatNumber}</td>
             <td>{passenger.gender}</td>
             <td>{passenger.status}</td>
         </tr>
@@ -119,7 +144,12 @@ const PassengerRow = memo(({
 });
 
 /**
- * Komponent wyświetlający nazwę pasażera i kody SSR
+ * Passenger Name Component
+ *
+ * Displays passenger name and associated SSR codes.
+ * Includes tooltip functionality for SSR code information.
+ *
+ * @component
  */
 const PassengerName = memo(({ passenger, getSrrTooltip }) => {
     const handleTooltipPosition = (event) => {
@@ -149,7 +179,7 @@ const PassengerName = memo(({ passenger, getSrrTooltip }) => {
                     {passenger.srrCodes.map((code, idx) => (
                         <span
                             key={idx}
-                            className={`srr-code ${code.toLowerCase()}`}
+                            className={`srr-code`}
                             data-tooltip={getSrrTooltip(code, passenger)}
                             onMouseEnter={handleTooltipPosition}
                         >
@@ -163,13 +193,17 @@ const PassengerName = memo(({ passenger, getSrrTooltip }) => {
 });
 
 /**
- * Funkcja pomocnicza do określania klasy wiersza
+ * Helper function to determine row styling based on passenger status
+ *
+ * @param {string} status - The passenger's current status
+ * @returns {string} CSS class name for the row
  */
 const getRowClassName = (status) => {
     switch (status) {
         case 'ACC': return 'row-accepted';
         case 'STBY': return 'row-standby';
         case 'OFF': return 'row-offloaded';
+        case 'BOARDED': return 'row-boarded';
         default: return '';
     }
 };

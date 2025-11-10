@@ -1,28 +1,108 @@
 /* Dodajemy style dla layoutu */
-section {
+/* section {
     padding: 20px;
-}
+} */
 
 .content-wrapper {
     display: flex;
-    gap: 20px; /* Odstęp między FlightInfo a główną zawartością */
+    gap: 1em; /* Odstęp między FlightInfo a główną zawartością */
+    padding: 1.4em;
 }
 
 .main {
     font-family: 'Roboto', sans-serif;
     background-color: #E6E8E6;
-    padding: 20px;
+/*     padding: 20px; */
     border-radius: 2px;
-box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
-    flex: 1; /* Zajmie pozostałą przestrzeń */
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    height: 90%;
+
+
+    padding-bottom: 1em;
 }
+
+.table-spacer {
+    padding: 0 20px 0px 20px;
+}
+
+.main-container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+ .statistics-container {
+     display: flex;
+     align-items: center;
+     justify-content: space-around;
+     padding: 1em;
+
+     font-weight: bold;
+ }
+ .stats-value {
+    text-align: center;
+ }
 
 @media screen and (max-width: 768px) {
     .content-wrapper {
+
         flex-direction: column;
     }
 
     .passenger-container {
         max-height: 80vh;
     }
+}
+
+/* Progress bar styles */
+.progress-bar-container {
+    margin: 0;
+}
+
+.single-progress-bar {
+    height: 8px;
+    background-color: #fff;
+    display: flex;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Nowe kolory dla segmentów */
+.progress-segment.boarded {
+    background-color: #2196F3; /* niebieski */
+}
+
+.progress-segment.none {
+    background-color: #9E9E9E; /* szary */
+}
+
+.progress-segment.acc {
+    background-color: #4CAF50; /* zielony */
+}
+
+.progress-segment.stby {
+    background-color: #FF9800; /* pomarańczowy */
+}
+
+.progress-segment.off {
+    background-color: #F44336; /* czerwony */
+}
+
+
+.main-container-flightData {
+display: flex;
+flex-direction: column;
+}
+
+.checkin-site {
+    display: flex;
+    justify-content: space-between; /* Ustawia elementy w jednej linii */
+}
+
+.checkin-actions {
+    flex: 1; /* Zajmuje dostępne miejsce */
 }

@@ -1,0 +1,95 @@
+.seatmap-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+    background-color: #E6E8E6;
+    border-radius: 8px;
+    max-width: auto;
+    margin: 0 auto;
+    max-height: 600px;
+    overflow-y: auto;
+
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 1em;
+}
+
+.seatmap-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.seatmap-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.seatmap-container::-webkit-scrollbar-thumb {
+    background: #191F2C;
+    border-radius: 4px;
+}
+
+.seatmap-container::-webkit-scrollbar-thumb:hover {
+    background: #2c3e50;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.row-number {
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+    margin: 0 0.8em;
+}
+
+.seat-name-group {
+    display: flex;
+}
+
+.seat-group {
+    display: flex;
+    gap: 4px;
+}
+
+.seat {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.seat.available {
+    background-color: #000000;
+}
+
+.seat.occupied {
+    background-color: #ff0000;
+    cursor: not-allowed;
+}
+
+.seat.boarded {
+    background-color: #2196F3;
+    cursor: not-allowed;
+}
+
+.seat:hover:not(.occupied):not(.boarded) {
+    transform: scale(1.1);
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #ffebee;
+    border-radius: 4px;
+}

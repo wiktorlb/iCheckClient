@@ -7,7 +7,6 @@ const RegisterForm = () => {
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
-    // Funkcja obsługująca wysyłanie formularza
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -17,12 +16,10 @@ const RegisterForm = () => {
         };
 
         try {
-            // Wysyłanie danych do backendu
             const response = await axiosInstance.post('/api/auth/register', user);
             if (response.status === 200) {
                 setSuccessMessage('User registered successfully!');
                 setErrorMessage('');
-                // Resetowanie pól formularza
                 setEmail('');
                 setPassword('');
             } else {
