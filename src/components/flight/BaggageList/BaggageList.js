@@ -9,6 +9,7 @@ const BaggageList = () => {
   const [passengers, setPassengers] = useState([]);
   const [flightDetails, setFlightDetails] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedBaggageType, setSelectedBaggageType] = useState('ALL');
   const [summary, setSummary] = useState({
     totalWeight: 0,
     regularCount: 0,
@@ -79,12 +80,15 @@ const BaggageList = () => {
 
       if (passenger.baggageList && passenger.baggageList.length > 0) {
         passenger.baggageList.forEach(baggage => {
-          baggageList.push({
-            passenger: `${title} ${fullName}`,
-            baggageId: baggage.id || 'N/A',
-            weight: baggage.weight || 'N/A',
-            type: baggage.type || 'N/A'
-          });
+          // Filter by selected baggage type
+          if (selectedBaggageType === 'ALL' || baggage.type === selectedBaggageType) {
+            baggageList.push({
+              passenger: `${title} ${fullName}`,
+              baggageId: baggage.id || 'N/A',
+              weight: baggage.weight || 'N/A',
+              type: baggage.type || 'N/A'
+            });
+          }
         });
       }
     });
@@ -122,7 +126,7 @@ const BaggageList = () => {
               flightNumber={flightDetails.flightNumber}
               departureTime={flightDetails.departureTime}
               route={flightDetails.route}
-              status={flightDetails.state}
+              status={flightDetails.status || flightDetails.state}
             />
           )}
           <div className="baggage-summary">
@@ -147,9 +151,23 @@ const BaggageList = () => {
         <div className="main-container">
           <div className="baggage-list-header">
             <h2>Baggage List</h2>
-            <button onClick={handleDownload} className="download-button">
-              Download List
-            </button>
+            <div className="baggage-list-controls">
+              <select 
+                value={selectedBaggageType} 
+                onChange={(e) => setSelectedBaggageType(e.target.value)}
+                className="baggage-type-filter"
+              >
+                <option value="ALL">All Types</option>
+                <option value="BAG">BAG</option>
+                <option value="DAA">DAA</option>
+                <option value="HAND_LUGGAGE">HAND_LUGGAGE</option>
+                <option value="SPORT_EQUIPMENT">SPORT_EQUIPMENT</option>
+                <option value="WHEELCHAIR">WHEELCHAIR</option>
+              </select>
+              <button onClick={handleDownload} className="download-button">
+                Download List
+              </button>
+            </div>
           </div>
           <div className="baggage-list-content">
             {generateBaggageList().map((item, index) => (

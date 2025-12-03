@@ -540,8 +540,8 @@ const CheckinSite = () => {
     }, [location.state?.passengers]);
 
     return (
-        <section>
-            <div className="content-wrapper">
+        <section style={{ height: 'calc(100vh - 80px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div className="content-wrapper checkin-layout">
                 <div className="main-container-flightData">
                     {flightDetails && (
                         <FlightInfo
@@ -562,10 +562,8 @@ const CheckinSite = () => {
                     )}
                 </div>
                 <div className="main-container">
-                    <main className="main">
-                        <div className="table-spacer">
-                            <div className="passenger-container">
-                                <table className="passenger-table">
+                    <div className="passenger-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <table className="passenger-table">
                                     <thead>
                                         <tr>
                                             <th>Select</th>
@@ -578,9 +576,12 @@ const CheckinSite = () => {
                                     </thead>
                                     <tbody>
                                         {location.state?.passengers.map((passenger, index) => {
+                                            // Find full passenger data from flightDetails if available
+                                            const fullPassengerData = flightDetails?.passengers?.find(p => p.id === passenger.id);
                                             const passengerData = {
                                                 ...passenger,
-                                                srrCodes: currentSrrCodes[passenger.id] || []
+                                                ...fullPassengerData, // Override with full data including baggageList
+                                                srrCodes: currentSrrCodes[passenger.id] || fullPassengerData?.srrCodes || []
                                             };
 
                                             return (
@@ -640,72 +641,67 @@ const CheckinSite = () => {
                                         })}
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-            </div>
-
-            <div className="actions-container">
-                <div className="left-actions">
-                    <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
-                    <button onClick={() => navigate(-1)}>Back</button>
-                </div>
-                <div className="right-actions">
-                    <button
-                        disabled={!selectedPassenger}
-                        onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
-                    >
-                        API
-                    </button>
-                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
-                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
-                    <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
-                </div>
-            </div>
-
-            <div className="baggage-form">
-                <label>Wybierz typ bagażu:</label>
-                <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
-                    <option value="BAG">BAG</option>
-                    <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
-                    <option value="DAA">DAA</option>
-                    <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
-                    <option value="WHEELCHAIR">WHEELCHAIR</option>
-                </select>
-                <input
-                    type="number"
-                    placeholder="Enter baggage weight"
-                    value={baggageWeight}
-                    onChange={(e) => setBaggageWeight(e.target.value)}
-                />
-                <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
-            </div>
-
-            <div className="comment-section">
-                <h2>Add a Comment</h2>
-                <textarea
-                    value={comment}
-                    onChange={handleCommentChange}
-                    placeholder="Write your comment here..."
-                    rows="4"
-                    cols="50"
-                />
-                <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
-
-                {selectedPassenger && selectedPassenger.comments?.length > 0 && (
-                    <div className="comments-list">
-                        <h3>Comments</h3>
-                        <ul>
-                            {selectedPassenger.comments.map((comment, index) => (
-                                <li key={index}>
-                                    <p>{comment.text}</p>
-                                    <small>{comment.date} - {comment.addedBy}</small>
-                                </li>
-                            ))}
-                        </ul>
                     </div>
-                )}
+                    <div className="actions-container">
+                        <div className="left-actions">
+                            <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
+                            <button onClick={() => navigate(-1)}>Back</button>
+                        </div>
+                        <div className="right-actions">
+                            <button
+                                disabled={!selectedPassenger}
+                                onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
+                            >
+                                API
+                            </button>
+                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
+                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
+                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
+                        </div>
+                    </div>
+                </div>
+                <div className="checkin-sidebar">
+                    <div className="baggage-form">
+                        <label>Wybierz typ bagażu:</label>
+                        <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
+                            <option value="BAG">BAG</option>
+                            <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
+                            <option value="DAA">DAA</option>
+                            <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
+                            <option value="WHEELCHAIR">WHEELCHAIR</option>
+                        </select>
+                        <input
+                            type="number"
+                            placeholder="Waga (kg)"
+                            value={baggageWeight}
+                            onChange={(e) => setBaggageWeight(e.target.value)}
+                        />
+                        <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
+                    </div>
+                    <div className="comment-section">
+                        <h2>Add a Comment</h2>
+                        <textarea
+                            value={comment}
+                            onChange={handleCommentChange}
+                            placeholder="Write your comment here..."
+                        />
+                        <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
+
+                        {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                            <div className="comments-list">
+                                <h3>Comments</h3>
+                                <ul>
+                                    {selectedPassenger.comments.map((comment, index) => (
+                                        <li key={index}>
+                                            <p>{comment.text}</p>
+                                            <small>{comment.date} - {comment.addedBy}</small>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {showModal && selectedPassenger && (

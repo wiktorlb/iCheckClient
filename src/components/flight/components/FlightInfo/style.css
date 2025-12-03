@@ -1,14 +1,16 @@
 .flight-info-container {
-    width: 100%; /* 15em */
-    background-color: #E6E8E6;
-    border-radius: 10px 10px 5px 5px;
-    box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+    width: 100%;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     height: fit-content;
+    border: 1px solid #e0e0e0;
+    flex-shrink: 0;
 }
 
 .status-bar {
-    height: 0.4em;
+    height: 6px;
     width: 100%;
 }
 
@@ -29,23 +31,24 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 12px;
+    padding: 1.5rem;
 }
 
 
 .flight-number {
-    font-size: 1.5em;
-    font-weight: 9999;
-
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
 }
 
 .flight-details {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 14px;
-    color: #666;
-
+    font-size: 0.9rem;
+    color: #718096;
+    gap: 0.25rem;
 }
 
 .departure-time {
@@ -53,10 +56,12 @@
 }
 
 .route {
-    margin: 0 auto;
+    margin: 0.75rem auto 0;
     text-align: center;
-    background-color: #191F2C;
-    color: #faf9f9;
-
-    padding: 0.5em;
+    background: #2196F3;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.9rem;
 }

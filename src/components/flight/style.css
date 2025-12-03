@@ -5,41 +5,89 @@
 
 .content-wrapper {
     display: flex;
-    gap: 1em; /* Odstęp między FlightInfo a główną zawartością */
-    padding: 1.4em;
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 100%;
+    margin: 0;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+    flex: 1;
+}
+
+.content-wrapper:not(.checkin-layout) {
+    flex-direction: row;
 }
 
 .main {
-    font-family: 'Roboto', sans-serif;
-    background-color: #E6E8E6;
-/*     padding: 20px; */
-    border-radius: 2px;
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
-    height: 90%;
-
-
-    padding-bottom: 1em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    gap: 0.75rem;
 }
 
 .table-spacer {
-    padding: 0 20px 0px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    gap: 0.75rem;
+    min-height: 0;
 }
 
 .main-container {
-    width: 80%;
-    margin: 0 auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    gap: 0.75rem;
 }
 
  .statistics-container {
      display: flex;
      align-items: center;
      justify-content: space-around;
-     padding: 1em;
-
-     font-weight: bold;
+     padding: 0.75rem 1rem;
+     background: #f9f9f9;
+     border-radius: 4px;
+     gap: 0.75rem;
+     flex-wrap: wrap;
+     border: 1px solid #e0e0e0;
+     flex-shrink: 0;
  }
+
+ .stats-item {
+    background: #ffffff;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
+    min-width: 100px;
+    text-align: center;
+    flex: 1;
+ }
+
+ .stats-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+ }
+
  .stats-value {
     text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
  }
 
 @media screen and (max-width: 768px) {
@@ -56,19 +104,19 @@
 /* Progress bar styles */
 .progress-bar-container {
     margin: 0;
+    flex-shrink: 0;
 }
 
 .single-progress-bar {
     height: 8px;
-    background-color: #fff;
+    background-color: #e0e0e0;
     display: flex;
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .progress-segment {
     height: 100%;
-    transition: width 0.3s ease;
 }
 
 /* Nowe kolory dla segmentów */
@@ -94,8 +142,12 @@
 
 
 .main-container-flightData {
-display: flex;
-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 300px;
+    min-width: 300px;
+    flex-shrink: 0;
 }
 
 .checkin-site {

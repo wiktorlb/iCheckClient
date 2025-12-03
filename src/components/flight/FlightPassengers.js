@@ -234,7 +234,7 @@ const FlightPassengers = () => {
                             flightNumber={flightDetails.flightNumber}
                             departureTime={flightDetails.departureTime}
                             route={flightDetails.route}
-                            status={flightDetails.state}
+                            status={flightDetails.status || flightDetails.state}
                         />
                     )}
                     {/* Render the seat map */}
@@ -243,6 +243,7 @@ const FlightPassengers = () => {
                             flightId={flightId}
                             seatMap={flightDetails.seatMap}
                             occupiedSeats={flightDetails.occupiedSeats || []}
+                            passengers={passengers}
                         />
                     )}
                 </div>
