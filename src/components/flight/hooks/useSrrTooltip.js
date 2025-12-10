@@ -67,9 +67,28 @@ export const useSrrTooltip = () => {
  */
 
 const getBaggageTooltip = (passenger, code) => {
-    if (!passenger.baggageList?.length) return 'No baggage details available';
+    if (!passenger || !passenger.baggageList || passenger.baggageList.length === 0) {
+        return 'No baggage details available';
+    }
 
-    const baggage = passenger.baggageList[parseInt(code.slice(3)) - 1];
+    // Extract baggage index from code (e.g., BAG1 -> index 0, BAG2 -> index 1)
+    const baggageIndex = parseInt(code.slice(3)) - 1;
+    if (isNaN(baggageIndex) || baggageIndex < 0) {
+        // If code doesn't have a number, show all baggage
+        return passenger.baggageList.map((baggage, idx) => {
+            const baggageTypes = {
+                'BAG': 'Baggage',
+                'HAND_LUGGAGE': 'Hand Luggage',
+                'DAA': 'DAA',
+                'SPORT_EQUIPMENT': 'Sport Equipment',
+                'WHEELCHAIR': 'Wheelchair'
+            };
+            const readableType = baggageTypes[baggage.type] || baggage.type;
+            return `Bag ${idx + 1}:\n  ID: ${baggage.id || 'N/A'}\n  Type: ${readableType}\n  Weight: ${baggage.weight || 'N/A'} kg`;
+        }).join('\n\n');
+    }
+
+    const baggage = passenger.baggageList[baggageIndex];
     if (!baggage) return 'Baggage information not found';
 
     const baggageTypes = {
@@ -82,10 +101,7 @@ const getBaggageTooltip = (passenger, code) => {
 
     const readableType = baggageTypes[baggage.type] || baggage.type;
 
-    return `BAGGAGE DETAILS:\n` +
-        `ID: ${baggage.id || 'N/A'}\n` +
-        `Type: ${readableType || 'N/A'}\n` +
-        `Weight: ${baggage.weight || 'N/A'} kg`;
+    return `Baggage Details:\nID: ${baggage.id || 'N/A'}\nType: ${readableType}\nWeight: ${baggage.weight || 'N/A'} kg`;
 };
 
 /**

@@ -18,26 +18,30 @@ import './style.css';
  * @param {Object} props.seatMap - Seat map configuration data
  * @param {Array} props.occupiedSeats - List of occupied seat numbers
  */
-const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedPassenger }) => {
+const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedPassenger, passengers: passengersProp }) => {
     const [passengers, setPassengers] = useState([]);
     const [error, setError] = useState(null);
 
+    // Use passengers from props if provided, otherwise fetch them
     useEffect(() => {
-        const fetchPassengers = async () => {
-            if (!flightId) return;
+        if (passengersProp) {
+            setPassengers(passengersProp);
+        } else {
+            const fetchPassengers = async () => {
+                if (!flightId) return;
 
-            try {
-                const response = await axiosInstance.get(`/api/passengers/flights/${flightId}/passengers-with-srr`);
-                console.log('Passengers response:', response.data);
-                setPassengers(response.data);
-            } catch (error) {
-                console.error('Error fetching passengers:', error);
-                setError('Błąd podczas pobierania danych pasażerów');
-            }
-        };
+                try {
+                    const response = await axiosInstance.get(`/api/passengers/flights/${flightId}/passengers-with-srr`);
+                    setPassengers(response.data);
+                } catch (error) {
+                    console.error('Error fetching passengers:', error);
+                    setError('Błąd podczas pobierania danych pasażerów');
+                }
+            };
 
-        fetchPassengers();
-    }, [flightId]);
+            fetchPassengers();
+        }
+    }, [flightId, passengersProp]);
 
     useEffect(() => {
         console.log('SeatMap props:', {
@@ -74,7 +78,7 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
     // Funkcja sprawdzająca, czy pasażer jest zboardowany
     const isPassengerBoarded = (seatNumber) => {
         const passenger = getPassengerForSeat(seatNumber);
-        return passenger && passenger.status === 'BOARDED';
+        return passenger && passenger.status && passenger.status.toUpperCase() === 'BOARDED';
     };
 
     // Funkcja generująca tooltip dla miejsca

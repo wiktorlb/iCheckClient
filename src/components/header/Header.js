@@ -35,14 +35,23 @@ const Header = ({ onLogout }) => {
     return false;
   };
 
+  const handleCheckInClick = (e) => {
+    e.preventDefault();
+    if (isFlightPage) {
+      navigate(`/flights/${currentFlightId}/passengers`);
+    } else {
+      setShowTooltip(true);
+      setTimeout(() => setShowTooltip(false), 3000);
+    }
+  };
+
   const handleGenerateBaggageList = () => {
     if (!isFlightPage) {
       setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 30000);
+      setTimeout(() => setShowTooltip(false), 3000);
       return;
     }
 
-    const currentFlightId = location.pathname.split('/')[2];
     navigate(`/flights/${currentFlightId}/baggage-list`);
   };
 
@@ -52,7 +61,11 @@ const Header = ({ onLogout }) => {
       <nav className="nav">
         <Link to="/management" className={isActive('/management') ? 'active' : ''}>USERS</Link>
         <Link to="/flightboard" className={isActive('/flightboard') ? 'active' : ''}>FLIGHTS</Link>
-        <Link to="/checkin" className={isActive('/checkin') ? 'active' : ''}>CHECK-IN</Link>
+        {isFlightPage ? (
+          <Link to={`/flights/${currentFlightId}/passengers`} className={isActive('/checkin') ? 'active' : ''}>CHECK-IN</Link>
+        ) : (
+          <a href="#" onClick={handleCheckInClick} className={isActive('/checkin') ? 'active' : ''}>CHECK-IN</a>
+        )}
         {isFlightPage ? (
           <Link to={`/flights/${currentFlightId}/boarding`} className={isActive('/boarding') ? 'active' : ''}>BOARDING</Link>
         ) : (

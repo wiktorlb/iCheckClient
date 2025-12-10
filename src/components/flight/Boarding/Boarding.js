@@ -235,7 +235,7 @@ const Boarding = () => {
                             flightNumber={flightDetails.flightNumber}
                             departureTime={flightDetails.departureTime}
                             route={flightDetails.route}
-                            status={flightDetails.state}
+                            status={flightDetails.status || flightDetails.state}
                         />
                     )}
                     {flightDetails && flightDetails.seatMap && (
@@ -243,6 +243,7 @@ const Boarding = () => {
                             flightId={flightId}
                             seatMap={flightDetails.seatMap}
                             occupiedSeats={flightDetails.occupiedSeats || []}
+                            passengers={passengers}
                         />
                     )}
                 </div>

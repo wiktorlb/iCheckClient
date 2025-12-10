@@ -1,17 +1,15 @@
 .seatmap-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 20px;
-    background-color: #E6E8E6;
-    border-radius: 8px;
-    max-width: auto;
-    margin: 0 auto;
-    max-height: 600px;
+    gap: 6px;
+    padding: 0.75rem;
+    background: #ffffff;
+    border-radius: 4px;
+    flex: 1;
     overflow-y: auto;
-
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
-    margin-top: 1em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    min-height: 0;
 }
 
 .seatmap-container::-webkit-scrollbar {
@@ -55,35 +53,36 @@
 }
 
 .seat {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .seat.available {
-    background-color: #000000;
+    background: #333;
 }
 
 .seat.occupied {
-    background-color: #ff0000;
+    background: #f44336;
     cursor: not-allowed;
 }
 
 .seat.boarded {
-    background-color: #2196F3;
+    background: #2196F3;
     cursor: not-allowed;
 }
 
 .seat:hover:not(.occupied):not(.boarded) {
-    transform: scale(1.1);
+    opacity: 0.8;
 }
 
 .error {
