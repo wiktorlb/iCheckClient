@@ -189,7 +189,7 @@ const FlightPassengers = () => {
 
     return (
         <section className="passengers-page">
-            <div className="passengers-overview">
+            <div className="passengers-overview center">
                 {statsOrder.map(({ label, value }) => (
                     <div key={label} className="stats-item">
                         <span className="stats-label">{label}</span>
@@ -198,7 +198,7 @@ const FlightPassengers = () => {
                 ))}
             </div>
 
-            <div className="passengers-body">
+            <div className="passengers-body center">
                 <aside className="passengers-left">
                     <div className="panel flight-info-panel">
                         <div className="panel-header compact">

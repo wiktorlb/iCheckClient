@@ -50,11 +50,11 @@ const TableHeader = () => (
     <thead className="passenger-table-header">
         <tr className="passenger-table-header-row">
             <th>Select</th>
-            <th>No.</th>
-            <th>Name</th>
+            <th>#</th>
+            <th>Passenger</th>
             <th>Seat</th>
             <th>Gender</th>
-            <th>State</th>
+            <th>Status</th>
         </tr>
     </thead>
 );
@@ -102,6 +102,7 @@ const PassengerRow = memo(({
     onToggleSelection,
     getSrrTooltip
 }) => {
+    const normalizedStatus = passenger.status?.toLowerCase() || 'default';
     const rowClassName = `
         passenger-row
         ${getRowClassName(passenger.status)}
@@ -136,9 +137,21 @@ const PassengerRow = memo(({
             <td>
                 <PassengerName passenger={passenger} getSrrTooltip={getSrrTooltip} />
             </td>
-            <td>{passenger.seatNumber}</td>
-            <td>{passenger.gender}</td>
-            <td>{passenger.status}</td>
+            <td>
+                <span className="seat-chip">
+                    {passenger.seatNumber || '—'}
+                </span>
+            </td>
+            <td>
+                <span className="gender-chip">
+                    {passenger.gender || '—'}
+                </span>
+            </td>
+            <td>
+                <span className={`status-badge status-${normalizedStatus}`}>
+                    {passenger.status || '—'}
+                </span>
+            </td>
         </tr>
     );
 });
@@ -152,6 +165,7 @@ const PassengerRow = memo(({
  * @component
  */
 const PassengerName = memo(({ passenger, getSrrTooltip }) => {
+
     const handleTooltipPosition = (event) => {
         const element = event.currentTarget;
         const rect = element.getBoundingClientRect();
@@ -173,7 +187,10 @@ const PassengerName = memo(({ passenger, getSrrTooltip }) => {
 
     return (
         <>
-            {passenger.name} {passenger.surname} {passenger.title}
+            <span className="passenger-name">
+                {passenger.name} {passenger.surname} {passenger.title || ''}
+            </span>
+
             {passenger.srrCodes?.length > 0 && (
                 <div className="srr-codes">
                     {passenger.srrCodes.map((code, idx) => (

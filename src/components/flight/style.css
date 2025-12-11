@@ -3,6 +3,11 @@
     padding: 20px;
 } */
 
+.center {
+    width: 80%;
+    margin: 0 auto;
+}
+
 .content-wrapper {
     display: flex;
     gap: 1rem;

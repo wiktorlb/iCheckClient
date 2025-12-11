@@ -31,6 +31,7 @@ const Header = ({ onLogout }) => {
 
   return (
     <header className="topbar">
+      <div className='center'>
       <div className="topbar-left">
         {showBackButton ? (
           <button className="topbar-back" onClick={handleBack}>
@@ -68,6 +69,7 @@ const Header = ({ onLogout }) => {
           <LogOut size={16} />
           <span>Wyloguj</span>
         </button>
+      </div>
       </div>
     </header>
   );
