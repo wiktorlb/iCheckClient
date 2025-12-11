@@ -1,95 +1,74 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import "./style.css";
+import { ArrowLeft, RefreshCw, LogOut, PlaneTakeoff, Users } from 'lucide-react';
+
+import './style.css';
 
 const Header = ({ onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showSortationMenu, setShowSortationMenu] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleLogout = () => {
     onLogout();
     navigate('/');
   };
 
-  const getFlightIdFromPath = (path) => {
-    const match = path.match(/\/flights\/([^\/]+)/);
-    return match ? match[1] : null;
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
-  const currentFlightId = getFlightIdFromPath(location.pathname);
-  const isFlightPage = currentFlightId !== null;
+  const showBackButton = location.pathname !== '/flightboard' && location.pathname !== '/login';
+  const passengersMatch = location.pathname.match(/^\/flights\/([^/]+)\/passengers/);
+  const passengersFlightId = passengersMatch ? passengersMatch[1] : null;
 
-  const isActive = (path) => {
-    if (path === '/flightboard') {
-      return location.pathname === '/flightboard';
-    }
-    if (path === '/checkin') {
-      return location.pathname.includes('/flights/') && location.pathname.includes('/passengers');
-    }
-    if (path === '/boarding') {
-      return location.pathname.includes('/boarding');
-    }
-    return false;
-  };
-
-  const handleCheckInClick = (e) => {
-    e.preventDefault();
-    if (isFlightPage) {
-      navigate(`/flights/${currentFlightId}/passengers`);
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
     } else {
-      setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 3000);
+      navigate('/flightboard');
     }
-  };
-
-  const handleGenerateBaggageList = () => {
-    if (!isFlightPage) {
-      setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 3000);
-      return;
-    }
-
-    navigate(`/flights/${currentFlightId}/baggage-list`);
   };
 
   return (
-    <header className="header">
-      <div className="logo">iCheck</div>
-      <nav className="nav">
-        <Link to="/management" className={isActive('/management') ? 'active' : ''}>USERS</Link>
-        <Link to="/flightboard" className={isActive('/flightboard') ? 'active' : ''}>FLIGHTS</Link>
-        {isFlightPage ? (
-          <Link to={`/flights/${currentFlightId}/passengers`} className={isActive('/checkin') ? 'active' : ''}>CHECK-IN</Link>
+    <header className="topbar">
+      <div className="topbar-left">
+        {showBackButton ? (
+          <button className="topbar-back" onClick={handleBack}>
+            <ArrowLeft size={20} />
+            <span>Back</span>
+          </button>
         ) : (
-          <a href="#" onClick={handleCheckInClick} className={isActive('/checkin') ? 'active' : ''}>CHECK-IN</a>
+          <button className="brand" onClick={() => navigate('/flightboard')}>
+            <div className="brand-icon">
+              <PlaneTakeoff size={18} />
+            </div>
+            <div className="brand-copy">
+              <span className="brand-name">iCheck</span>
+              <span className="brand-subtitle">Tablica lotów</span>
+            </div>
+          </button>
         )}
-        {isFlightPage ? (
-          <Link to={`/flights/${currentFlightId}/boarding`} className={isActive('/boarding') ? 'active' : ''}>BOARDING</Link>
+      </div>
+      <div className="topbar-actions">
+        {passengersFlightId ? (
+          <button
+            className="topbar-action primary"
+            onClick={() => navigate(`/flights/${passengersFlightId}/boarding`)}
+          >
+            <Users size={16} />
+            <span>Boarding</span>
+          </button>
         ) : (
-          <a href="#" className={isActive('/boarding') ? 'active' : ''}>BOARDING</a>
+          <button className="topbar-action" onClick={handleRefresh}>
+            <RefreshCw size={16} />
+            <span>Odśwież</span>
+          </button>
         )}
-        <div
-          className="nav-item-container"
-          onMouseEnter={() => setShowSortationMenu(true)}
-          onMouseLeave={() => setShowSortationMenu(false)}
-        >
-          <span className="nav-link">SORTATION</span>
-          {showSortationMenu && (
-            <div className="dropdown-menu">
-              <button onClick={handleGenerateBaggageList}>Generate Baggage List</button>
-            </div>
-          )}
-          {showTooltip && (
-            <div className="tooltip">
-              Please select a flight first
-            </div>
-          )}
-        </div>
-        <a href="#" className="logout-link" onClick={handleLogout}> LOGOUT </a>
-      </nav>
+        <button className="topbar-action logout" onClick={handleLogout}>
+          <LogOut size={16} />
+          <span>Wyloguj</span>
+        </button>
+      </div>
     </header>
   );
 };

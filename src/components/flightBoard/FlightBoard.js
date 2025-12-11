@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { MapPin, Clock3, Plane, DoorOpen, Trash2, UploadCloud, ChevronRight } from 'lucide-react';
 import axiosInstance from '../../api/axiosConfig';
 import './style.css';
+
+const statusMap = {
+  open: { label: 'Open', tone: 'status-open' },
+  boarding: { label: 'Boarding', tone: 'status-boarding' },
+  delayed: { label: 'Delayed', tone: 'status-delayed' },
+  prepare: { label: 'Prepare', tone: 'status-prepare' },
+  finalized: { label: 'Finalized', tone: 'status-finalized' },
+  closed: { label: 'Closed', tone: 'status-closed' },
+};
 
 const FlightBoard = () => {
   const [flights, setFlights] = useState([]);
@@ -19,7 +29,6 @@ const FlightBoard = () => {
       axiosInstance
         .get('/api/flights', { headers: { Authorization: `Bearer ${jwt}` } })
         .then((response) => {
-          console.log('API Response:', response.data); // Log the response data
           if (Array.isArray(response.data)) {
             setFlights(response.data);
           } else {
@@ -27,8 +36,8 @@ const FlightBoard = () => {
             setError(response.data);
           }
         })
-        .catch((error) => {
-          console.error('Error fetching flights:', error);
+        .catch((err) => {
+          console.error('Error fetching flights:', err);
           setError('Failed to fetch flights.');
         });
     } else {
@@ -38,25 +47,25 @@ const FlightBoard = () => {
 
   const deleteFlight = async (flightId) => {
     const jwt = localStorage.getItem('jwt');
-    if (!jwt) return window.location.href = '/login';
+    if (!jwt) return (window.location.href = '/login');
 
     setLoading(true);
     try {
-      const response = await axiosInstance.delete(`/api/flights/${flightId}`, {
+      await axiosInstance.delete(`/api/flights/${flightId}`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
 
-      setFlights(flights.filter((flight) => flight.id !== flightId));
-    } catch (error) {
-      console.error('Error deleting flight:', error);
+      setFlights((prev) => prev.filter((flight) => flight.id !== flightId));
+    } catch (err) {
+      console.error('Error deleting flight:', err);
       alert('Failed to delete flight.');
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredFlights = flights.filter((flight) =>
-    !selectedDate || flight.departureDate === selectedDate
+  const filteredFlights = flights.filter(
+    (flight) => !selectedDate || flight.departureDate === selectedDate
   );
 
   const totalItems = filteredFlights.length;
@@ -64,89 +73,140 @@ const FlightBoard = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentFlights = filteredFlights.slice(startIndex, startIndex + itemsPerPage);
 
+  const emptyState = !loading && currentFlights.length === 0;
+
+  const renderStatus = (status) => {
+    const normalized = (status || '').toLowerCase();
+    const swatch = statusMap[normalized] || { label: status || 'Unknown', tone: 'status-unknown' };
+    return <span className={`status-pill ${swatch.tone}`}>{swatch.label}</span>;
+  };
+
+  const formatRoute = (route) => {
+    if (!route) return { from: 'N/A', to: 'N/A' };
+    const [from, to] = route.split('-').map((segment) => segment.trim());
+    return {
+      from: from || 'N/A',
+      to: to || 'N/A',
+    };
+  };
+
+  const pagination = useMemo(
+    () =>
+      Array.from({ length: totalPages }, (_, index) => (
+        <button
+          key={index + 1}
+          className={`page-pill ${currentPage === index + 1 ? 'active' : ''}`}
+          onClick={() => setCurrentPage(index + 1)}
+        >
+          {index + 1}
+        </button>
+      )),
+    [totalPages, currentPage]
+  );
+
   return (
-    <section>
+    <section className="flightboard-page">
       {loading && (
         <div className="loading-screen">
           <div className="spinner"></div>
         </div>
       )}
 
-      <main className="main">
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="date-picker">
-          <label htmlFor="date">Filter by Date</label>
-          <input type="date" id="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-        </div>
-
-        {currentFlights.length > 0 ? (
-          <table className="flight-table">
-            <thead>
-              <tr className="flightBoard-title">
-                <th>No.</th>
-                <th>Flight</th>
-                <th>Route</th>
-                <th>State</th>
-                <th>Departure</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentFlights.map((flight, index) => (
-                <tr
-                  key={flight.id}
-                  onClick={() => navigate(`/flights/${flight.id}/passengers`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>{startIndex + index + 1}</td>
-                  <td>
-                    <span className={flight.status ? flight.status.toLowerCase() : 'unknown'}>
-                      {flight.flightNumber}
-                    </span>
-                  </td>
-                  <td>{flight.route || 'N/A'}</td>
-                  <td>{flight.status || 'Unknown'}</td>
-                  <td>{flight.departureTime || 'TBD'}</td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => deleteFlight(flight.id)}
-                      className="delete-button"
-                      disabled={loading}
-                    >
-                      DELETE
-                    </button>
-                    <Link to={`/flights/${flight.id}/upload-passengers`} className="action-link">
-                      <button className="add-passengers-btn">Add Passengers</button>
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div>No flights available for the selected date.</div>
-        )}
-
-        {totalPages > 1 && (
-          <div className="pagination">
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index + 1}
-                className={`page-button ${currentPage === index + 1 ? 'active' : ''}`}
-                onClick={() => setCurrentPage(index + 1)}
-              >
-                {index + 1}
-              </button>
-            ))}
+      <main className="flightboard-main">
+        <div className="flightboard-top">
+          <div>
+            <h1>Flight Board</h1>
+            <p>Zarządzaj bieżącymi lotami i przełącz się do widoku pasażerów jednym kliknięciem.</p>
           </div>
-        )}
-
-        <div className="add-flight-button">
-          <Link to="/add-flight"><button>Add New Flight</button></Link>
+          <div className="date-filter">
+            <label htmlFor="date">Filter by date</label>
+            <input
+              type="date"
+              id="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
         </div>
-        <div className="add-flight-button">
-          <Link to="/register"><button>Add New User</button></Link>
+
+        {error && <div className="error-banner">{error}</div>}
+
+        <div className="flight-card-list">
+          {currentFlights.map((flight) => {
+            const route = formatRoute(flight.route);
+            const model = flight.aircraftId || flight.plane?.model || '—';
+            const gate = flight.boardingGate || flight.gate || '—';
+            const status = flight.status || flight.state;
+
+            return (
+              <article
+                key={flight.id}
+                className="flight-card"
+                onClick={() => navigate(`/flights/${flight.id}/passengers`)}
+              >
+                <div className="flight-card-body">
+                  <div className="flight-card-left">
+                    <div className="flight-number">{flight.flightNumber || '—'}</div>
+                    <div className="flight-route">
+                      <MapPin size={16} />
+                      <span>
+                        {route.from} <span className="route-sep">→</span> {route.to}
+                      </span>
+                    </div>
+                    <div className="flight-meta">
+                      <span>
+                        <Clock3 size={15} />
+                        {flight.departureTime || 'TBD'}
+                      </span>
+                      <span>
+                        <Plane size={15} />
+                        {model}
+                      </span>
+                      <span>
+                        <DoorOpen size={15} />
+                        Gate: {gate}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flight-card-right">
+                    {renderStatus(status)}
+                    <ChevronRight size={18} className="chevron" />
+                  </div>
+                </div>
+                <div className="flight-card-actions" onClick={(e) => e.stopPropagation()}>
+                  <Link to={`/flights/${flight.id}/upload-passengers`} className="card-action-btn">
+                    <UploadCloud size={16} />
+                    <span>Add passengers</span>
+                  </Link>
+                  <button
+                    type="button"
+                    className="card-action-btn danger"
+                    onClick={() => deleteFlight(flight.id)}
+                    disabled={loading}
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        {emptyState && <div className="empty-state">No flights available for the selected date.</div>}
+
+        {totalPages > 1 && <div className="pagination-row">{pagination}</div>}
+
+        <div className="board-footer-actions">
+          <Link to="/add-flight" className="primary-action">
+            Add new flight
+          </Link>
+          <Link to="/register" className="ghost-action">
+            Add new user
+          </Link>
         </div>
       </main>
     </section>
