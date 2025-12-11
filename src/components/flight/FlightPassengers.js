@@ -1,51 +1,23 @@
 import React, { useEffect, useMemo, useCallback, useReducer, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
-import PassengerStats from './components/PassengerStats/PassengerStats';
 import PassengerTable from './components/PassengerTable/PassengerTable';
-import SearchBar from './components/SearchBar/SearchBar';
-import SearchBarSSR from './components/SearchBarSSR/SearchBarSSR';
-import ActionPanel from './components/ActionPanel/ActionPanel';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
 import { passengerReducer, initialState } from './reducers/PassengerReducer';
 import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';
-import FlightInfo from './components/FlightInfo/FlightInfo';
-import './style.css';
 import SeatMap from './components/SeatMap/SeatMap';
-import BaggageList from './components/BaggageList/BaggageList';
+import './style.css';
 
-/**
- * Stats Item Component
- *
- * Renders a single statistics item with label and value.
- * Used in the statistics container to display flight metrics.
- *
- * @component
- * @param {Object} props
- * @param {string} props.label - The label for the statistic
- * @param {number|string} props.value - The value to display
- */
-const StatsItem = ({ label, value }) => (
-    <div className="stats-item">
-        <div className="stats-label">{label}</div>
-        <div className="stats-value">{value}</div>
-    </div>
-);
+const statusToneMap = {
+    open: 'status-open',
+    boarding: 'status-boarding',
+    delayed: 'status-delayed',
+    prepare: 'status-prepare',
+    finalized: 'status-finalized',
+    closed: 'status-closed',
+};
 
-/**
- * Flight Passengers Component
- *
- * Main component for managing and displaying flight passenger information.
- * Features include:
- * - Passenger list management
- * - Search functionality (by surname and SSR codes)
- * - Passenger statistics
- * - Status management
- * - Integration with seat map
- *
- * @component
- */
 const FlightPassengers = () => {
     const { flightId } = useParams();
     const navigate = useNavigate();
@@ -195,106 +167,162 @@ const FlightPassengers = () => {
         };
     }, [passengers]);
 
-    /**
-     * Progress Bar Component
-     *
-     * Visual representation of passenger status distribution.
-     * Shows segments for different passenger statuses (boarded, accepted, standby, etc.).
-     *
-     * @component
-     * @param {Object} props
-     * @param {Object} props.stats - Statistics object containing passenger counts
-     * @param {number} props.total - Total number of passengers
-     */
-    const ProgressBar = ({ stats, total }) => {
-        const getPercentage = (value) => (value / total) * 100;
+    const allowCapacity = flightDetails?.capacity || flightDetails?.plane?.capacity || 0;
+    const statusLabel = (flightDetails?.status || flightDetails?.state || 'Unknown').toLowerCase();
+    const statusClass = statusToneMap[statusLabel] || 'status-unknown';
+    const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
+    const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
+    const planeModel = flightDetails?.plane?.model || flightDetails?.aircraftId || '—';
+    const capacity = allowCapacity || passengers.length || '—';
 
-        return (
-            <div className="single-progress-bar">
-                <div className="progress-segment boarded"
-                    style={{ width: `${getPercentage(stats.boarded || 0)}%` }} />
-                <div className="progress-segment none"
-                    style={{ width: `${getPercentage(stats.none || 0)}%` }} />
-                <div className="progress-segment acc"
-                    style={{ width: `${getPercentage(stats.acc || 0)}%` }} />
-                <div className="progress-segment stby"
-                    style={{ width: `${getPercentage(stats.stby || 0)}%` }} />
-                <div className="progress-segment off"
-                    style={{ width: `${getPercentage(stats.off || 0)}%` }} />
-            </div>
-        );
-    };
+    const statsOrder = [
+        { label: 'BOARDED', value: stats.boarded },
+        { label: 'ACCEPTED', value: stats.acc },
+        { label: 'BOOKED', value: stats.booked },
+        { label: 'ALLOWED', value: allowCapacity || '—' },
+        { label: 'STANDBY', value: stats.stby },
+        { label: 'BAGS', value: stats.bags },
+        { label: 'SBAGS', value: stats.sbags },
+    ];
+
+    const isActionDisabled = selectedPassengers.length === 0;
 
     return (
-        <section>
-            <div className="content-wrapper">
-                <div className="main-container-flightData">
-                    {flightDetails && (
-                        <FlightInfo
-                            flightNumber={flightDetails.flightNumber}
-                            departureTime={flightDetails.departureTime}
-                            route={flightDetails.route}
-                            status={flightDetails.status || flightDetails.state}
-                        />
-                    )}
-                    {/* Render the seat map */}
-                    {flightDetails && flightDetails.seatMap && (
-                        <SeatMap
-                            flightId={flightId}
-                            seatMap={flightDetails.seatMap}
-                            occupiedSeats={flightDetails.occupiedSeats || []}
-                            passengers={passengers}
-                        />
-                    )}
-                </div>
-                <div className="main-container">
-                    <div className="statistics-container">
-                        <StatsItem label="BOARDED" value={stats.boarded} />
-                        <StatsItem label="ACCEPTED" value={stats.acc} />
-                        <StatsItem label="BOOKED" value={stats.booked} />
-                        <StatsItem label="ALLOWED" value='189' />
-                        <StatsItem label="STANDBY" value={stats.stby} />
-                        <StatsItem label="BAGS" value={stats.bags} />
-                        <StatsItem label="SBAGS" value={stats.sbags} />
+        <section className="passengers-page">
+            <div className="passengers-overview">
+                {statsOrder.map(({ label, value }) => (
+                    <div key={label} className="stats-item">
+                        <span className="stats-label">{label}</span>
+                        <span className="stats-value">{value ?? '—'}</span>
                     </div>
-                    <main className="main">
-                        <div className="progress-bar-container">
-                            <ProgressBar stats={stats} total={passengers.length} />
+                ))}
+            </div>
+
+            <div className="passengers-body">
+                <aside className="passengers-left">
+                    <div className="panel flight-info-panel">
+                        <div className="panel-header compact">
+                            <div>
+                                <h3>Informacje o locie</h3>
+                                <p>{flightDetails?.route || 'Trasa niedostępna'}</p>
+                            </div>
+                            <span className={`status-pill ${statusClass}`}>
+                                {flightDetails?.status || flightDetails?.state || 'Unknown'}
+                            </span>
                         </div>
-                        <ErrorMessage error={error} />
-                        <div className="table-spacer">
-                            <div className="search-bars-container">
-                                <SearchBar
+                        <div className="info-grid">
+                            <div>
+                                <p className="info-label">Gate</p>
+                                <p className="info-value">{gate}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Radio</p>
+                                <p className="info-value">{radioNumber}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Samolot</p>
+                                <p className="info-value">{planeModel}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Pojemność</p>
+                                <p className="info-value">{capacity}</p>
+                            </div>
+                        </div>
+                        <div className="flight-actions">
+                            <Link to={`/flights/${flightId}/passengers`} className="ghost-action">
+                                Lista pasażerów
+                            </Link>
+                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
+                                Lista bagażu
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="panel seatmap-panel">
+                        <div className="panel-header">
+                            <div>
+                                <h3>Mapa miejsc</h3>
+                                <p>Podgląd zajętości kabiny w czasie rzeczywistym</p>
+                            </div>
+                            <div className="seat-legend">
+                                <span><span className="dot available" />Wolne</span>
+                                <span><span className="dot occupied" />Zajęte</span>
+                                <span><span className="dot boarded" />Boarded</span>
+                            </div>
+                        </div>
+                        {flightDetails?.seatMap ? (
+                            <SeatMap
+                                flightId={flightId}
+                                seatMap={flightDetails.seatMap}
+                                occupiedSeats={flightDetails.occupiedSeats || []}
+                                passengers={passengers}
+                            />
+                        ) : (
+                            <div className="panel-placeholder">Seat map unavailable for this flight.</div>
+                        )}
+                    </div>
+                </aside>
+
+                <div className="passengers-right">
+                    <div className="passenger-table-card">
+                        <div className="table-toolbar">
+                            <div className="toolbar-title">
+                                <h3>Lista pasażerów</h3>
+                                <span>{filteredPassengers.length} pozycji</span>
+                            </div>
+                            <div className="toolbar-search">
+                                <input
+                                    type="text"
+                                    className="search-input"
                                     value={searchTerm}
                                     onChange={(e) => dispatch({
                                         type: 'SET_SEARCH_TERM',
                                         payload: e.target.value
                                     })}
-                                    placeholder="Search by surname..."
+                                    placeholder="Szukaj po nazwisku..."
                                 />
-                                <SearchBarSSR
+                                <input
+                                    type="text"
+                                    className="search-input"
                                     value={srrSearchTerm}
                                     onChange={(e) => setSrrSearchTerm(e.target.value)}
+                                    placeholder="Filtruj po kodzie SSR..."
                                 />
                             </div>
-                            <PassengerTable
-                                passengers={filteredPassengers}
-                                selectedPassengers={selectedPassengers}
-                                onToggleSelection={(id) => dispatch({
-                                    type: 'TOGGLE_PASSENGER_SELECTION',
-                                    payload: id
-                                })}
-                                getSrrTooltip={getSrrTooltip}
-                            />
+                            <div className="toolbar-actions">
+                                <button
+                                    type="button"
+                                    className="ghost-button"
+                                    disabled={isActionDisabled}
+                                    onClick={() => handleAction('update')}
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    type="button"
+                                    className="primary-button"
+                                    disabled={isActionDisabled}
+                                    onClick={() => handleAction('accept')}
+                                >
+                                    Accept
+                                </button>
+                            </div>
                         </div>
-                    </main>
+
+                        <ErrorMessage error={error} />
+
+                        <PassengerTable
+                            passengers={filteredPassengers}
+                            selectedPassengers={selectedPassengers}
+                            onToggleSelection={(id) => dispatch({
+                                type: 'TOGGLE_PASSENGER_SELECTION',
+                                payload: id
+                            })}
+                            getSrrTooltip={getSrrTooltip}
+                        />
+                    </div>
                 </div>
             </div>
-            <ActionPanel
-                visible={selectedPassengers.length > 0}
-                onAction={handleAction}
-                mode="passengers"
-            />
         </section>
     );
 };

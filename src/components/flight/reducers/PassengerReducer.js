@@ -59,6 +59,12 @@ export const passengerReducer = (state, action) => {
                 selectedPassengers: []
             };
 
+        case 'SET_SELECTED_PASSENGERS':
+            return {
+                ...state,
+                selectedPassengers: action.payload
+            };
+
         default:
             return state;
     }
