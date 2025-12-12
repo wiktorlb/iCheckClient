@@ -70,9 +70,9 @@ const FlightPassengers = () => {
     useEffect(() => {
         const fetchFlightDetails = async () => {
             try {
-                const response = await axiosInstance.get(`/api/flights/${flightId}`);
-                console.log('Flight details response:', response.data);
-                console.log('SeatMap data:', response.data.seatMap);
+                const jwt = localStorage.getItem('jwt');
+                const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
+                const response = await axiosInstance.get(`/api/flights/${flightId}`, config);
                 setFlightDetails(response.data);
             } catch (error) {
                 console.error('Error fetching flight details:', error);

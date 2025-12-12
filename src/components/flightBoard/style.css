@@ -186,6 +186,12 @@ input[type="date"]:focus {
   gap: 1rem;
 }
 
+.flightboard-right {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
 .flightboard-top h1 {
   margin: 0;
   font-size: 1.75rem;
@@ -444,6 +450,322 @@ input[type="date"]:focus {
   background: rgba(255, 255, 255, 0.8);
 }
 
+.ghost-action.active {
+  border-style: solid;
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.flightboard-page.admin-view {
+  background: #f7f8fb;
+}
+
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.board-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #1f2933;
+}
+
+.board-header p {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+
+.admin-panel-btn {
+  border: none;
+  background: #111c44;
+  color: #fff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 25px rgba(17, 28, 68, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-panel-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 30px rgba(17, 28, 68, 0.3);
+}
+
+.admin-panel-btn.active {
+  background: #374151;
+}
+
+.board-controls {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #d6dae5;
+  background: #fff;
+  color: #94a3b8;
+}
+
+.search-field input {
+  border: none;
+  flex: 1;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #111827;
+}
+
+.search-field input:focus {
+  outline: none;
+}
+
+.controls-right {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.status-filter {
+  border-radius: 999px;
+  border: 1px solid #d6dae5;
+  padding: 0.65rem 1rem;
+  background: #fff;
+  font-weight: 600;
+  color: #111827;
+}
+
+.date-filter.compact {
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.board-list .flight-card {
+  border: 1px solid #e5e7f1;
+  box-shadow: none;
+}
+
+.board-view-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.board-card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.board-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.board-card-route span,
+.board-card-meta span {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.board-card-route strong {
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.board-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.primary-action.outline {
+  background: transparent;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  box-shadow: none;
+}
+
+.primary-action.outline:hover {
+  background: #eff6ff;
+}
+
+.board-footer-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-panel {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-head-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.back-link {
+  border: none;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.tab-btn {
+  flex: none;
+  border: none;
+  background: none;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 0.5rem 0;
+  position: relative;
+}
+
+.tab-btn.active {
+  color: #1f2933;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 3px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.admin-list .flight-card {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.admin-card-body {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-card-info {
+  flex: 1;
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.admin-card-grid strong {
+  display: block;
+  color: #111827;
+  margin-top: 0.2rem;
+}
+
+.admin-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #d7dae5;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #111827;
+}
+
+.icon-button.active {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.icon-button.danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #b91c1c;
+}
+
+.admin-card-editor {
+  border-top: 1px solid #eef0f6;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.editor-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.editor-row select {
+  border-radius: 12px;
+  border: 1px solid #d5d8e1;
+  padding: 0.55rem 0.75rem;
+  font-weight: 600;
+}
+
+.editor-row.split {
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
 .loading-screen {
   position: fixed;
   inset: 0;
@@ -473,6 +795,24 @@ input[type="date"]:focus {
   .flightboard-top {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .board-controls,
+  .admin-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status-filter,
+  .date-filter.compact,
+  .search-field {
+    width: 100%;
   }
 
   .flight-card-body {

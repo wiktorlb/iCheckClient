@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useReducer, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../../../api/axiosConfig';
 import PassengerTable from '../components/PassengerTable/PassengerTable';
@@ -10,7 +11,7 @@ import { passengerReducer, initialState } from '../reducers/PassengerReducer';
 import FlightInfo from '../components/FlightInfo/FlightInfo';
 import SeatMap from '../components/SeatMap/SeatMap';
 import ActionPanel from '../components/ActionPanel/ActionPanel';
-import BaggageList from '../components/BaggageList/BaggageList';
+
 import './style.css';
 
 /**
@@ -56,6 +57,8 @@ const Boarding = () => {
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
+    const [closingFlight, setClosingFlight] = useState(false);
+    const [closeResult, setCloseResult] = useState(null);
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -115,42 +118,44 @@ const Boarding = () => {
         };
     }, [passengers]);
 
+    const fetchPassengers = useCallback(async () => {
+        try {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) return;
+
+            const response = await axiosInstance.get(
+                `/api/passengers/flights/${flightId}/passengers-with-srr-filtered`,
+                { headers: { Authorization: `Bearer ${jwt}` } }
+            );
+
+            dispatch({ type: 'SET_PASSENGERS', payload: response.data });
+        } catch (error) {
+            console.error('Error fetching passengers:', error);
+            dispatch({
+                type: 'SET_ERROR',
+                payload: 'Failed to fetch passengers.'
+            });
+        }
+    }, [flightId]);
+
     useEffect(() => {
-        const fetchPassengers = async () => {
-            try {
-                const jwt = localStorage.getItem('jwt');
-                if (!jwt) return;
-
-                const response = await axiosInstance.get(
-                    `/api/passengers/flights/${flightId}/passengers-with-srr-filtered`,
-                    { headers: { Authorization: `Bearer ${jwt}` } }
-                );
-
-                dispatch({ type: 'SET_PASSENGERS', payload: response.data });
-            } catch (error) {
-                console.error('Error fetching passengers:', error);
-                dispatch({
-                    type: 'SET_ERROR',
-                    payload: 'Failed to fetch passengers.'
-                });
-            }
-        };
-
         fetchPassengers();
+    }, [fetchPassengers]);
+
+    const fetchFlightDetails = useCallback(async () => {
+        try {
+            const jwt = localStorage.getItem('jwt');
+            const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
+            const response = await axiosInstance.get(`/api/flights/${flightId}`, config);
+            setFlightDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching flight details:', error);
+        }
     }, [flightId]);
 
     useEffect(() => {
-        const fetchFlightDetails = async () => {
-            try {
-                const response = await axiosInstance.get(`/api/flights/${flightId}`);
-                setFlightDetails(response.data);
-            } catch (error) {
-                console.error('Error fetching flight details:', error);
-            }
-        };
-
         fetchFlightDetails();
-    }, [flightId]);
+    }, [fetchFlightDetails]);
 
     const handleBoardPassenger = async () => {
         if (!selectedPassengers.length) return;
@@ -193,6 +198,29 @@ const Boarding = () => {
     const handleAction = async (action) => {
         if (action === 'board') {
             await handleBoardPassenger();
+        }
+    };
+
+    const handleCloseFlight = async () => {
+        const jwt = localStorage.getItem('jwt');
+        if (!jwt) return;
+
+        setClosingFlight(true);
+        setCloseResult(null);
+        try {
+            const response = await axiosInstance.put(
+                `/api/flights/${flightId}/close-when-ready`,
+                {},
+                { headers: { Authorization: `Bearer ${jwt}` } }
+            );
+            setCloseResult({ type: 'success', message: response.data?.message || 'Flight closed successfully.' });
+            await fetchPassengers();
+            await fetchFlightDetails();
+        } catch (error) {
+            const message = error.response?.data || 'Unable to close flight. Ensure all passengers are boarded or offloaded.';
+            setCloseResult({ type: 'error', message });
+        } finally {
+            setClosingFlight(false);
         }
     };
 
@@ -257,6 +285,33 @@ const Boarding = () => {
                         <StatsItem label="BAGS" value={stats.bags} />
                         <StatsItem label="SBAGS" value={stats.sbags} />
                     </div>
+                    {flightDetails && !['CLOSED', 'FINALIZED'].includes((flightDetails.status || '').toUpperCase()) && (
+                        <>
+                            <div className="close-flight-bar">
+                                <div>
+                                    <p>
+                                        Wszystkie osoby muszą mieć status BOARDED lub OFF, aby zamknąć lot.
+                                    </p>
+                                    <p>
+                                        Postęp: {stats.boarded}/{stats.booked} boarded.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="close-button"
+                                    onClick={handleCloseFlight}
+                                    disabled={closingFlight}
+                                >
+                                    {closingFlight ? 'Closing...' : 'Close flight'}
+                                </button>
+                            </div>
+                            {closeResult && (
+                                <div className={`close-banner ${closeResult.type}`}>
+                                    {closeResult.message}
+                                </div>
+                            )}
+                        </>
+                    )}
                     <main className="main">
                         <div className="progress-bar-container">
                             <ProgressBar stats={stats} total={passengers.length} />

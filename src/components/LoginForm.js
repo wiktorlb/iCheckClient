@@ -41,36 +41,42 @@ const LoginForm = ({ onLogin }) => {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-page">
       {loading && (
         <div className="loading-screen">
           <div className="spinner"></div>
         </div>
       )}
-      <div className="login-box">
-        <h2 className="login-title">iCheck</h2>
-        <form onSubmit={handleLogin} className="login-form">
-          <input
-            className="login-input"
-            type="text"
-            placeholder="ID Number"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            className="login-input"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit" className="login-button" disabled={loading}>
-            Login
-          </button>
-        </form>
-        {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <div className="hero-image" style={{ backgroundImage: "url('/loginPicture.jpg')" }} />
+      <div className="auth-panel">
+        <div className="auth-content">
+          <h1 className="brand-logo">iCheck</h1>
+          <form onSubmit={handleLogin} className="auth-form">
+            <label className="auth-field">
+              <span>Login</span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </label>
+            <label className="auth-field">
+              <span>Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </label>
+            <button type="submit" className="auth-button" disabled={loading}>
+              <span>Log in</span>
+              <span className="arrow">→</span>
+            </button>
+          </form>
+          {errorMessage && <p className="auth-error">{errorMessage}</p>}
+        </div>
       </div>
     </div>
   );
