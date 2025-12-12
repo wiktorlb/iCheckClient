@@ -68,7 +68,8 @@
 }
 
 .passenger-table tbody tr:hover {
-    background: rgba(99, 102, 241, 0.06);
+   /*  background: rgba(99, 102, 241, 0.06); */
+background-blend-mode: darken !important;
     box-shadow: inset 2px 0 0 #7c3aed;
 }
 
@@ -196,7 +197,9 @@ box-shadow: inset 3px 0 0 #7b7b7b;
 .row-selected:hover {
     background: rgba(124, 58, 237, 0.1);
 }
-
+.passenger-table tbody tr:hover {
+    background-blend-mode: darken !important;
+}
 /* Style dla kodów SSR */
 .srr-codes {
     display: flex;

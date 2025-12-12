@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, LogOut, PlaneTakeoff, Users } from 'lucide-react';
+import axiosInstance from '../../api/axiosConfig';
+import logo from './iCheckLogo.png';
 
 import './style.css';
 
 const Header = ({ onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [flightDetails, setFlightDetails] = useState(null);
 
   const handleLogout = () => {
     onLogout();
@@ -18,8 +21,71 @@ const Header = ({ onLogout }) => {
   };
 
   const showBackButton = location.pathname !== '/flightboard' && location.pathname !== '/login';
+  const flightMatch = location.pathname.match(/^\/flights\/([^/]+)/);
   const passengersMatch = location.pathname.match(/^\/flights\/([^/]+)\/passengers/);
   const passengersFlightId = passengersMatch ? passengersMatch[1] : null;
+  const currentFlightId = flightMatch ? flightMatch[1] : null;
+
+  useEffect(() => {
+    if (!currentFlightId) {
+      setFlightDetails(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) return;
+
+    const fetchFlightDetails = async () => {
+      try {
+        const response = await axiosInstance.get(`/api/flights/${currentFlightId}`, {
+          headers: { Authorization: `Bearer ${jwt}` },
+          signal: controller.signal
+        });
+        setFlightDetails(response.data);
+      } catch (error) {
+        if (error.name !== 'CanceledError' && error.code !== 'ERR_CANCELED') {
+          console.error('Failed to load flight info for header', error);
+        }
+      }
+    };
+
+    fetchFlightDetails();
+    return () => controller.abort();
+  }, [currentFlightId]);
+
+  const flightInfo = useMemo(() => {
+    if (!flightDetails) return null;
+    const route = flightDetails.route || '';
+    const routeSegments = route
+      .split(/[-–>]/)
+      .map(part => part.trim())
+      .filter(Boolean);
+    const formattedRoute =
+      routeSegments.length >= 2
+        ? `${routeSegments[0]} - ${routeSegments[routeSegments.length - 1]}`
+        : routeSegments[0] || route || flightDetails.destination || '—';
+
+    const departureISO = flightDetails.departureTime;
+    const formattedDeparture = departureISO
+      ? new Date(departureISO).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '—';
+
+    const delayMinutes =
+      flightDetails.delay ??
+      flightDetails.departureDelay ??
+      flightDetails.delayMinutes ??
+      null;
+
+    return {
+      number: flightDetails.flightNumber || '—',
+      route: formattedRoute,
+      departure: formattedDeparture,
+      delay: delayMinutes,
+      statusLabel: delayMinutes ? `Delayed +${delayMinutes}m` : 'On time',
+      isDelayed: Boolean(delayMinutes)
+    };
+  }, [flightDetails]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -31,45 +97,63 @@ const Header = ({ onLogout }) => {
 
   return (
     <header className="topbar">
-      <div className='center'>
-      <div className="topbar-left">
-        {showBackButton ? (
-          <button className="topbar-back" onClick={handleBack}>
-            <ArrowLeft size={20} />
-            <span>Back</span>
-          </button>
-        ) : (
-          <button className="brand" onClick={() => navigate('/flightboard')}>
-            <div className="brand-icon">
-              <PlaneTakeoff size={18} />
+      <div className="center topbar-inner">
+        <div className="topbar-left">
+          {showBackButton ? (
+            <div className="topbar-back-wrapper">
+              <button className="topbar-back" onClick={handleBack}>
+                <ArrowLeft size={20} />
+              </button>
+              {flightInfo && (
+                <div className="flight-context">
+                  <div className="flight-row primary">
+                    <span className="flight-number-chip">{flightInfo.number}</span>
+                    <span
+                      className={`status-pill-mini ${
+                        flightInfo.isDelayed ? 'delayed' : 'on-time'
+                      }`}
+                    >
+                      {flightInfo.statusLabel}
+                    </span>
+                  </div>
+                  <div className="flight-row secondary">
+                    <span className="flight-route">{flightInfo.route}</span>
+                    <span className="flight-departure">{flightInfo.departure}</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="brand-copy">
-              <span className="brand-name">iCheck</span>
-              <span className="brand-subtitle">Tablica lotów</span>
-            </div>
+          ) : (
+            <button className="brand" onClick={() => navigate('/flightboard')}>
+                <img src={logo} alt="Logo" />
+             {/*  <div className="brand-icon">
+                <PlaneTakeoff size={18} />
+              </div>
+              <div className="brand-copy">
+                <span className="brand-name">iCheck</span>
+                <span className="brand-subtitle">Tablica lotów</span>
+              </div> */}
+            </button>
+          )}
+        </div>
+        <div className="topbar-actions">
+          {passengersFlightId ? (
+            <button
+              className="topbar-action primary"
+              onClick={() => navigate(`/flights/${passengersFlightId}/boarding`)}
+            >
+              <Users size={16} />
+              <span>BOARDING</span>
+            </button>
+          ) : (
+            <button className="topbar-action" onClick={handleRefresh}>
+              <RefreshCw size={16} />
+            </button>
+          )}
+          <button className="topbar-action logout" onClick={handleLogout}>
+            <LogOut size={16} />
           </button>
-        )}
-      </div>
-      <div className="topbar-actions">
-        {passengersFlightId ? (
-          <button
-            className="topbar-action primary"
-            onClick={() => navigate(`/flights/${passengersFlightId}/boarding`)}
-          >
-            <Users size={16} />
-            <span>Boarding</span>
-          </button>
-        ) : (
-          <button className="topbar-action" onClick={handleRefresh}>
-            <RefreshCw size={16} />
-            <span>Odśwież</span>
-          </button>
-        )}
-        <button className="topbar-action logout" onClick={handleLogout}>
-          <LogOut size={16} />
-          <span>Wyloguj</span>
-        </button>
-      </div>
+        </div>
       </div>
     </header>
   );
