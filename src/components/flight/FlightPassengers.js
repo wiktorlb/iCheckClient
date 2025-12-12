@@ -25,6 +25,7 @@ const FlightPassengers = () => {
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -35,9 +36,11 @@ const FlightPassengers = () => {
                 (passenger.srrCodes && passenger.srrCodes.some(code =>
                     code.toUpperCase().includes(srrSearchTerm.toUpperCase())
                 ));
-            return matchesSurname && matchesSrr;
+            const matchesStatus = !statusFilter ||
+                (passenger.status && passenger.status.toLowerCase() === statusFilter);
+            return matchesSurname && matchesSrr && matchesStatus;
         }),
-        [passengers, searchTerm, srrSearchTerm]
+        [passengers, searchTerm, srrSearchTerm, statusFilter]
     );
 
     useEffect(() => {
@@ -266,10 +269,6 @@ const FlightPassengers = () => {
                 <div className="passengers-right">
                     <div className="passenger-table-card">
                         <div className="table-toolbar">
-                            <div className="toolbar-title">
-                                <h3>Lista pasażerów</h3>
-                                <span>{filteredPassengers.length} pozycji</span>
-                            </div>
                             <div className="toolbar-search">
                                 <input
                                     type="text"
@@ -288,6 +287,18 @@ const FlightPassengers = () => {
                                     onChange={(e) => setSrrSearchTerm(e.target.value)}
                                     placeholder="Filtruj po kodzie SSR..."
                                 />
+                                <select
+                                    className="search-input status-select"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <option value="">Status: any</option>
+                                    <option value="boarded">Boarded</option>
+                                    <option value="acc">Accepted</option>
+                                    <option value="stby">Standby</option>
+                                    <option value="off">Off</option>
+                                    <option value="none">None</option>
+                                </select>
                             </div>
                             <div className="toolbar-actions">
                                 <button
