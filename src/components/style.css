@@ -19,7 +19,7 @@ body {
 }
 
 .auth-panel {
-  width: min(35%, 480px);
+  width: min(35%, 35em);
   min-width: 320px;
   background: #fff;
   display: flex;
@@ -45,6 +45,15 @@ body {
   letter-spacing: 0.03em;
 }
 
+.brand-logo-login-container{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2em;
+}
+.brand-logo-login {
+  width: 20em;;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -61,6 +70,12 @@ body {
   color: #94a3b8;
 }
 
+.auth-field span {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-weight: bold;
+  color: #013356;
+}
+
 .auth-field input {
   border: none;
   border-bottom: 2px solid #dbe4ef;
@@ -74,7 +89,16 @@ body {
   outline: none;
   border-color: #0f1e3d;
 }
-
+.auth-button-container {
+  display: flex;
+  justify-content: right;
+}
+.auth-button-submit {
+  width: 9em;
+    display: flex !important;
+    justify-content: center !important;
+    border-radius: .5em !important;
+}
 .auth-button {
   margin-top: 0.5rem;
   border: none;
@@ -95,7 +119,8 @@ body {
 }
 
 .auth-button .arrow {
-  font-size: 1.15rem;
+font-size: 1em;
+  transform: scaleX(3);
 }
 
 .auth-button:hover {

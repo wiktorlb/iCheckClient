@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, LogOut, PlaneTakeoff, Users } from 'lucide-react';
-import axiosInstance from '../../api/axiosConfig';
-import logo from './iCheckLogo.png';
+import { ArrowLeft, RefreshCw, LogOut, Users } from 'lucide-react';
 
+import axiosInstance from '../../api/axiosConfig';
 import './style.css';
+
+const logo = `${process.env.PUBLIC_URL}/iCheckLogo.png`;
+
 
 const Header = ({ onLogout }) => {
   const navigate = useNavigate();

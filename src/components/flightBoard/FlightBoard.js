@@ -8,7 +8,7 @@ import {
   Trash2,
   UploadCloud,
   ChevronRight,
-  ChevronLeft,
+  ArrowLeft,
   Pencil,
   Shield,
 } from 'lucide-react';
@@ -302,43 +302,22 @@ const FlightBoard = () => {
         </div>
       )}
 
-      {!isAdminPanel && canEdit && (
-        <div className="edit-mode-banner">
-          <div className="edit-mode-left">
-            <Shield size={20} />
-            <div>
-              <p>Tryb edycji dla ShiftLeader/Admin</p>
-              <small>Włącz tryb edycji, aby dodawać loty, pasażerów lub zmieniać status.</small>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={`ghost-action ${uiEditMode ? 'active' : ''}`}
-            onClick={() => setUiEditMode((prev) => !prev)}
-          >
-            {uiEditMode ? 'Zakończ edycję' : 'Wejdź w tryb edycji'}
-          </button>
-        </div>
-      )}
-
       <main className="flightboard-main">
         {!isAdminPanel ? (
           <>
             <div className="flightboard-top">
               <div>
-                <h1>Flight Board</h1>
-                <p>Zarządzaj bieżącymi lotami i przełącz się do widoku pasażerów jednym kliknięciem.</p>
-              </div>
-              <div className="flightboard-right">
                 {canEdit && (
                   <button
                     type="button"
                     className="admin-panel-btn"
                     onClick={toggleAdminPanel}
                   >
-                    Panel administracyjny
+                    Admin Panel
                   </button>
                 )}
+              </div>
+              <div className="flightboard-right">
                 <div className="date-filter">
                   <label htmlFor="date">Filter by date</label>
                   <input
@@ -477,15 +456,18 @@ const FlightBoard = () => {
         ) : (
           <div className="admin-panel">
             <div className="admin-head">
-              <div>
+              <div className="admin-head-left">
+                <button
+                  type="button"
+                  className="topbar-back admin-panel-back"
+                  onClick={toggleAdminPanel}
+                >
+                  <ArrowLeft size={20} />
+                </button>
                 <h1>Panel administracyjny</h1>
                 <p>Zarządzanie lotami i systemem</p>
               </div>
               <div className="admin-head-actions">
-                <button type="button" className="admin-panel-btn active" onClick={toggleAdminPanel}>
-                  <ChevronLeft size={18} />
-                  Powrót do tablicy
-                </button>
                 <Link to="/add-flight" className="primary-action outline">
                   + Dodaj lot
                 </Link>

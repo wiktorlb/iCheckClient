@@ -627,10 +627,20 @@ input[type="date"]:focus {
   flex-wrap: wrap;
 }
 
+.admin-head-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .admin-head-actions {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+}
+
+.admin-panel-back {
+  padding: 0.25rem;
 }
 
 .back-link {

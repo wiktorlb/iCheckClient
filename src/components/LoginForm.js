@@ -3,6 +3,9 @@ import axiosInstance from '../api/axiosConfig';
 import { jwtDecode } from 'jwt-decode';
 import "./style.css";
 
+
+const logo = `${process.env.PUBLIC_URL}/iCheckLogo.png`;
+
 const LoginForm = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +44,7 @@ const LoginForm = ({ onLogin }) => {
   };
 
   return (
+
     <div className="login-page">
       {loading && (
         <div className="loading-screen">
@@ -50,7 +54,9 @@ const LoginForm = ({ onLogin }) => {
       <div className="hero-image" style={{ backgroundImage: "url('/loginPicture.jpg')" }} />
       <div className="auth-panel">
         <div className="auth-content">
-          <h1 className="brand-logo">iCheck</h1>
+          <div className="brand-logo-login-container">
+          <img src={logo} alt="iCheck logo" className="brand-logo-login" />
+          </div>
           <form onSubmit={handleLogin} className="auth-form">
             <label className="auth-field">
               <span>Login</span>
@@ -70,10 +76,11 @@ const LoginForm = ({ onLogin }) => {
                 required
               />
             </label>
-            <button type="submit" className="auth-button" disabled={loading}>
-              <span>Log in</span>
+            <div className="auth-button-container">
+              <button type="submit" className="auth-button-submit auth-button" disabled={loading}>
               <span className="arrow">→</span>
             </button>
+            </div>
           </form>
           {errorMessage && <p className="auth-error">{errorMessage}</p>}
         </div>
