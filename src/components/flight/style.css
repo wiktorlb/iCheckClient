@@ -149,20 +149,25 @@
     width: fit-content;
     max-width: 100%;
     max-height: calc(100vh - 12em);
+    min-height: 100%;
 }
 
 .passengers-left .panel {
     width: min-content;
     height: fit-content;
+        overflow: hidden;
+    max-height: calc(100vh - 260px);
 }
 
 .seatmap-panel {
     width: fit-content;
     align-self: flex-start;
     height: 100% !important;
-        overflow: scroll;
-        box-sizing: border-box;
-        padding: 0.5em;
+    box-sizing: border-box;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .panel {
@@ -215,6 +220,9 @@
 .seatmap-panel .seatmap-container {
     max-height: 520px;
     width: max-content;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 .flight-info-panel {
     width: 100% !important;
