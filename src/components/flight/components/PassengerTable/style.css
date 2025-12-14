@@ -229,6 +229,8 @@ box-shadow: inset 3px 0 0 #7b7b7b;
 .srr-code::before {
     content: attr(data-tooltip);
     position: fixed;
+    top: var(--tooltip-y, 0);
+    left: var(--tooltip-x, 0);
     padding: 12px 16px;
     background-color: #333;
     color: white;
@@ -243,7 +245,7 @@ box-shadow: inset 3px 0 0 #7b7b7b;
     max-width: 400px;
     text-align: left;
     pointer-events: none;
-    transform: translateX(-50%);
+    transform: translate(-50%, calc(-100% - 12px));
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     line-height: 1.5;
 }
@@ -251,6 +253,10 @@ box-shadow: inset 3px 0 0 #7b7b7b;
 .srr-code:hover::before {
     visibility: visible;
     opacity: 1;
+}
+
+.srr-code[data-tooltip-placement="bottom"]::before {
+    transform: translate(-50%, 12px);
 }
 
 /* Specyficzne style dla różnych typów kodów SSR */

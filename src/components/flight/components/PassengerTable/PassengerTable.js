@@ -1,4 +1,5 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useRef, useCallback } from 'react';
+
 import './style.css';
 
 /**
@@ -165,25 +166,56 @@ const PassengerRow = memo(({
  * @component
  */
 const PassengerName = memo(({ passenger, getSrrTooltip }) => {
+    const activeTooltipRef = useRef(null);
 
-    const handleTooltipPosition = (event) => {
-        const element = event.currentTarget;
+    const updateTooltipPosition = useCallback((element) => {
+        if (!element) return;
+
         const rect = element.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const horizontalPadding = 24;
 
-        // Oblicz pozycję tooltipa
-        let x = rect.left + (rect.width / 2);
-        let y = rect.top - 15; // 10px odstępu    120px idealna wartosc
+        let x = rect.left + rect.width / 2;
+        x = Math.min(viewportWidth - horizontalPadding, Math.max(horizontalPadding, x));
 
-        // Sprawdź pozycję względem viewportu
-        if (rect.top < 100) { // 100px to przybliżona wysokość tooltipa
-            // Jeśli jest zbyt blisko góry, pokaż tooltip pod elementem
-            y = rect.bottom + 10;
+        let y = rect.top - 16;
+        let placement = 'top';
+
+        if (y < 90) {
+            y = rect.bottom + 16;
+            placement = 'bottom';
         }
 
-        // Ustaw style za pomocą CSS custom properties
         element.style.setProperty('--tooltip-x', `${x}px`);
         element.style.setProperty('--tooltip-y', `${y}px`);
-    };
+        element.dataset.tooltipPlacement = placement;
+    }, []);
+
+    const handleTooltipEvent = useCallback((event) => {
+        const element = event.currentTarget;
+        activeTooltipRef.current = element;
+        updateTooltipPosition(element);
+    }, [updateTooltipPosition]);
+
+    const handleTooltipLeave = useCallback(() => {
+        activeTooltipRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        const handleViewportChange = () => {
+            if (activeTooltipRef.current) {
+                updateTooltipPosition(activeTooltipRef.current);
+            }
+        };
+
+        document.addEventListener('scroll', handleViewportChange, true);
+        window.addEventListener('resize', handleViewportChange);
+
+        return () => {
+            document.removeEventListener('scroll', handleViewportChange, true);
+            window.removeEventListener('resize', handleViewportChange);
+        };
+    }, [updateTooltipPosition]);
 
     return (
         <>
@@ -198,7 +230,11 @@ const PassengerName = memo(({ passenger, getSrrTooltip }) => {
                             key={idx}
                             className={`srr-code`}
                             data-tooltip={getSrrTooltip(code, passenger)}
-                            onMouseEnter={handleTooltipPosition}
+                            onMouseEnter={handleTooltipEvent}
+                            onMouseMove={handleTooltipEvent}
+                            onFocus={handleTooltipEvent}
+                            onMouseLeave={handleTooltipLeave}
+                            onBlur={handleTooltipLeave}
                         >
                             {code}
                         </span>

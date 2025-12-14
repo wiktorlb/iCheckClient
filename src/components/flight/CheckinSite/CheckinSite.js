@@ -100,6 +100,18 @@ const CheckinSite = () => {
                 };
 
                 setFlightDetails(mergedFlightDetails);
+                setCurrentSrrCodes(() => {
+                    const updated = {};
+                    mergedFlightDetails.passengers?.forEach(passenger => {
+                        updated[passenger.id] = passenger.srrCodes || [];
+                    });
+                    return updated;
+                });
+                setSelectedPassenger(prev => {
+                    if (!prev) return prev;
+                    const refreshed = mergedFlightDetails.passengers?.find(p => p.id === prev.id);
+                    return refreshed ? { ...prev, ...refreshed } : prev;
+                });
             } catch (error) {
                 console.error('Error fetching flight details:', error);
             }
@@ -227,7 +239,7 @@ const CheckinSite = () => {
 
         try {
             await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/update-status`, { status });
-            fetchFlightDetails();
+            await fetchFlightDetails();
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -241,7 +253,7 @@ const CheckinSite = () => {
 
         try {
             await axiosInstance.put(`/api/passengers/${selectedPassenger.id}`, passengerForm);
-            fetchFlightDetails();
+            await fetchFlightDetails();
             setShowModal(false);
         } catch (error) {
             console.error('Error saving passenger:', error);
@@ -281,7 +293,7 @@ const CheckinSite = () => {
             });
 
             setBaggageWeight('');
-            fetchFlightDetails();
+            await fetchFlightDetails();
         } catch (error) {
             console.error('Error adding baggage:', error);
         }
@@ -296,7 +308,7 @@ const CheckinSite = () => {
             });
 
             setComment('');
-            fetchFlightDetails();
+            await fetchFlightDetails();
         } catch (error) {
             console.error('Error adding comment:', error);
         }
@@ -314,7 +326,7 @@ const CheckinSite = () => {
                 passengerId: selectedPassenger.id,
                 seatNumber
             });
-            fetchFlightDetails();
+            await fetchFlightDetails();
         } catch (error) {
             console.error('Error assigning seat:', error);
         }

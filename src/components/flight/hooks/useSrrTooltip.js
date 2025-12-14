@@ -148,13 +148,14 @@ const getDocumentTooltip = (passenger) => {
  * Generates a tooltip for comments
  */
 const getCommentTooltip = (passenger) => {
-    if (!passenger.comments?.length) return 'No comments available';
+    if (!passenger?.comments?.length) return 'No comments available';
 
-    return passenger.comments.map(comment =>
-        `Comment: ${comment.text}\n` +
-        `Added by: ${comment.addedBy}\n` +
-        `Date: ${comment.date}`
-    ).join('\n\n');
+    return passenger.comments.map((comment, index) => {
+        const text = comment?.text?.trim() || 'No comment text';
+        const addedBy = comment?.addedBy?.trim() || 'Unknown';
+        const date = comment?.date?.trim() || 'Unknown date';
+        return `Comment ${index + 1}:\nText: ${text}\nAdded by: ${addedBy}\nDate: ${date}`;
+    }).join('\n\n');
 };
 
 /**
