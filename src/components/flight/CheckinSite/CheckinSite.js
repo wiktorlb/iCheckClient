@@ -18,6 +18,21 @@ const statusToneMap = {
     closed: 'status-closed',
 };
 
+const formatDateForInput = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value.split('T')[0] || '';
+    }
+    return date.toISOString().split('T')[0];
+};
+
+const normalizeDateForApi = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toISOString();
+};
+
 const CheckinSite = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -57,11 +72,13 @@ const CheckinSite = () => {
                 surname: selectedPassenger.surname || '',
                 gender: selectedPassenger.gender || '',
                 title: selectedPassenger.title || '',
-                dateOfBirth: selectedPassenger.dateOfBirth || '',
+                dateOfBirth: formatDateForInput(selectedPassenger.dateOfBirth),
+
                 citizenship: selectedPassenger.citizenship || '',
                 documentType: selectedPassenger.documentType || 'P',
                 serialName: selectedPassenger.serialName || '',
-                validUntil: selectedPassenger.validUntil || '',
+                validUntil: formatDateForInput(selectedPassenger.validUntil),
+
                 issueCountry: selectedPassenger.issueCountry || ''
             });
         }
@@ -256,7 +273,15 @@ const CheckinSite = () => {
         }
 
         try {
-            await axiosInstance.put(`/api/passengers/${selectedPassenger.id}`, passengerForm);
+            const payload = {
+                ...passengerForm,
+                dateOfBirth: normalizeDateForApi(passengerForm.dateOfBirth),
+                validUntil: normalizeDateForApi(passengerForm.validUntil),
+                status: selectedPassenger.status,
+            };
+
+            await axiosInstance.put(`/api/passengers/${selectedPassenger.id}`, payload);
+
             await fetchFlightDetails();
             setShowModal(false);
         } catch (error) {
@@ -390,7 +415,7 @@ const CheckinSite = () => {
                     </div>
 
                     <div className="panel seatmap-panel">
-                        <div className="panel-header">
+                        {/* <div className="panel-header">
                             <div>
                                 <h3>Mapa miejsc</h3>
                                 <p>Wybierz miejsce bezpośrednio z mapy</p>
@@ -400,7 +425,7 @@ const CheckinSite = () => {
                                 <span><span className="dot occupied" />Zajęte</span>
                                 <span><span className="dot boarded" />Boarded</span>
                             </div>
-                        </div>
+                        </div> */}
                         {flightDetails?.seatMap ? (
                             <SeatMap
                                 flightId={activeFlightId}
@@ -545,9 +570,9 @@ const CheckinSite = () => {
                     <div className="api-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="api-modal-header">
                             <div>
-                                <p className="api-modal-eyebrow">Advance Passenger Information</p>
+                                <h1 className="api-modal-eyebrow">Advance Passenger Information</h1>
                                 <h3>{selectedPassenger.name} {selectedPassenger.surname}</h3>
-                                <span className="api-modal-subtitle">Edit data before sending to border control</span>
+{/*                                 <span className="api-modal-subtitle">Edit data before sending to border control</span> */}
                             </div>
                             <button
                                 type="button"
@@ -555,7 +580,7 @@ const CheckinSite = () => {
                                 onClick={handleCloseModal}
                                 aria-label="Close passenger form"
                             >
-                                ×
+                                X
                             </button>
                         </div>
 

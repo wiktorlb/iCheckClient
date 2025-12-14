@@ -44,42 +44,97 @@
     color: white;
 }
 
-.modal {
+.api-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    padding: 2rem;
+    z-index: 1200;
+    backdrop-filter: blur(2px);
 }
 
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    width: 50%;
+.api-modal {
+    width: min(960px, 95vw);
+    max-height: 90vh;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 25px 80px rgba(15, 23, 42, 0.22);
+    display: flex;
+    flex-direction: column;
 }
 
-.modal-header {
+.api-form-grid {
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    overflow-y: auto;
+}
+
+.api-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1.75rem 2rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.close-btn {
-    background: transparent;
+.api-modal-footer {
+    padding: 1.25rem 2rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.api-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.api-field input,
+.api-field select {
+    border: 1px solid #cbd5f5;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.api-modal-close {
     border: none;
-    font-size: 20px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
     cursor: pointer;
-    color: #888;
+    color: #475569;
+    transition: background 0.2s ease;
+    font-weight: bolder;
 }
 
-.close-btn:hover {
-    color: #f00;
+.api-modal-close:hover {
+    background: #e2e8f0;
+}
+
+.api-modal-footer button {
+    padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        background-color: #191F2C;
+        color: white;
 }
 
 /* Layout adjustments specific to CheckinSite */
