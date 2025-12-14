@@ -2,7 +2,6 @@
 /* section {
     padding: 20px;
 } */
-
 .center {
     width: 80%;
     margin: 0 auto;
@@ -149,15 +148,21 @@
     gap: 1rem;
     width: fit-content;
     max-width: 100%;
+    max-height: calc(100vh - 12em);
 }
 
 .passengers-left .panel {
     width: min-content;
+    height: fit-content;
 }
 
 .seatmap-panel {
     width: fit-content;
     align-self: flex-start;
+    height: 100% !important;
+        overflow: scroll;
+        box-sizing: border-box;
+        padding: 0.5em;
 }
 
 .panel {

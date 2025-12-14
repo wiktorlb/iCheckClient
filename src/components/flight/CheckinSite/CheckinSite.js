@@ -408,22 +408,7 @@ const CheckinSite = () => {
                         ))}
                     </div>
                     <div className="passenger-table-card checkin-table-card">
-                        <div className="checkin-table-header">
-                            <div>
-                                <h3>Passengers ready for check-in</h3>
-                                <p>Wybierz pasażera aby dodać bagaż, komentarz lub przypisać miejsce.</p>
-                            </div>
-                            <div className={`selected-passenger-note ${selectedPassenger ? 'active' : ''}`}>
-                                {selectedPassenger ? (
-                                    <>
-                                        <span>Selected passenger</span>
-                                        <strong>{selectedPassenger.name} {selectedPassenger.surname}</strong>
-                                    </>
-                                ) : (
-                                    <span>Select a passenger to continue</span>
-                                )}
-                            </div>
-                        </div>
+
 
                         {passengersWithDetails.length ? (
                             <PassengerTable

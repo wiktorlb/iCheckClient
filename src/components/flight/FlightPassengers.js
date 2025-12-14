@@ -240,7 +240,6 @@ const FlightPassengers = () => {
                             </Link>
                         </div>
                     </div>
-
                     <div className="panel seatmap-panel">
 
                         {flightDetails?.seatMap ? (

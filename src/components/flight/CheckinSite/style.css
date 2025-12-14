@@ -90,7 +90,7 @@
 
 .checkin-page .passengers-body {
     height: 100%;
-    grid-template-columns: 360px minmax(0, 1fr);
+/*     grid-template-columns: 360px minmax(0, 1fr); */
     align-items: stretch;
     min-height: 0;
 }
@@ -156,8 +156,8 @@
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: #f9f9f9;
-    border-top: 1px solid #e0e0e0;
+/*     background: #f9f9f9;
+    border-top: 1px solid #e0e0e0; */
     flex-shrink: 0;
     margin-top: auto;
 }
