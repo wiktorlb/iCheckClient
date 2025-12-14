@@ -11,6 +11,7 @@
     "classnames": "^2.3.2",
     "countries-list": "^3.1.1",
     "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.561.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.7",
     "react-dom": "^18.2.0",

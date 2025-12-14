@@ -112,7 +112,7 @@ const FlightPassengers = () => {
                 return;
             }
 
-            navigate('/checkin', { state: { passengers: selectedDetails, flightId, action } });
+            navigate(`/checkin?flightId=${flightId}`, { state: { passengers: selectedDetails, flightId, action } });
 
         } catch (error) {
             console.error('Error updating passengers:', error);

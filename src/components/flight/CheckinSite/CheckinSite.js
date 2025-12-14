@@ -21,6 +21,10 @@ const statusToneMap = {
 const CheckinSite = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+    const queryFlightId = searchParams.get('flightId');
+    const activeFlightId = location.state?.flightId || queryFlightId;
+
     const [selectedPassenger, setSelectedPassenger] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
@@ -89,10 +93,10 @@ const CheckinSite = () => {
     };
 
     const fetchFlightDetails = async () => {
-        if (location.state?.flightId) {
+        if (activeFlightId) {
             try {
-                const flightResponse = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
-                const passengersResponse = await axiosInstance.get(`/api/passengers/flights/${location.state.flightId}/passengers-with-srr`);
+                const flightResponse = await axiosInstance.get(`/api/flights/${activeFlightId}`);
+                const passengersResponse = await axiosInstance.get(`/api/passengers/flights/${activeFlightId}/passengers-with-srr`);
 
                 const mergedFlightDetails = {
                     ...flightResponse.data,
@@ -120,7 +124,7 @@ const CheckinSite = () => {
 
     useEffect(() => {
         fetchFlightDetails();
-    }, [location.state?.flightId]);
+    }, [activeFlightId]);
 
     const addSrrCode = async (passengerId, srrCode) => {
         try {
@@ -319,10 +323,10 @@ const CheckinSite = () => {
     };
 
     const handleAssignSeat = async (seatNumber) => {
-        if (!selectedPassenger?.id || !location.state?.flightId) return;
+        if (!selectedPassenger?.id || !activeFlightId) return;
 
         try {
-            await axiosInstance.post(`/api/flights/${location.state.flightId}/assign-seat`, {
+            await axiosInstance.post(`/api/flights/${activeFlightId}/assign-seat`, {
                 passengerId: selectedPassenger.id,
                 seatNumber
             });
@@ -377,9 +381,11 @@ const CheckinSite = () => {
                             <Link to="/flights" className="ghost-action">
                                 Lista lotów
                             </Link>
-                            <Link to={`/flights/${location.state?.flightId}/passengers`} className="ghost-action">
-                                Lista pasażerów
-                            </Link>
+                            {activeFlightId && (
+                                <Link to={`/flights/${activeFlightId}/passengers`} className="ghost-action">
+                                    Lista pasażerów
+                                </Link>
+                            )}
                         </div>
                     </div>
 
@@ -397,7 +403,7 @@ const CheckinSite = () => {
                         </div>
                         {flightDetails?.seatMap ? (
                             <SeatMap
-                                flightId={location.state?.flightId}
+                                flightId={activeFlightId}
                                 seatMap={flightDetails.seatMap}
                                 occupiedSeats={flightDetails.occupiedSeats || []}
                                 onSeatClick={handleAssignSeat}

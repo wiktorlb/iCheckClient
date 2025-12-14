@@ -245,7 +245,7 @@ box-shadow: inset 3px 0 0 #7b7b7b;
     max-width: 400px;
     text-align: left;
     pointer-events: none;
-    transform: translate(-50%, calc(-100% - 12px));
+    transform: translate(-50%, calc(-100% + 1em));
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     line-height: 1.5;
 }

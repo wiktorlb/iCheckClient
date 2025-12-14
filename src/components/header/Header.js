@@ -26,7 +26,11 @@ const Header = ({ onLogout }) => {
   const flightMatch = location.pathname.match(/^\/flights\/([^/]+)/);
   const passengersMatch = location.pathname.match(/^\/flights\/([^/]+)\/passengers/);
   const passengersFlightId = passengersMatch ? passengersMatch[1] : null;
-  const currentFlightId = flightMatch ? flightMatch[1] : null;
+
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const queryFlightId = searchParams.get('flightId');
+  const stateFlightId = location.state?.flightId || null;
+  const currentFlightId = flightMatch ? flightMatch[1] : queryFlightId || stateFlightId;
 
   useEffect(() => {
     if (!currentFlightId) {
