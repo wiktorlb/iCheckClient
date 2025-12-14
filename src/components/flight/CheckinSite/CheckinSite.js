@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../api/axiosConfig';
+import '../style.css';
 import './style.css';
 import { useSrrTooltip } from '../hooks/useSrrTooltip';
-import FlightInfo from '../components/FlightInfo/FlightInfo';
 import SeatMap from '../components/SeatMap/SeatMap';
+import PassengerTable from '../components/PassengerTable/PassengerTable';
 
 const { countries } = require('countries-list');
+
+const statusToneMap = {
+    open: 'status-open',
+    boarding: 'status-boarding',
+    delayed: 'status-delayed',
+    prepare: 'status-prepare',
+    finalized: 'status-finalized',
+    closed: 'status-closed',
+};
 
 const CheckinSite = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [selectedPassenger, setSelectedPassenger] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
     const [countryNames, setCountryNames] = useState([]);
     const [baggageWeight, setBaggageWeight] = useState('');
@@ -26,6 +37,7 @@ const CheckinSite = () => {
         name: '',
         surname: '',
         gender: '',
+        title: '',
         dateOfBirth: '',
         citizenship: '',
         documentType: '',
@@ -40,6 +52,7 @@ const CheckinSite = () => {
                 name: selectedPassenger.name || '',
                 surname: selectedPassenger.surname || '',
                 gender: selectedPassenger.gender || '',
+                title: selectedPassenger.title || '',
                 dateOfBirth: selectedPassenger.dateOfBirth || '',
                 citizenship: selectedPassenger.citizenship || '',
                 documentType: selectedPassenger.documentType || 'P',
@@ -53,80 +66,12 @@ const CheckinSite = () => {
     useEffect(() => {
         const countryNamesArray = Object.values(countries).map(country => country.name).sort();
         setCountryNames(countryNamesArray);
-    }, [selectedPassenger]);
+    }, []);
 
     const fetchSrrCodes = async (passengerId) => {
         try {
             const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
             return response.data.srrCodes || [];
-        } catch (error) {
-            console.error('Error fetching SRR codes:', error);
-            return [];
-        }
-    };
-
-    useEffect(() => {
-        const loadSrrCodes = async () => {
-            if (location.state?.passengers) {
-                const srrCodesMap = {};
-                for (const passenger of location.state.passengers) {
-                    const codes = await fetchSrrCodes(passenger.id);
-                    srrCodesMap[passenger.id] = codes;
-                }
-                setPassengerSrrCodes(srrCodesMap);
-                setCurrentSrrCodes(srrCodesMap);
-            }
-        };
-        loadSrrCodes();
-    }, [location.state?.passengers]);
-
-    const refreshSrrCodes = async (passengerId) => {
-        try {
-            const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
-            const passengerData = response.data.passenger || response.data;
-
-            if (passengerData) {
-                const newSrrCodes = passengerData.srrCodes || [];
-                setPassengerSrrCodes(prev => ({
-                    ...prev,
-                    [passengerId]: newSrrCodes
-                }));
-                setCurrentSrrCodes(prev => ({
-                    ...prev,
-                    [passengerId]: newSrrCodes
-                }));
-            }
-        } catch (error) {
-            console.error('Error refreshing SRR codes:', error);
-        }
-    };
-
-    const handleOpenModal = async (passenger) => {
-        if (!passenger?.id) {
-            console.error('No passenger selected');
-            return;
-        }
-
-        try {
-            const response = await axiosInstance.get(`/api/passengers/${passenger.id}`);
-            const passengerData = response.data.passenger || response.data;
-
-            setSelectedPassenger(passengerData);
-            setPassengerForm({
-                name: passengerData.name || '',
-                surname: passengerData.surname || '',
-                gender: passengerData.gender || '',
-                title: passengerData.title || '',
-                status: passengerData.status || '',
-                dateOfBirth: passengerData.dateOfBirth || '',
-                citizenship: passengerData.citizenship || '',
-                documentType: passengerData.documentType || 'P',
-                serialName: passengerData.serialName || '',
-                validUntil: passengerData.validUntil || '',
-                issueCountry: passengerData.issueCountry || ''
-            });
-
-            setShowModal(true);
         } catch (error) {
             console.error('Error fetching passenger data:', error.response ? error.response.data : error.message);
         }
@@ -134,7 +79,6 @@ const CheckinSite = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setSelectedPassenger(null);
     };
 
     const handleInputChange = (field) => (event) => {
@@ -143,276 +87,19 @@ const CheckinSite = () => {
             [field]: event.target.value
         }));
     };
-    const handleUpdateStatus = async (status) => {
-        if (!selectedPassenger) return;
-
-        try {
-            // Aktualizacja statusu pasażera
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}/status`,
-                JSON.stringify(status),
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                    },
-                }
-            );
-
-            // Jeśli status to OFF i pasażer ma przypisane miejsce, zwolnij je
-            if (status === 'OFF' && selectedPassenger.seatNumber) {
-                try {
-                    await axiosInstance.post(
-                        `/api/flights/release-seat`,
-                        {
-                            flightId: location.state.flightId,
-                            passengerId: selectedPassenger.id,
-                            seatNumber: selectedPassenger.seatNumber
-                        },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                                'Content-Type': 'application/json',
-                            },
-                        }
-                    );
-
-                    // Aktualizuj dane pasażera w stanie
-                    const updatedPassenger = {
-                        ...selectedPassenger,
-                        status: 'OFF',
-                        seatNumber: null // Usuń przypisanie miejsca
-                    };
-                    setSelectedPassenger(updatedPassenger);
-
-                    // Aktualizuj listę pasażerów
-                    if (location.state?.passengers) {
-                        const updatedPassengers = location.state.passengers.map(p =>
-                            p.id === selectedPassenger.id ? updatedPassenger : p
-                        );
-                        location.state.passengers = updatedPassengers;
-                    }
-                } catch (error) {
-                    console.error('Błąd przy zwalnianiu miejsca:', error.response ? error.response.data : error.message);
-                }
-            } else {
-                // Aktualizuj tylko status pasażera
-                const updatedPassenger = {
-                    ...selectedPassenger,
-                    status
-                };
-                setSelectedPassenger(updatedPassenger);
-
-                if (location.state?.passengers) {
-                    const updatedPassengers = location.state.passengers.map(p =>
-                        p.id === selectedPassenger.id ? updatedPassenger : p
-                    );
-                    location.state.passengers = updatedPassengers;
-                }
-            }
-
-            // Odśwież szczegóły lotu, aby zaktualizować mapę miejsc
-            await fetchFlightDetails();
-
-        } catch (error) {
-            console.error('Error updating passenger status:', error.response ? error.response.data : error.message);
-        }
-    };
-
-    const handleSavePassenger = async () => {
-        if (!selectedPassenger?.id) {
-            console.error('No passenger selected');
-            return;
-        }
-
-        try {
-            // Pobierz aktualne kody SSR przed aktualizacją
-            const currentSrrCodes = passengerSrrCodes[selectedPassenger.id] || [];
-            const hasSeatCode = currentSrrCodes.includes('SEAT');
-
-            const updatedPassenger = {
-                id: selectedPassenger.id,
-                flightId: selectedPassenger.flightId,
-                name: passengerForm.name,
-                surname: passengerForm.surname,
-                gender: passengerForm.gender,
-                status: selectedPassenger.status,
-                title: passengerForm.title,
-                dateOfBirth: passengerForm.dateOfBirth || null,
-                citizenship: passengerForm.citizenship || null,
-                documentType: passengerForm.documentType || 'P',
-                serialName: passengerForm.serialName || null,
-                validUntil: passengerForm.validUntil || null,
-                issueCountry: passengerForm.issueCountry || null
-            };
-
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}`,
-                updatedPassenger
-            );
-
-            const refreshedPassenger = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
-            const updatedPassengerData = refreshedPassenger.data.passenger || refreshedPassenger.data;
-
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? updatedPassengerData : p
-                );
-
-                location.state = {
-                    ...location.state,
-                    passengers: updatedPassengers
-                };
-            }
-
-            setSelectedPassenger(updatedPassengerData);
-
-            // Jeśli pasażer miał kod SEAT i ma przypisane miejsce, przywróć go
-            if (hasSeatCode && updatedPassengerData.seatNumber) {
-                await addSrrCode(selectedPassenger.id, 'SEAT');
-            }
-
-            await refreshSrrCodes(selectedPassenger.id);
-            handleCloseModal();
-
-        } catch (error) {
-            console.error('Error updating passenger:', error);
-            alert('Error updating passenger: ' + (error.response?.data?.message || error.message));
-        }
-    };
-
-    useEffect(() => {
-        if (!location.state?.passengers?.length) {
-            console.warn('No passengers data in location.state');
-        }
-    }, [location.state]);
-
-    const handleSelectPassenger = async (passengerId) => {
-        try {
-            // Pobierz pełne dane pasażera z serwera
-            const response = await axiosInstance.get(`/api/passengers/${passengerId}`);
-            const passengerData = response.data.passenger || response.data;
-
-            // Aktualizuj dane pasażera w stanie
-            setSelectedPassenger(passengerData);
-
-            // Aktualizuj listę pasażerów
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === passengerId ? passengerData : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-        } catch (error) {
-            console.error('Error fetching passenger data:', error);
-        }
-    };
-
-    const handleAddBaggage = async () => {
-        if (!selectedPassenger || !baggageWeight || !baggageType) return;
-
-        const baggageData = {
-            weight: parseFloat(baggageWeight),
-            type: baggageType
-        };
-
-        try {
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}/add-baggage`,
-                baggageData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? response.data : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-
-            setSelectedPassenger(response.data);
-            await refreshSrrCodes(selectedPassenger.id);
-            setBaggageWeight('');
-            setBaggageType('BAG');
-
-            await fetchFlightDetails();
-
-        } catch (error) {
-            console.error("Error adding baggage:", error.response ? error.response.data : error.message);
-        }
-    };
-
-    const handleAddComment = async () => {
-        if (!selectedPassenger || !comment.trim()) return;
-
-        try {
-            const jwt = localStorage.getItem('jwt');
-            const tokenPayload = JSON.parse(atob(jwt.split('.')[1]));
-            const userId = tokenPayload.sub;
-
-            const newComment = {
-                text: comment,
-                date: new Date().toLocaleString(),
-                addedBy: userId
-            };
-
-            const response = await axiosInstance.put(
-                `/api/passengers/${selectedPassenger.id}/add-comment`,
-                newComment,
-                {
-                    headers: {
-                        Authorization: `Bearer ${jwt}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? response.data : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-
-            setSelectedPassenger(response.data);
-            setComment('');
-
-            await refreshSrrCodes(selectedPassenger.id);
-
-            await fetchFlightDetails();
-
-        } catch (error) {
-            console.error("Error adding comment:", error.response ? error.response.data : error.message);
-        }
-    };
-
-    const handleCommentChange = (event) => {
-        setComment(event.target.value);
-    };
 
     const fetchFlightDetails = async () => {
         if (location.state?.flightId) {
             try {
-                // Pobierz szczegóły lotu
                 const flightResponse = await axiosInstance.get(`/api/flights/${location.state.flightId}`);
-                console.log('Flight details response:', flightResponse.data);
-
-                // Pobierz wszystkich pasażerów lotu
                 const passengersResponse = await axiosInstance.get(`/api/passengers/flights/${location.state.flightId}/passengers-with-srr`);
-                console.log('Passengers response:', passengersResponse.data);
 
-                // Połącz dane
-                const flightDetails = {
+                const mergedFlightDetails = {
                     ...flightResponse.data,
                     passengers: passengersResponse.data
                 };
 
-                setFlightDetails(flightDetails);
+                setFlightDetails(mergedFlightDetails);
             } catch (error) {
                 console.error('Error fetching flight details:', error);
             }
@@ -438,7 +125,6 @@ const CheckinSite = () => {
 
             console.log(`Kod SSR ${srrCode} dodany do pasażera:`, response.data);
 
-            // Aktualizacja stanu kodów SSR
             const newSrrCodes = response.data.srrCodes || [];
             setPassengerSrrCodes(prev => ({
                 ...prev,
@@ -456,192 +142,381 @@ const CheckinSite = () => {
         }
     };
 
-    const handleAssignSeat = async (seatNumber) => {
-        if (!selectedPassenger?.id || !location.state?.flightId) {
-            console.error('Brak danych: flightId lub passengerId');
+    const passengersList = location.state?.passengers || [];
+
+    const passengersWithDetails = useMemo(() => (
+        passengersList.map((passenger) => {
+            const fullPassengerData = flightDetails?.passengers?.find(p => p.id === passenger.id);
+            return {
+                ...passenger,
+                ...fullPassengerData,
+                srrCodes: currentSrrCodes[passenger.id] || fullPassengerData?.srrCodes || []
+            };
+        })
+    ), [passengersList, currentSrrCodes, flightDetails?.passengers]);
+
+    const selectedPassengerIds = selectedPassenger ? [selectedPassenger.id] : [];
+
+    const stats = useMemo(() => {
+        const baseStats = passengersWithDetails.reduce((acc, passenger) => {
+            const status = passenger.status?.toLowerCase();
+            const baggageCount = passenger.baggageList?.length || 0;
+            acc.bags += baggageCount;
+
+            if (status === 'stby' && baggageCount > 0) {
+                acc.sbags += baggageCount;
+            }
+
+            switch (status) {
+                case 'boarded':
+                    acc.boarded += 1;
+                    break;
+                case 'acc':
+                    acc.acc += 1;
+                    break;
+                case 'stby':
+                    acc.stby += 1;
+                    break;
+                case 'off':
+                    acc.off += 1;
+                    break;
+                default:
+                    acc.none += 1;
+            }
+
+            return acc;
+        }, {
+            boarded: 0,
+            acc: 0,
+            stby: 0,
+            off: 0,
+            none: 0,
+            bags: 0,
+            sbags: 0
+        });
+
+        return {
+            ...baseStats,
+            booked: passengersWithDetails.length
+        };
+    }, [passengersWithDetails]);
+
+    const allowCapacity = flightDetails?.capacity || flightDetails?.plane?.capacity || passengersList.length || 0;
+
+    const statsOrder = [
+        { label: 'BOARDED', value: stats.boarded },
+        { label: 'ACCEPTED', value: stats.acc },
+        { label: 'BOOKED', value: stats.booked },
+        { label: 'ALLOWED', value: allowCapacity || '—' },
+        { label: 'STANDBY', value: stats.stby },
+        { label: 'BAGS', value: stats.bags },
+        { label: 'SBAGS', value: stats.sbags },
+    ];
+
+    const handleOpenModal = (passenger) => {
+        if (!passenger?.id) {
+            console.error('No passenger selected');
             return;
         }
+        setSelectedPassenger(passenger);
+        setShowModal(true);
+    };
 
-        if (!seatNumber) {
-            seatNumber = prompt("Wprowadź numer miejsca:");
-            if (!seatNumber) return;
-        }
+    const handleUpdateStatus = async (status) => {
+        if (!selectedPassenger) return;
 
         try {
-            // Przypisanie miejsca
-            const response = await axiosInstance.post(
-                `/api/flights/assign-seat`,
-                {
-                    flightId: location.state.flightId,
-                    passengerId: selectedPassenger.id,
-                    seatNumber: seatNumber
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            console.log(`Miejsce ${seatNumber} przypisane do pasażera ${selectedPassenger.name}:`, response.data);
-
-            // Pobierz zaktualizowane dane pasażera
-            const passengerResponse = await axiosInstance.get(`/api/passengers/${selectedPassenger.id}`);
-            const updatedPassenger = passengerResponse.data.passenger || passengerResponse.data;
-
-            // Upewnij się, że pasażer ma przypisany numer miejsca
-            if (!updatedPassenger.seatNumber) {
-                updatedPassenger.seatNumber = seatNumber;
-            }
-
-            // Aktualizuj stan pasażera
-            setSelectedPassenger(updatedPassenger);
-
-            // Aktualizuj listę pasażerów
-            if (location.state?.passengers) {
-                const updatedPassengers = location.state.passengers.map(p =>
-                    p.id === selectedPassenger.id ? updatedPassenger : p
-                );
-                location.state.passengers = updatedPassengers;
-            }
-
-            // Dodaj kod SSR i odśwież kody
-            await addSrrCode(selectedPassenger.id, 'SEAT');
-            await refreshSrrCodes(selectedPassenger.id);
-
-            // Odśwież szczegóły lotu
-            await fetchFlightDetails();
-
+            await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/update-status`, { status });
+            fetchFlightDetails();
         } catch (error) {
-            console.error('Błąd przy przypisywaniu miejsca:', error.response ? error.response.data : error.message);
-            alert(`Błąd: ${error.response?.data || error.message}`);
+            console.error('Error updating status:', error);
         }
     };
 
-    useEffect(() => {
-        const fetchPassengerData = async () => {
-            if (location.state?.passengers) {
-                const updatedPassengers = await Promise.all(
-                    location.state.passengers.map(async (passenger) => {
-                        try {
-                            const response = await axiosInstance.get(`/api/passengers/${passenger.id}`);
-                            return response.data.passenger || response.data;
-                        } catch (error) {
-                            console.error(`Błąd przy pobieraniu danych pasażera ${passenger.id}:`, error);
-                            return passenger;
-                        }
-                    })
-                );
-                location.state.passengers = updatedPassengers;
-            }
-        };
-        fetchPassengerData();
-    }, [location.state?.passengers]);
+    const handleSavePassenger = async () => {
+        if (!selectedPassenger?.id) {
+            console.error('No passenger selected');
+            return;
+        }
+
+        try {
+            await axiosInstance.put(`/api/passengers/${selectedPassenger.id}`, passengerForm);
+            fetchFlightDetails();
+            setShowModal(false);
+        } catch (error) {
+            console.error('Error saving passenger:', error);
+        }
+    };
+
+    const handleSelectPassenger = async (passengerId) => {
+        const passenger = passengersWithDetails.find(p => p.id === passengerId);
+        if (!passenger) return;
+
+        setSelectedPassenger(passenger);
+
+        if (!passenger.srrCodes || passenger.srrCodes.length === 0) {
+            const fetchedSrr = await fetchSrrCodes(passengerId);
+            setCurrentSrrCodes(prev => ({
+                ...prev,
+                [passengerId]: fetchedSrr
+            }));
+        }
+    };
+
+    const handleToggleSelection = (passengerId) => {
+        if (selectedPassenger?.id === passengerId) {
+            setSelectedPassenger(null);
+            return;
+        }
+        handleSelectPassenger(passengerId);
+    };
+
+    const handleAddBaggage = async () => {
+        if (!selectedPassenger || !baggageWeight || !baggageType) return;
+
+        try {
+            await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/add-baggage`, {
+                baggageType,
+                baggageWeight: parseFloat(baggageWeight)
+            });
+
+            setBaggageWeight('');
+            fetchFlightDetails();
+        } catch (error) {
+            console.error('Error adding baggage:', error);
+        }
+    };
+
+    const handleAddComment = async () => {
+        if (!selectedPassenger || !comment.trim()) return;
+
+        try {
+            await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/add-comment`, {
+                comment: comment.trim()
+            });
+
+            setComment('');
+            fetchFlightDetails();
+        } catch (error) {
+            console.error('Error adding comment:', error);
+        }
+    };
+
+    const handleCommentChange = (event) => {
+        setComment(event.target.value);
+    };
+
+    const handleAssignSeat = async (seatNumber) => {
+        if (!selectedPassenger?.id || !location.state?.flightId) return;
+
+        try {
+            await axiosInstance.post(`/api/flights/${location.state.flightId}/assign-seat`, {
+                passengerId: selectedPassenger.id,
+                seatNumber
+            });
+            fetchFlightDetails();
+        } catch (error) {
+            console.error('Error assigning seat:', error);
+        }
+    };
+
+    const statusLabel = (flightDetails?.status || flightDetails?.state || 'unknown').toLowerCase();
+    const statusClass = statusToneMap[statusLabel] || 'status-unknown';
+    const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
+    const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
+    const planeModel = flightDetails?.plane?.model || flightDetails?.aircraftId || '—';
+    const capacity = allowCapacity || passengersList.length || '—';
+
+    const seatMapPassengers = flightDetails?.passengers || passengersWithDetails;
 
     return (
-        <section style={{ height: 'calc(100vh - 80px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div className="content-wrapper checkin-layout">
-                <div className="main-container-flightData">
-                    {flightDetails && (
-                        <FlightInfo
-                            flightNumber={flightDetails.flightNumber}
-                            departureTime={flightDetails.departureTime}
-                            route={flightDetails.route}
-                            status={flightDetails.state}
-                        />
-                    )}
-                    {flightDetails && flightDetails.seatMap && (
-                        <SeatMap
-                            flightId={location.state?.flightId}
-                            seatMap={flightDetails.seatMap}
-                            occupiedSeats={flightDetails.occupiedSeats || []}
-                            onSeatClick={handleAssignSeat}
-                            selectedPassenger={selectedPassenger}
-                        />
-                    )}
-                </div>
-                <div className="main-container">
-                    <div className="passenger-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <table className="passenger-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Select</th>
-                                            <th>No.</th>
-                                            <th>Name</th>
-                                            <th>Gender</th>
-                                            <th>Seat</th>
-                                            <th>State</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {location.state?.passengers.map((passenger, index) => {
-                                            // Find full passenger data from flightDetails if available
-                                            const fullPassengerData = flightDetails?.passengers?.find(p => p.id === passenger.id);
-                                            const passengerData = {
-                                                ...passenger,
-                                                ...fullPassengerData, // Override with full data including baggageList
-                                                srrCodes: currentSrrCodes[passenger.id] || fullPassengerData?.srrCodes || []
-                                            };
-
-                                            return (
-                                                <tr key={passenger.id} className={
-                                                    passenger.status === 'ACC' ? 'row-accepted' :
-                                                    passenger.status === 'STBY' ? 'row-standby' :
-                                                    passenger.status === 'OFF' ? 'row-offloaded' : ''
-                                                }>
-                                                    <td>
-                                                        <input
-                                                            type="radio"
-                                                            name="passengerSelect"
-                                                            checked={selectedPassenger?.id === passenger.id}
-                                                            onChange={() => handleSelectPassenger(passenger.id)}
-                                                        />
-                                                    </td>
-                                                    <td>{index + 1}</td>
-                                                    <td>
-                                                        {passenger.name} {passenger.surname} {passenger.title}
-                                                        {passengerData.srrCodes?.length > 0 && (
-                                                            <div className="srr-codes">
-                                                                {passengerData.srrCodes.map((code, idx) => (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className={`srr-code ${code === 'SEAT' ? 'seat-code' : code.toLowerCase()}`}
-                                                                        data-tooltip={getSrrTooltip(code, passengerData)}
-                                                                        onMouseEnter={(event) => {
-                                                                            const element = event.currentTarget;
-                                                                            const rect = element.getBoundingClientRect();
-                                                                            const tooltipHeight = 100;
-                                                                            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                                                                            let x = rect.left + (rect.width / 2);
-                                                                            let y;
-
-                                                                            if (rect.top - tooltipHeight > 0) {
-                                                                                y = rect.top + scrollTop - 10;
-                                                                            } else {
-                                                                                y = rect.bottom + scrollTop + 10;
-                                                                            }
-
-                                                                            element.style.setProperty('--tooltip-x', `${x}px`);
-                                                                            element.style.setProperty('--tooltip-y', `${y}px`);
-                                                                        }}
-                                                                    >
-                                                                        {code}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                    <td>{passenger.gender}</td>
-                                                    <td>{passenger.seatNumber}</td>
-                                                    <td>{passenger.status}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+        <section className="passengers-page checkin-page">
+            <div className="passengers-body center">
+                <aside className="passengers-left">
+                    <div className="panel flight-info-panel">
+                        <div className="panel-header compact">
+                            <div>
+                                <h3>Informacje o locie</h3>
+                                <p>{flightDetails?.route || 'Trasa niedostępna'}</p>
+                            </div>
+                            <span className={`status-pill ${statusClass}`}>
+                                {flightDetails?.status || flightDetails?.state || 'Unknown'}
+                            </span>
+                        </div>
+                        <div className="info-grid">
+                            <div>
+                                <p className="info-label">Gate</p>
+                                <p className="info-value">{gate}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Radio</p>
+                                <p className="info-value">{radioNumber}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Samolot</p>
+                                <p className="info-value">{planeModel}</p>
+                            </div>
+                            <div>
+                                <p className="info-label">Pojemność</p>
+                                <p className="info-value">{capacity}</p>
+                            </div>
+                        </div>
+                        <div className="flight-actions">
+                            <Link to="/flights" className="ghost-action">
+                                Lista lotów
+                            </Link>
+                            <Link to={`/flights/${location.state?.flightId}/passengers`} className="ghost-action">
+                                Lista pasażerów
+                            </Link>
+                        </div>
                     </div>
+
+                    <div className="panel seatmap-panel">
+                        <div className="panel-header">
+                            <div>
+                                <h3>Mapa miejsc</h3>
+                                <p>Wybierz miejsce bezpośrednio z mapy</p>
+                            </div>
+                            <div className="seat-legend">
+                                <span><span className="dot available" />Wolne</span>
+                                <span><span className="dot occupied" />Zajęte</span>
+                                <span><span className="dot boarded" />Boarded</span>
+                            </div>
+                        </div>
+                        {flightDetails?.seatMap ? (
+                            <SeatMap
+                                flightId={location.state?.flightId}
+                                seatMap={flightDetails.seatMap}
+                                occupiedSeats={flightDetails.occupiedSeats || []}
+                                onSeatClick={handleAssignSeat}
+                                selectedPassenger={selectedPassenger}
+                                passengers={seatMapPassengers}
+                            />
+                        ) : (
+                            <div className="panel-placeholder">Seat map unavailable for this flight.</div>
+                        )}
+                    </div>
+                </aside>
+
+                <div className="passengers-right">
+                    <div className="passengers-overview checkin-stats">
+                        {statsOrder.map(({ label, value }) => (
+                            <div key={label} className="stats-item">
+                                <span className="stats-label">{label}</span>
+                                <span className="stats-value">{value ?? '—'}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="passenger-table-card checkin-table-card">
+                        <div className="checkin-table-header">
+                            <div>
+                                <h3>Passengers ready for check-in</h3>
+                                <p>Wybierz pasażera aby dodać bagaż, komentarz lub przypisać miejsce.</p>
+                            </div>
+                            <div className={`selected-passenger-note ${selectedPassenger ? 'active' : ''}`}>
+                                {selectedPassenger ? (
+                                    <>
+                                        <span>Selected passenger</span>
+                                        <strong>{selectedPassenger.name} {selectedPassenger.surname}</strong>
+                                    </>
+                                ) : (
+                                    <span>Select a passenger to continue</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {passengersWithDetails.length ? (
+                            <PassengerTable
+                                passengers={passengersWithDetails}
+                                selectedPassengers={selectedPassengerIds}
+                                onToggleSelection={handleToggleSelection}
+                                getSrrTooltip={getSrrTooltip}
+                            />
+                        ) : (
+                            <div className="checkin-empty-state">
+                                No passengers were passed to this view. Return to the passenger list to start check-in.
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="checkin-form-grid">
+                        <div className="panel checkin-panel">
+                            <div className="panel-header">
+                                <div>
+                                    <h3>Add baggage</h3>
+                                    <p>Choose baggage type and weight to assign it to the selected passenger.</p>
+                                </div>
+                                {selectedPassenger && (
+                                    <span className="panel-tag">{selectedPassenger.name} {selectedPassenger.surname}</span>
+                                )}
+                            </div>
+                            <div className="baggage-form">
+                                <label htmlFor="baggageType">Baggage type</label>
+                                <div className="baggage-row">
+                                    <select
+                                        id="baggageType"
+                                        value={baggageType}
+                                        onChange={(e) => setBaggageType(e.target.value)}
+                                    >
+                                        <option value="BAG">BAG</option>
+                                        <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
+                                        <option value="DAA">DAA</option>
+                                        <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
+                                        <option value="WHEELCHAIR">WHEELCHAIR</option>
+                                    </select>
+                                    <input
+                                        type="number"
+                                        placeholder="Weight (kg)"
+                                        value={baggageWeight}
+                                        onChange={(e) => setBaggageWeight(e.target.value)}
+                                        min="0"
+                                        step="0.1"
+                                    />
+                                    <button
+                                        onClick={handleAddBaggage}
+                                        disabled={!selectedPassenger || !baggageWeight}
+                                    >
+                                        Add baggage
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="panel checkin-panel comment-panel">
+                            <div className="panel-header">
+                                <div>
+                                    <h3>Add comment</h3>
+                                    <p>Add context or crew notes for the selected passenger.</p>
+                                </div>
+                            </div>
+                            <textarea
+                                value={comment}
+                                onChange={handleCommentChange}
+                                placeholder="Write your comment here..."
+                                rows={4}
+                            />
+                            <div className="comment-actions">
+                                <button onClick={handleAddComment} disabled={!selectedPassenger || !comment.trim()}>
+                                    Add comment
+                                </button>
+                            </div>
+
+                            {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                                <div className="comments-list">
+                                    <h3>Comments</h3>
+                                    <ul>
+                                        {selectedPassenger.comments.map((comment, index) => (
+                                            <li key={index}>
+                                                <p>{comment.text}</p>
+                                                <small>{comment.date} - {comment.addedBy}</small>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="actions-container">
                         <div className="left-actions">
                             <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
@@ -660,68 +535,39 @@ const CheckinSite = () => {
                         </div>
                     </div>
                 </div>
-                <div className="checkin-sidebar">
-                    <div className="baggage-form">
-                        <label>Wybierz typ bagażu:</label>
-                        <select value={baggageType} onChange={(e) => setBaggageType(e.target.value)}>
-                            <option value="BAG">BAG</option>
-                            <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
-                            <option value="DAA">DAA</option>
-                            <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
-                            <option value="WHEELCHAIR">WHEELCHAIR</option>
-                        </select>
-                        <input
-                            type="number"
-                            placeholder="Waga (kg)"
-                            value={baggageWeight}
-                            onChange={(e) => setBaggageWeight(e.target.value)}
-                        />
-                        <button onClick={handleAddBaggage} disabled={!selectedPassenger}>Add Baggage</button>
-                    </div>
-                    <div className="comment-section">
-                        <h2>Add a Comment</h2>
-                        <textarea
-                            value={comment}
-                            onChange={handleCommentChange}
-                            placeholder="Write your comment here..."
-                        />
-                        <button onClick={handleAddComment} disabled={!selectedPassenger}>Add Comment</button>
-
-                        {selectedPassenger && selectedPassenger.comments?.length > 0 && (
-                            <div className="comments-list">
-                                <h3>Comments</h3>
-                                <ul>
-                                    {selectedPassenger.comments.map((comment, index) => (
-                                        <li key={index}>
-                                            <p>{comment.text}</p>
-                                            <small>{comment.date} - {comment.addedBy}</small>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
             </div>
 
             {showModal && selectedPassenger && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>API for {selectedPassenger.name} {selectedPassenger.surname}</h2>
-                            <button className="close-btn" onClick={handleCloseModal}>X</button>
+                <div className="api-modal-overlay" onClick={handleCloseModal}>
+                    <div className="api-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="api-modal-header">
+                            <div>
+                                <p className="api-modal-eyebrow">Advance Passenger Information</p>
+                                <h3>{selectedPassenger.name} {selectedPassenger.surname}</h3>
+                                <span className="api-modal-subtitle">Edit data before sending to border control</span>
+                            </div>
+                            <button
+                                type="button"
+                                className="api-modal-close"
+                                onClick={handleCloseModal}
+                                aria-label="Close passenger form"
+                            >
+                                ×
+                            </button>
                         </div>
-                        <div className="form-grid">
-                            <label>
-                                Name:
+
+                        <div className="api-form-grid">
+                            <label className="api-field">
+                                <span>First name</span>
                                 <input
                                     type="text"
                                     value={passengerForm.name}
                                     onChange={handleInputChange('name')}
                                 />
                             </label>
-                            <label>
-                                Surname:
+
+                            <label className="api-field">
+                                <span>Last name</span>
                                 <input
                                     type="text"
                                     value={passengerForm.surname}
@@ -729,20 +575,20 @@ const CheckinSite = () => {
                                 />
                             </label>
 
-                            <label>
-                                Gender:
+                            <label className="api-field">
+                                <span>Gender</span>
                                 <select
                                     value={passengerForm.gender}
                                     onChange={handleInputChange('gender')}
                                 >
                                     <option value="">Select gender</option>
-                                    <option value="M">M</option>
-                                    <option value="F">F</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
                                 </select>
                             </label>
 
-                            <label>
-                                Title:
+                            <label className="api-field">
+                                <span>Title</span>
                                 <select
                                     value={passengerForm.title}
                                     onChange={handleInputChange('title')}
@@ -750,12 +596,13 @@ const CheckinSite = () => {
                                     <option value="">Select title</option>
                                     <option value="MR">MR</option>
                                     <option value="MRS">MRS</option>
+                                    <option value="MS">MS</option>
                                     <option value="CHLD">CHLD</option>
                                 </select>
                             </label>
 
-                            <label>
-                                Date of Birth:
+                            <label className="api-field">
+                                <span>Date of birth</span>
                                 <input
                                     type="date"
                                     value={passengerForm.dateOfBirth || ''}
@@ -763,8 +610,8 @@ const CheckinSite = () => {
                                 />
                             </label>
 
-                            <label>
-                                Citizenship:
+                            <label className="api-field">
+                                <span>Citizenship</span>
                                 <select
                                     value={passengerForm.citizenship || ''}
                                     onChange={handleInputChange('citizenship')}
@@ -776,28 +623,28 @@ const CheckinSite = () => {
                                 </select>
                             </label>
 
-                            <label>
-                                Document Type:
+                            <label className="api-field">
+                                <span>Document type</span>
                                 <select
-                                    value={passengerForm.documentType || 'P'}
+                                    value={passengerForm.documentType ?? 'P'}
                                     onChange={handleInputChange('documentType')}
                                 >
                                     <option value="P">Passport</option>
-                                    <option value="ID">ID Card</option>
+                                    <option value="ID">National ID</option>
                                 </select>
                             </label>
 
-                            <label>
-                                Serial Name:
+                            <label className="api-field">
+                                <span>Document number</span>
                                 <input
                                     type="text"
-                                    value={passengerForm.serialName || ''}
+                                    value={passengerForm.serialName ?? ''}
                                     onChange={handleInputChange('serialName')}
                                 />
                             </label>
 
-                            <label>
-                                Valid Until:
+                            <label className="api-field">
+                                <span>Valid until</span>
                                 <input
                                     type="date"
                                     value={passengerForm.validUntil || ''}
@@ -805,8 +652,8 @@ const CheckinSite = () => {
                                 />
                             </label>
 
-                            <label>
-                                Issue Country:
+                            <label className="api-field">
+                                <span>Issue country</span>
                                 <select
                                     value={passengerForm.issueCountry || ''}
                                     onChange={handleInputChange('issueCountry')}
@@ -818,9 +665,14 @@ const CheckinSite = () => {
                                 </select>
                             </label>
                         </div>
-                        <div className="modal-footer">
-                            <button onClick={handleSavePassenger} className="save-btn">Save</button>
-                            <button onClick={handleCloseModal} className="cancel-btn">Cancel</button>
+
+                        <div className="api-modal-footer">
+                            <button type="button" className="ghost-btn" onClick={handleCloseModal}>
+                                Cancel
+                            </button>
+                            <button type="button" className="primary-btn" onClick={handleSavePassenger}>
+                                Save changes
+                            </button>
                         </div>
                     </div>
                 </div>

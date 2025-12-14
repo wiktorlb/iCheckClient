@@ -82,279 +82,63 @@
     color: #f00;
 }
 
+/* Layout adjustments specific to CheckinSite */
+.checkin-page {
+    min-height: calc(100vh - 72px);
+    height: calc(100vh - 72px);
+}
+
+.checkin-page .passengers-body {
+    height: 100%;
+    grid-template-columns: 360px minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+}
+
+.checkin-page .passengers-left,
+.checkin-page .passengers-right {
+    min-height: 0;
+}
+
+.checkin-page .passengers-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.checkin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.85rem;
+}
+
+.checkin-page .passenger-table-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.checkin-page .passenger-table-card .passenger-container {
+    flex: 1;
+}
+
+.checkin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.checkin-form-grid .panel {
+    height: 100%;
+}
+
+.checkin-page .actions-container {
+    margin-top: auto;
+}
+
 .checkin-container {
   margin-right: 20px;
-}
-
-/* Style dla tabeli w CheckinSite */
-.passenger-container {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-    background: #ffffff;
-    border-radius: 4px;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #e0e0e0;
-}
-
-.passenger-table {
-    width: 100%;
-    border-collapse: collapse;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* Style dla nagłówka tabeli */
-.passenger-table thead {
-    display: table;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background-color: #333;
-    color: #ffffff;
-    padding: 0;
-    height: 48px;
-    width: 100%;
-    table-layout: fixed;
-    flex-shrink: 0;
-}
-
-.passenger-table thead tr th {
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #555;
-}
-
-/* Style dla ciała tabeli */
-.passenger-table tbody {
-    display: block;
-    overflow-y: auto;
-    flex: 1;
-    width: 100%;
-}
-
-.passenger-table tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-    border-bottom: 1px solid #e0e0e0;
-    height: 56px;
-}
-
-.passenger-table tbody tr:hover {
-    background-color: #f8fafc;
-}
-
-/* Style dla wierszy o różnych statusach */
-.row-accepted {
-    background-color: rgba(46, 204, 113, 0.1);
-}
-
-.row-accepted:hover {
-    background-color: rgba(46, 204, 113, 0.2);
-}
-
-.row-offloaded {
-    background-color: rgba(231, 76, 60, 0.1);
-}
-
-.row-offloaded:hover {
-    background-color: rgba(231, 76, 60, 0.2);
-}
-
-.row-standby {
-    background-color: rgba(241, 196, 15, 0.1);
-}
-
-.row-standby:hover {
-    background-color: rgba(241, 196, 15, 0.2);
-}
-
-/* Style dla komórek */
-.passenger-table td {
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-    color: #333;
-    vertical-align: middle;
-}
-
-/* Style dla radio buttonów */
-.passenger-table input[type="radio"] {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #bdc3c7;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.passenger-table input[type="radio"]:checked {
-    background-color: #191F2C;
-    border-color: #191F2C;
-}
-
-/* Style dla kodów SSR */
-.srr-codes {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-}
-
-.srr-code {
-    position: relative;
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 4px 10px;
-    background-color: #e3f2fd;
-    border-radius: 4px;
-    color: #1976D2;
-    font-weight: 500;
-    border: 1px solid #bbdefb;
-}
-
-.srr-code:hover {
-    background-color: #bbdefb;
-    color: #1565C0;
-}
-
-/* Specjalne style dla kodu SEAT */
-.srr-code.seat-code {
-    background-color: #e67e22;
-    color: white;
-}
-
-/* Tooltip styles */
-.srr-code::before {
-    content: attr(data-tooltip);
-    position: fixed;
-    padding: 12px;
-    background-color: #191F2C;
-    color: white;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    white-space: pre-line;
-    visibility: hidden;
-    opacity: 0;
-    transition: all 0.2s ease;
-    z-index: 9999;
-    min-width: 300px;
-    text-align: left;
-    pointer-events: none;
-    transform: translateX(-50%);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    top: var(--tooltip-y);
-    left: var(--tooltip-x);
-}
-
-.srr-code:hover::before {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Dodaj strzałkę do tooltipa */
-.srr-code::after {
-    content: '';
-    position: fixed;
-    border: 6px solid transparent;
-    visibility: hidden;
-    opacity: 0;
-    transition: all 0.2s ease;
-    z-index: 9999;
-    top: calc(var(--tooltip-y) + 100%);
-    left: var(--tooltip-x);
-    transform: translateX(-50%);
-    border-top-color: #191F2C;
-}
-
-.srr-code:hover::after {
-    visibility: visible;
-    opacity: 1;
-}
-/*
-/* Szerokości kolumn
-.passenger-table th:nth-child(1),
-.passenger-table td:nth-child(1) {
-    width: 8%;
-}
-
-.passenger-table th:nth-child(2),
-.passenger-table td:nth-child(2) {
-    width: 5%;
-}
-
-.passenger-table th:nth-child(3),
-.passenger-table td:nth-child(3) {
-    width: 40%;
-    text-align: left;
-}
-
-.passenger-table th:nth-child(4),
-.passenger-table td:nth-child(4) {
-    width: 12%;
-}
-
-.passenger-table th:nth-child(5),
-.passenger-table td:nth-child(5) {
-    width: 10%;
-}
-
-.passenger-table th:nth-child(6),
-.passenger-table td:nth-child(6) {
-    width: 10%;
-}
- */
-/* Scrollbar styling */
-.passenger-table tbody::-webkit-scrollbar {
-    width: 8px;
-}
-
-.passenger-table tbody::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.passenger-table tbody::-webkit-scrollbar-thumb {
-    background: #191F2C;
-    border-radius: 4px;
-}
-
-.passenger-table tbody::-webkit-scrollbar-thumb:hover {
-    background: #2c3e50;
-}
-
-/* Style dla zaznaczonego wiersza */
-.row-selected {
-    background-color: rgba(25, 31, 44, 0.1) !important;
-}
-
-.row-selected:hover {
-    background-color: rgba(25, 31, 44, 0.15) !important;
-}
-
-/* Dostosowanie layoutu CheckinSite */
-.checkin-site {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    height: calc(100vh - 80px);
-    overflow: hidden;
-}
-
-.checkin-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
 }
 
 .checkin-actions {

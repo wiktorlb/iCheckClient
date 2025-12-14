@@ -108,6 +108,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 0.85rem;
+    margin-bottom: 1em;
 }
 
 .stats-item {

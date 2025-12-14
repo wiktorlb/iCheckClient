@@ -192,14 +192,14 @@ const FlightPassengers = () => {
 
     return (
         <section className="passengers-page">
-            <div className="passengers-overview center">
+            {/* <div className="passengers-overview center">
                 {statsOrder.map(({ label, value }) => (
                     <div key={label} className="stats-item">
                         <span className="stats-label">{label}</span>
                         <span className="stats-value">{value ?? '—'}</span>
                     </div>
                 ))}
-            </div>
+            </div>  */}
 
             <div className="passengers-body center">
                 <aside className="passengers-left">
@@ -242,17 +242,7 @@ const FlightPassengers = () => {
                     </div>
 
                     <div className="panel seatmap-panel">
-                        <div className="panel-header">
-                            <div>
-                                <h3>Mapa miejsc</h3>
-                                <p>Podgląd zajętości kabiny w czasie rzeczywistym</p>
-                            </div>
-                            <div className="seat-legend">
-                                <span><span className="dot available" />Wolne</span>
-                                <span><span className="dot occupied" />Zajęte</span>
-                                <span><span className="dot boarded" />Boarded</span>
-                            </div>
-                        </div>
+
                         {flightDetails?.seatMap ? (
                             <SeatMap
                                 flightId={flightId}
@@ -267,6 +257,14 @@ const FlightPassengers = () => {
                 </aside>
 
                 <div className="passengers-right">
+                    <div className="passengers-overview">
+                        {statsOrder.map(({ label, value }) => (
+                            <div key={label} className="stats-item">
+                                <span className="stats-label">{label}</span>
+                                <span className="stats-value">{value ?? '—'}</span>
+                            </div>
+                        ))}
+                    </div>
                     <div className="passenger-table-card">
                         <div className="table-toolbar">
                             <div className="toolbar-search">
