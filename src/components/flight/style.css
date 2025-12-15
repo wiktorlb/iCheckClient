@@ -54,20 +54,20 @@
     gap: 0.75rem;
 }
 
- .statistics-container {
-     display: flex;
-     align-items: center;
-     justify-content: space-around;
-     padding: 0.75rem 1rem;
-     background: #f9f9f9;
-     border-radius: 4px;
-     gap: 0.75rem;
-     flex-wrap: wrap;
-     border: 1px solid #e0e0e0;
-     flex-shrink: 0;
- }
+.statistics-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0.75rem 1rem;
+    background: #f9f9f9;
+    border-radius: 4px;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    border: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
 
- .stats-item {
+.stats-item {
     background: #ffffff;
     padding: 0.75rem 1rem;
     border-radius: 4px;
@@ -76,23 +76,23 @@
     min-width: 100px;
     text-align: center;
     flex: 1;
- }
+}
 
- .stats-label {
+.stats-label {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #666;
     font-weight: 600;
     margin-bottom: 0.5rem;
- }
+}
 
- .stats-value {
+.stats-value {
     text-align: center;
     font-size: 1.25rem;
     font-weight: 600;
     color: #333;
- }
+}
 
 .passengers-page {
     background: #f4f6fb;
@@ -160,9 +160,11 @@
     width: fit-content;
     align-self: flex-start;
     height: 100% !important;
-        overflow: scroll;
-        box-sizing: border-box;
-        padding: 0.5em;
+    box-sizing: border-box;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .panel {
@@ -208,17 +210,30 @@
     margin-right: 0.25rem;
 }
 
-.seat-legend .available { background: #22c55e; }
-.seat-legend .occupied { background: #f97316; }
-.seat-legend .boarded { background: #6366f1; }
+.seat-legend .available {
+    background: #22c55e;
+}
+
+.seat-legend .occupied {
+    background: #f97316;
+}
+
+.seat-legend .boarded {
+    background: #6366f1;
+}
 
 .seatmap-panel .seatmap-container {
     max-height: 520px;
     width: max-content;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
+
 .flight-info-panel {
     width: 100% !important;
 }
+
 .flight-info-panel .info-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -470,12 +485,31 @@
     text-transform: capitalize;
 }
 
-.status-open { background: #dcfce7; color: #15803d; }
-.status-boarding { background: #e0e7ff; color: #4338ca; }
-.status-delayed { background: #fee2e2; color: #b91c1c; }
-.status-prepare { background: #fef9c3; color: #92400e; }
+.status-open {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-boarding {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.status-delayed {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-prepare {
+    background: #fef9c3;
+    color: #92400e;
+}
+
 .status-closed,
-.status-finalized { background: #f3f4f6; color: #374151; }
+.status-finalized {
+    background: #f3f4f6;
+    color: #374151;
+}
 
 @media (max-width: 1024px) {
     .passengers-body {
@@ -541,23 +575,28 @@
 
 /* Nowe kolory dla segmentów */
 .progress-segment.boarded {
-    background-color: #2196F3; /* niebieski */
+    background-color: #2196F3;
+    /* niebieski */
 }
 
 .progress-segment.none {
-    background-color: #9E9E9E; /* szary */
+    background-color: #9E9E9E;
+    /* szary */
 }
 
 .progress-segment.acc {
-    background-color: #4CAF50; /* zielony */
+    background-color: #4CAF50;
+    /* zielony */
 }
 
 .progress-segment.stby {
-    background-color: #FF9800; /* pomarańczowy */
+    background-color: #FF9800;
+    /* pomarańczowy */
 }
 
 .progress-segment.off {
-    background-color: #F44336; /* czerwony */
+    background-color: #F44336;
+    /* czerwony */
 }
 
 .main-container-flightData {
@@ -571,9 +610,11 @@
 
 .checkin-site {
     display: flex;
-    justify-content: space-between; /* Ustawia elementy w jednej linii */
+    justify-content: space-between;
+    /* Ustawia elementy w jednej linii */
 }
 
 .checkin-actions {
-    flex: 1; /* Zajmuje dostępne miejsce */
+    flex: 1;
+    /* Zajmuje dostępne miejsce */
 }
