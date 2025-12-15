@@ -149,11 +149,14 @@
     width: fit-content;
     max-width: 100%;
     max-height: calc(100vh - 12em);
+    min-height: 100%;
 }
 
 .passengers-left .panel {
     width: min-content;
     height: fit-content;
+        overflow: hidden;
+    max-height: calc(100vh - 260px);
 }
 
 .seatmap-panel {
