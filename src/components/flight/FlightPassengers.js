@@ -204,7 +204,7 @@ const FlightPassengers = () => {
             <div className="passengers-body center">
                 <aside className="passengers-left">
                     <div className="panel flight-info-panel">
-                        <div className="panel-header compact">
+                        {/* <div className="panel-header compact">
                             <div>
                                 <h3>Informacje o locie</h3>
                                 <p>{flightDetails?.route || 'Trasa niedostępna'}</p>
@@ -212,7 +212,7 @@ const FlightPassengers = () => {
                             <span className={`status-pill ${statusClass}`}>
                                 {flightDetails?.status || flightDetails?.state || 'Unknown'}
                             </span>
-                        </div>
+                        </div> */}
                         <div className="info-grid">
                             <div>
                                 <p className="info-label">Gate</p>
@@ -222,14 +222,14 @@ const FlightPassengers = () => {
                                 <p className="info-label">Radio</p>
                                 <p className="info-value">{radioNumber}</p>
                             </div>
-                            <div>
+                            {/* <div>
                                 <p className="info-label">Samolot</p>
                                 <p className="info-value">{planeModel}</p>
                             </div>
                             <div>
                                 <p className="info-label">Pojemność</p>
                                 <p className="info-value">{capacity}</p>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="flight-actions">
                             <Link to={`/flights/${flightId}/passengers`} className="ghost-action">

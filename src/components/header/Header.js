@@ -62,6 +62,7 @@ const Header = ({ onLogout }) => {
 
   const flightInfo = useMemo(() => {
     if (!flightDetails) return null;
+
     const route = flightDetails.route || '';
     const routeSegments = route
       .split(/[-–>]/)
@@ -72,24 +73,57 @@ const Header = ({ onLogout }) => {
         ? `${routeSegments[0]} - ${routeSegments[routeSegments.length - 1]}`
         : routeSegments[0] || route || flightDetails.destination || '—';
 
-    const departureISO = flightDetails.departureTime;
-    const formattedDeparture = departureISO
-      ? new Date(departureISO).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '—';
+    const combineDepartureDateTime = () => {
+      const datePart = flightDetails.departureDate;
+      const timePart = flightDetails.departureTime;
 
-    const delayMinutes =
-      flightDetails.delay ??
-      flightDetails.departureDelay ??
-      flightDetails.delayMinutes ??
-      null;
+      if (datePart && timePart) {
+        const combined = new Date(`${datePart}T${timePart}`);
+        if (!Number.isNaN(combined.getTime())) {
+          return combined;
+        }
+      }
+
+      if (timePart) {
+        const parsed = new Date(timePart);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      if (datePart) {
+        const parsed = new Date(datePart);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      return null;
+    };
+
+    const departureDateTime = combineDepartureDateTime();
+    const formattedDeparture = departureDateTime
+      ? departureDateTime.toLocaleString([], {
+          day: '2-digit',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : flightDetails.departureTime || flightDetails.departureDate || '—';
+
+    const statusText =
+      (flightDetails.status || flightDetails.flightStatus || '')
+        .toString()
+        .toUpperCase() || '—';
+
+    const statusClass = statusText === 'OPEN' ? 'on-time' : 'delayed';
 
     return {
       number: flightDetails.flightNumber || '—',
       route: formattedRoute,
       departure: formattedDeparture,
-      delay: delayMinutes,
-      statusLabel: delayMinutes ? `Delayed +${delayMinutes}m` : 'On time',
-      isDelayed: Boolean(delayMinutes)
+      statusLabel: statusText,
+      statusClass
     };
   }, [flightDetails]);
 
@@ -114,11 +148,7 @@ const Header = ({ onLogout }) => {
                 <div className="flight-context">
                   <div className="flight-row primary">
                     <span className="flight-number-chip">{flightInfo.number}</span>
-                    <span
-                      className={`status-pill-mini ${
-                        flightInfo.isDelayed ? 'delayed' : 'on-time'
-                      }`}
-                    >
+                    <span className={`status-pill-mini ${flightInfo.statusClass}`}>
                       {flightInfo.statusLabel}
                     </span>
                   </div>
