@@ -155,7 +155,7 @@
 .passengers-left .panel {
     width: min-content;
     height: fit-content;
-        overflow: hidden;
+    /* overflow: hidden; */
     max-height: calc(100vh - 260px);
 }
 
@@ -232,7 +232,9 @@
     flex: 1;
     min-height: 0;
 }
-
+.info-grid {
+    text-align: center;
+}
 .flight-info-panel {
     width: 100% !important;
 }
@@ -242,7 +244,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
 }
-
+.info-container {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
 .info-label {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -255,7 +261,9 @@
     font-weight: 600;
     color: #111827;
 }
-
+.no-margin {
+    margin: 0 !important;
+}
 .flight-actions {
     margin-top: 1rem;
     display: flex;
@@ -430,8 +438,6 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
     background: #fff;
 }
 
@@ -457,19 +463,16 @@
 }
 
 .ghost-button:hover {
-    border-color: #7c3aed;
-    color: #7c3aed;
-    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15);
+    border-color: #0f1e3d;
+    color: #0f1e3d;
 }
 
 .primary-button {
-    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    background-color: #0f1e3d;
     color: #fff;
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.35);
 }
 
 .primary-button:hover {
-    transform: translateY(-1px);
 }
 
 .passengers-body .passenger-table {

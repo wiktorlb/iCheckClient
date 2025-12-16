@@ -192,52 +192,20 @@ const FlightPassengers = () => {
 
     return (
         <section className="passengers-page">
-            {/* <div className="passengers-overview center">
-                {statsOrder.map(({ label, value }) => (
-                    <div key={label} className="stats-item">
-                        <span className="stats-label">{label}</span>
-                        <span className="stats-value">{value ?? '—'}</span>
-                    </div>
-                ))}
-            </div>  */}
+
 
             <div className="passengers-body center">
                 <aside className="passengers-left">
                     <div className="panel flight-info-panel">
-                        {/* <div className="panel-header compact">
-                            <div>
-                                <h3>Informacje o locie</h3>
-                                <p>{flightDetails?.route || 'Trasa niedostępna'}</p>
-                            </div>
-                            <span className={`status-pill ${statusClass}`}>
-                                {flightDetails?.status || flightDetails?.state || 'Unknown'}
-                            </span>
-                        </div> */}
                         <div className="info-grid">
-                            <div>
+                            <div className='info-container'>
                                 <p className="info-label">Gate</p>
                                 <p className="info-value">{gate}</p>
                             </div>
-                            <div>
+                            <div className='info-container'>
                                 <p className="info-label">Radio</p>
                                 <p className="info-value">{radioNumber}</p>
                             </div>
-                            {/* <div>
-                                <p className="info-label">Samolot</p>
-                                <p className="info-value">{planeModel}</p>
-                            </div>
-                            <div>
-                                <p className="info-label">Pojemność</p>
-                                <p className="info-value">{capacity}</p>
-                            </div> */}
-                        </div>
-                        <div className="flight-actions">
-                            <Link to={`/flights/${flightId}/passengers`} className="ghost-action">
-                                Lista pasażerów
-                            </Link>
-                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
-                                Lista bagażu
-                            </Link>
                         </div>
                     </div>
                     <div className="panel seatmap-panel">
@@ -252,6 +220,21 @@ const FlightPassengers = () => {
                         ) : (
                             <div className="panel-placeholder">Seat map unavailable for this flight.</div>
                         )}
+                    </div>
+                    <div className="panel flight-info-panel">
+                        <div className="flight-actions no-margin">
+                            <Link to={`/flights/${flightId}/passengers`} className="ghost-action">
+                                Passenger List
+                            </Link>
+                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
+                                Baggage List
+                            </Link>
+                        </div>
+                        <div className="flight-actions">
+                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
+                                Add Passenger
+                            </Link>
+                        </div>
                     </div>
                 </aside>
 
@@ -275,14 +258,14 @@ const FlightPassengers = () => {
                                         type: 'SET_SEARCH_TERM',
                                         payload: e.target.value
                                     })}
-                                    placeholder="Szukaj po nazwisku..."
+                                    placeholder="Search by Last Name..."
                                 />
                                 <input
                                     type="text"
                                     className="search-input"
                                     value={srrSearchTerm}
                                     onChange={(e) => setSrrSearchTerm(e.target.value)}
-                                    placeholder="Filtruj po kodzie SSR..."
+                                    placeholder="Filter by SSR..."
                                 />
                                 <select
                                     className="search-input status-select"
