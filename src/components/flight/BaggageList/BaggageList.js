@@ -1,8 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import axiosInstance from '../../../api/axiosConfig';
-import FlightInfo from '../components/FlightInfo/FlightInfo';
+import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
+import SeatMap from '../components/SeatMap/SeatMap';
+import '../style.css';
 import './style.css';
+
+const SummaryCard = ({ label, value, suffix = '' }) => (
+  <div className="stats-item">
+    <span className="stats-label">{label}</span>
+    <span className="stats-value">
+      {value}
+      {suffix}
+    </span>
+  </div>
+);
 
 const BaggageList = () => {
   const { flightId } = useParams();
@@ -71,8 +83,8 @@ const BaggageList = () => {
     fetchFlightDetails();
   }, [flightId]);
 
-  const generateBaggageList = () => {
-    const baggageList = [];
+  const baggageList = useMemo(() => {
+    const list = [];
 
     passengers.forEach(passenger => {
       const title = passenger.gender === 'M' ? 'MR' : passenger.gender === 'F' ? 'MRS' : 'CHLD';
@@ -80,9 +92,8 @@ const BaggageList = () => {
 
       if (passenger.baggageList && passenger.baggageList.length > 0) {
         passenger.baggageList.forEach(baggage => {
-          // Filter by selected baggage type
           if (selectedBaggageType === 'ALL' || baggage.type === selectedBaggageType) {
-            baggageList.push({
+            list.push({
               passenger: `${title} ${fullName}`,
               baggageId: baggage.id || 'N/A',
               weight: baggage.weight || 'N/A',
@@ -93,11 +104,10 @@ const BaggageList = () => {
       }
     });
 
-    return baggageList;
-  };
+    return list;
+  }, [passengers, selectedBaggageType]);
 
   const handleDownload = () => {
-    const baggageList = generateBaggageList();
     const content = baggageList.map(item =>
       `${item.passenger} | ${item.baggageId} | ${item.weight} | ${item.type}`
     ).join('\n');
@@ -106,78 +116,70 @@ const BaggageList = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `baggage_list_${flightDetails.flightNumber}.txt`;
+    const suffix = flightDetails?.flightNumber ? `_${flightDetails.flightNumber}` : '';
+    a.download = `baggage_list${suffix}.txt`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   };
 
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
+  const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
+  const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
+  const planeModel = flightDetails?.plane?.model || flightDetails?.aircraftId || '—';
 
   return (
-    <section>
-      <div className="content-wrapper">
-        <div className="main-container-flightData --bagList">{/* main-container-flightData */}
-          {flightDetails && (
-            <FlightInfo
-              flightNumber={flightDetails.flightNumber}
-              departureTime={flightDetails.departureTime}
-              route={flightDetails.route}
-              status={flightDetails.status || flightDetails.state}
-            />
-          )}
-          <div className="baggage-summary">
-            <div className="summary-item">
-              <span className="summary-label">Total Weight:</span>
-              <span className="summary-value">{summary.totalWeight}kg</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Total Bags:</span>
-              <span className="summary-value">{summary.totalCount}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Regular Bags:</span>
-              <span className="summary-value">{summary.regularCount}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">DAA Bags:</span>
-              <span className="summary-value">{summary.daaCount}</span>
-            </div>
+    <section className="passengers-page baggage-page">
+      <div className="passengers-body center flex">
+
+
+        <div className="passengers-right full-width">
+          <div className="passengers-overview">
+            <SummaryCard label="Total Weight" value={summary.totalWeight} suffix="kg" />
+            <SummaryCard label="Total Bags" value={summary.totalCount} />
+            <SummaryCard label="Regular Bags" value={summary.regularCount} />
+            <SummaryCard label="DAA Bags" value={summary.daaCount} />
           </div>
-        </div>
-        <div className="main-container">
-          <div className="baggage-list-header">
-            <h2>Baggage List</h2>
-            <div className="baggage-list-controls">
-              <select 
-                value={selectedBaggageType} 
-                onChange={(e) => setSelectedBaggageType(e.target.value)}
-                className="baggage-type-filter"
-              >
-                <option value="ALL">All Types</option>
-                <option value="BAG">BAG</option>
-                <option value="DAA">DAA</option>
-                <option value="HAND_LUGGAGE">HAND_LUGGAGE</option>
-                <option value="SPORT_EQUIPMENT">SPORT_EQUIPMENT</option>
-                <option value="WHEELCHAIR">WHEELCHAIR</option>
-              </select>
-              <button onClick={handleDownload} className="download-button">
-                Download List
-              </button>
-            </div>
-          </div>
-          <div className="baggage-list-content">
-            {generateBaggageList().map((item, index) => (
-              <div key={index} className="baggage-item">
-                <span className="passenger">{item.passenger}</span>
-                <span className="baggage-id">{item.baggageId}</span>
-                <span className="weight">{item.weight} kg</span>
-                <span className="type">{item.type}</span>
+
+          <div className="passenger-table-card baggage-card">
+            <div className="table-toolbar">
+              <div className="toolbar-search">
+                <select
+                  value={selectedBaggageType}
+                  onChange={(e) => setSelectedBaggageType(e.target.value)}
+                  className="search-input"
+                >
+                  <option value="ALL">All Types</option>
+                  <option value="BAG">BAG</option>
+                  <option value="DAA">DAA</option>
+                  <option value="HAND_LUGGAGE">HAND LUGGAGE</option>
+                  <option value="SPORT_EQUIPMENT">SPORT EQUIPMENT</option>
+                  <option value="WHEELCHAIR">WHEELCHAIR</option>
+                </select>
               </div>
-            ))}
+              <div className="toolbar-actions">
+                <button type="button" className="primary-button" onClick={handleDownload}>
+                  Download List
+                </button>
+              </div>
+            </div>
+
+            <ErrorMessage error={error} />
+
+            <div className="baggage-list-content">
+              {baggageList.length === 0 ? (
+                <div className="panel-placeholder">No baggage found for this filter.</div>
+              ) : (
+                baggageList.map((item, index) => (
+                  <div key={`${item.baggageId}-${index}`} className="baggage-item">
+                    <span className="passenger">{item.passenger}</span>
+                    <span className="baggage-id">{item.baggageId}</span>
+                    <span className="weight">{item.weight} kg</span>
+                    <span className="type">{item.type}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

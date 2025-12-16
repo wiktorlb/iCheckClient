@@ -133,7 +133,12 @@
     font-weight: 600;
     color: #1f2937;
 }
-
+.flex {
+display: flex !important;
+}
+.full-width {
+    width: 100%;
+}
 .passengers-body {
     display: grid;
     grid-template-columns: max-content minmax(360px, 1fr);

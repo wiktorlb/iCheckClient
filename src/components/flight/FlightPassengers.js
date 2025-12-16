@@ -223,7 +223,7 @@ const FlightPassengers = () => {
                     </div>
                     <div className="panel flight-info-panel">
                         <div className="flight-actions no-margin">
-                            <Link to={`/flights/${flightId}/passengers`} className="ghost-action">
+                            <Link to={`/flights/${flightId}/passenger-list`} className="ghost-action">
                                 Passenger List
                             </Link>
                             <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">

@@ -12,6 +12,7 @@ import UserManagement from './components/UserManagement';
 import CheckinSite from './components/flight/CheckinSite/CheckinSite';
 import Boarding from './components/flight/Boarding/Boarding';
 import BaggageList from './components/flight/BaggageList/BaggageList';
+import PassengerList from './components/flight/PassengerList/PassengerList';
 /* import Users from './components/UserManagement/Users'; */
 
 const App = () => {
@@ -157,6 +158,18 @@ const App = () => {
           element={
             isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
               <BaggageList />
+            ) : (
+              <Navigate to="/flightboard" />
+            )
+          }
+        />
+
+        {/* Ścieżka do listy pasażerów (API) */}
+        <Route
+          path="/flights/:flightId/passenger-list"
+          element={
+            isLoggedIn && (userRole === 'ADMIN' || userRole === 'USER' || userRole === 'LEADER') ? (
+              <PassengerList />
             ) : (
               <Navigate to="/flightboard" />
             )
