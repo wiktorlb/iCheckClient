@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import axiosInstance from '../../../api/axiosConfig';
 import PassengerTable from '../components/PassengerTable/PassengerTable';
-import SearchBar from '../components/SearchBar/SearchBar';
-import SearchBarSSR from '../components/SearchBarSSR/SearchBarSSR';
 import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from '../hooks/useSrrTooltip';
 import { passengerReducer, initialState } from '../reducers/PassengerReducer';
-import FlightInfo from '../components/FlightInfo/FlightInfo';
 import SeatMap from '../components/SeatMap/SeatMap';
 import ActionPanel from '../components/ActionPanel/ActionPanel';
 
+import '../style.css';
 import './style.css';
 
 /**
@@ -33,17 +31,6 @@ import './style.css';
  * @param {Object} props.seatMap - Seat map configuration for the aircraft
  */
 
-/**
- * Statistics Item Component
- *
- * Renders a single statistics item with label and value.
- * Used in the statistics container to display boarding metrics.
- *
- * @component
- * @param {Object} props
- * @param {string} props.label - The label for the statistic
- * @param {number|string} props.value - The value to display
- */
 const StatsItem = ({ label, value }) => (
     <div className="stats-item">
         <div className="stats-label">{label}</div>
@@ -57,6 +44,7 @@ const Boarding = () => {
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
     const [closingFlight, setClosingFlight] = useState(false);
     const [closeResult, setCloseResult] = useState(null);
 
@@ -69,9 +57,11 @@ const Boarding = () => {
                 (passenger.srrCodes && passenger.srrCodes.some(code =>
                     code.toUpperCase().includes(srrSearchTerm.toUpperCase())
                 ));
-            return matchesSurname && matchesSrr;
+            const matchesStatus = !statusFilter ||
+                (passenger.status && passenger.status.toLowerCase() === statusFilter);
+            return matchesSurname && matchesSrr && matchesStatus;
         }),
-        [passengers, searchTerm, srrSearchTerm]
+        [passengers, searchTerm, srrSearchTerm, statusFilter]
     );
 
     const stats = useMemo(() => {
@@ -224,125 +214,133 @@ const Boarding = () => {
         }
     };
 
-    /**
-     * Progress Bar Component
-     *
-     * Visual representation of passenger boarding status distribution.
-     * Shows segments for different passenger statuses (boarded, accepted, standby, etc.).
-     *
-     * @component
-     * @param {Object} props
-     * @param {Object} props.stats - Statistics object containing passenger counts
-     * @param {number} props.total - Total number of passengers
-     */
-    const ProgressBar = ({ stats, total }) => {
-        const getPercentage = (value) => (value / total) * 100;
-
-        return (
-            <div className="single-progress-bar">
-                <div className="progress-segment boarded"
-                    style={{ width: `${getPercentage(stats.boarded || 0)}%` }} />
-                <div className="progress-segment none"
-                    style={{ width: `${getPercentage(stats.none || 0)}%` }} />
-                <div className="progress-segment acc"
-                    style={{ width: `${getPercentage(stats.acc || 0)}%` }} />
-                <div className="progress-segment stby"
-                    style={{ width: `${getPercentage(stats.stby || 0)}%` }} />
-                <div className="progress-segment off"
-                    style={{ width: `${getPercentage(stats.off || 0)}%` }} />
-            </div>
-        );
-    };
+    const allowCapacity = flightDetails?.capacity || flightDetails?.plane?.capacity || 0;
+    const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
+    const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
+    const planeModel = flightDetails?.plane?.model || flightDetails?.aircraftId || '—';
+    const statsOrder = [
+        { label: 'BOARDED', value: stats.boarded },
+        { label: 'ACCEPTED', value: stats.acc },
+        { label: 'BOOKED', value: stats.booked },
+        { label: 'ALLOWED', value: allowCapacity || '—' },
+        { label: 'STANDBY', value: stats.stby },
+        { label: 'BAGS', value: stats.bags },
+        { label: 'SBAGS', value: stats.sbags }
+    ];
 
     return (
-        <section>
-            <div className="content-wrapper">
-                <div className="main-container-flightData">
-                    {flightDetails && (
-                        <FlightInfo
-                            flightNumber={flightDetails.flightNumber}
-                            departureTime={flightDetails.departureTime}
-                            route={flightDetails.route}
-                            status={flightDetails.status || flightDetails.state}
-                        />
-                    )}
-                    {flightDetails && flightDetails.seatMap && (
-                        <SeatMap
-                            flightId={flightId}
-                            seatMap={flightDetails.seatMap}
-                            occupiedSeats={flightDetails.occupiedSeats || []}
-                            passengers={passengers}
-                        />
-                    )}
-                </div>
-                <div className="main-container">
-                    <div className="statistics-container">
-                        <StatsItem label="BOARDED" value={stats.boarded} />
-                        <StatsItem label="ACCEPTED" value={stats.acc} />
-                        <StatsItem label="BOOKED" value={stats.booked} />
-                        <StatsItem label="ALLOWED" value='189' />
-                        <StatsItem label="STANDBY" value={stats.stby} />
-                        <StatsItem label="BAGS" value={stats.bags} />
-                        <StatsItem label="SBAGS" value={stats.sbags} />
-                    </div>
-                    {flightDetails && !['CLOSED', 'FINALIZED'].includes((flightDetails.status || '').toUpperCase()) && (
-                        <>
-                            <div className="close-flight-bar">
-                                <div>
-                                    <p>
-                                        Wszystkie osoby muszą mieć status BOARDED lub OFF, aby zamknąć lot.
-                                    </p>
-                                    <p>
-                                        Postęp: {stats.boarded}/{stats.booked} boarded.
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="close-button"
-                                    onClick={handleCloseFlight}
-                                    disabled={closingFlight}
-                                >
-                                    {closingFlight ? 'Closing...' : 'Close flight'}
-                                </button>
+        <section className="passengers-page boarding-page">
+            <div className="passengers-body center">
+                <aside className="passengers-left">
+                    <div className="panel flight-info-panel">
+                        <div className="info-grid">
+                            <div className="info-container">
+                                <p className="info-label">Gate</p>
+                                <p className="info-value">{gate}</p>
                             </div>
-                            {closeResult && (
-                                <div className={`close-banner ${closeResult.type}`}>
-                                    {closeResult.message}
-                                </div>
-                            )}
-                        </>
-                    )}
-                    <main className="main">
-                        <div className="progress-bar-container">
-                            <ProgressBar stats={stats} total={passengers.length} />
+                            <div className="info-container">
+                                <p className="info-label">Radio</p>
+                                <p className="info-value">{radioNumber}</p>
+                            </div>
                         </div>
-                        <ErrorMessage error={error} />
-                        <div className="table-spacer">
-                            <div className="search-bars-container">
-                                <SearchBar
+                    </div>
+                    <div className="panel seatmap-panel">
+                        {flightDetails?.seatMap ? (
+                            <SeatMap
+                                flightId={flightId}
+                                seatMap={flightDetails.seatMap}
+                                occupiedSeats={flightDetails.occupiedSeats || []}
+                                passengers={passengers}
+                            />
+                        ) : (
+                            <div className="panel-placeholder">Seat map unavailable for this flight.</div>
+                        )}
+                    </div>
+                    <div className="panel flight-info-panel">
+                        <div className="flight-actions no-margin">
+                            <Link to={`/flights/${flightId}/passengers`} className="ghost-action">
+                                Passenger List
+                            </Link>
+                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
+                                Baggage List
+                            </Link>
+                        </div>
+                        <div className="flight-actions">
+                            <button
+                                type="button"
+                                className="ghost-action"
+                                onClick={handleCloseFlight}
+                                disabled={closingFlight}
+                            >
+                                {closingFlight ? 'Closing...' : 'Close Flight'}
+                            </button>
+                        </div>
+                        {closeResult && (
+                            <div className={`close-banner ${closeResult.type}`}>
+                                {closeResult.message}
+                            </div>
+                        )}
+                    </div>
+                </aside>
+
+                <div className="passengers-right">
+                    <div className="passengers-overview">
+                        {statsOrder.map(({ label, value }) => (
+                            <div key={label} className="stats-item">
+                                <span className="stats-label">{label}</span>
+                                <span className="stats-value">{value ?? '—'}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="passenger-table-card">
+                        <div className="table-toolbar">
+                            <div className="toolbar-search">
+                                <input
+                                    type="text"
+                                    className="search-input"
                                     value={searchTerm}
                                     onChange={(e) => dispatch({
                                         type: 'SET_SEARCH_TERM',
                                         payload: e.target.value
                                     })}
-                                    placeholder="Search by surname..."
+                                    placeholder="Search by Last Name..."
                                 />
-                                <SearchBarSSR
+                                <input
+                                    type="text"
+                                    className="search-input"
                                     value={srrSearchTerm}
                                     onChange={(e) => setSrrSearchTerm(e.target.value)}
+                                    placeholder="Filter by SSR..."
                                 />
+                                <select
+                                    className="search-input status-select"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <option value="">Status: any</option>
+                                    <option value="boarded">Boarded</option>
+                                    <option value="acc">Accepted</option>
+                                    <option value="stby">Standby</option>
+                                    <option value="off">Off</option>
+                                    <option value="none">None</option>
+                                </select>
                             </div>
-                            <PassengerTable
-                                passengers={filteredPassengers}
-                                selectedPassengers={selectedPassengers}
-                                onToggleSelection={(id) => dispatch({
-                                    type: 'TOGGLE_PASSENGER_SELECTION',
-                                    payload: id
-                                })}
-                                getSrrTooltip={getSrrTooltip}
-                            />
+                            <div className="toolbar-actions" />
                         </div>
-                    </main>
+
+                        <ErrorMessage error={error} />
+
+                        <PassengerTable
+                            passengers={filteredPassengers}
+                            selectedPassengers={selectedPassengers}
+                            onToggleSelection={(id) => dispatch({
+                                type: 'TOGGLE_PASSENGER_SELECTION',
+                                payload: id
+                            })}
+                            getSrrTooltip={getSrrTooltip}
+                        />
+                    </div>
                 </div>
             </div>
             <ActionPanel
@@ -352,6 +350,7 @@ const Boarding = () => {
             />
         </section>
     );
+
 };
 
 export default Boarding;
