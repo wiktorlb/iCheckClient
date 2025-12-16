@@ -21,12 +21,19 @@ const formatDate = (value) => {
   return date.toLocaleDateString();
 };
 
+const parseDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 const PassengerList = () => {
   const { flightId } = useParams();
   const [passengers, setPassengers] = useState([]);
   const [flightDetails, setFlightDetails] = useState(null);
   const [error, setError] = useState(null);
   const [groupFilter, setGroupFilter] = useState('ALL');
+  const [validUntilFilter, setValidUntilFilter] = useState('');
 
   useEffect(() => {
     const fetchPassengers = async () => {
@@ -96,6 +103,8 @@ const PassengerList = () => {
 
   const decoratedPassengers = useMemo(() => passengers.map((passenger) => {
     const group = categorizePassenger(passenger);
+    const rawValidUntil = passenger.validUntil || null;
+    const validUntilDate = parseDate(rawValidUntil);
     return {
       id: passenger.id,
       group,
@@ -104,14 +113,23 @@ const PassengerList = () => {
       documentType: passenger.documentType === 'ID' ? 'ID' : 'Passport',
       documentNumber: passenger.serialName || '—',
       dateOfBirth: formatDate(passenger.dateOfBirth),
-      validUntil: formatDate(passenger.validUntil)
+      validUntil: formatDate(passenger.validUntil),
+      rawValidUntil,
+      validUntilDate
     };
   }), [passengers]);
 
   const filteredPassengers = useMemo(() => {
+    const selectedValidDate = parseDate(validUntilFilter);
     if (groupFilter === 'ALL') return decoratedPassengers;
-    return decoratedPassengers.filter(passenger => passenger.group === groupFilter);
-  }, [decoratedPassengers, groupFilter]);
+    return decoratedPassengers.filter(passenger => {
+      const matchesGroup = passenger.group === groupFilter || groupFilter === 'ALL';
+      const matchesValidDate = selectedValidDate
+        ? passenger.validUntilDate && passenger.validUntilDate < selectedValidDate
+        : true;
+      return matchesGroup && matchesValidDate;
+    });
+  }, [decoratedPassengers, groupFilter, validUntilFilter]);
 
   const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
   const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
@@ -139,6 +157,13 @@ const PassengerList = () => {
                   <option value="FEMALE">Females</option>
                   <option value="CHILD">Childs</option>
                 </select>
+                <input
+                  type="date"
+                  className="search-input"
+                  value={validUntilFilter}
+                  onChange={(e) => setValidUntilFilter(e.target.value)}
+                  placeholder="Valid before..."
+                />
               </div>
               <div className="toolbar-actions">
                 <Link
