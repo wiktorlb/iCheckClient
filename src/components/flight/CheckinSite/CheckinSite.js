@@ -342,12 +342,41 @@ const CheckinSite = () => {
         }
     };
 
+    const userIdentity = useMemo(() => {
+        const token = localStorage.getItem('jwt');
+        if (!token) {
+            return { displayName: 'Unknown' };
+        }
+
+        try {
+            const payloadPart = token.split('.')[1];
+            const decodedPayload = JSON.parse(atob(payloadPart));
+            const displayName =
+                decodedPayload?.name ||
+                decodedPayload?.username ||
+                decodedPayload?.email ||
+                decodedPayload?.sub ||
+                'Unknown';
+
+            return { displayName };
+        } catch (error) {
+            console.error('Failed to decode user identity from token', error);
+            return { displayName: 'Unknown' };
+        }
+    }, []);
+
     const handleAddComment = async () => {
         if (!selectedPassenger || !comment.trim()) return;
 
         try {
+            const commentPayload = {
+                text: comment.trim(),
+                date: new Date().toISOString(),
+                addedBy: userIdentity.displayName || 'Unknown'
+            };
+
             await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/add-comment`, {
-                comment: comment.trim()
+                ...commentPayload
             });
 
             setComment('');
