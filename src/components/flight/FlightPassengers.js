@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback, useReducer, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
 import PassengerTable from './components/PassengerTable/PassengerTable';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
@@ -20,6 +20,7 @@ const statusToneMap = {
 
 const FlightPassengers = () => {
     const { flightId } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
     const [state, dispatch] = useReducer(passengerReducer, initialState);
     const { passengers, selectedPassengers, error, searchTerm } = state;
@@ -43,29 +44,29 @@ const FlightPassengers = () => {
         [passengers, searchTerm, srrSearchTerm, statusFilter]
     );
 
-    useEffect(() => {
-        const fetchPassengers = async () => {
-            try {
-                const jwt = localStorage.getItem('jwt');
-                if (!jwt) return;
+    const fetchPassengers = useCallback(async () => {
+        try {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) return;
 
-                const response = await axiosInstance.get(
-                    `/api/passengers/flights/${flightId}/passengers-with-srr`,
-                    { headers: { Authorization: `Bearer ${jwt}` } }
-                );
+            const response = await axiosInstance.get(
+                `/api/passengers/flights/${flightId}/passengers-with-srr`,
+                { headers: { Authorization: `Bearer ${jwt}` } }
+            );
 
-                dispatch({ type: 'SET_PASSENGERS', payload: response.data });
-            } catch (error) {
-                console.error('Error fetching passengers:', error);
-                dispatch({
-                    type: 'SET_ERROR',
-                    payload: 'Failed to fetch passengers.'
-                });
-            }
-        };
-
-        fetchPassengers();
+            dispatch({ type: 'SET_PASSENGERS', payload: response.data });
+        } catch (error) {
+            console.error('Error fetching passengers:', error);
+            dispatch({
+                type: 'SET_ERROR',
+                payload: 'Failed to fetch passengers.'
+            });
+        }
     }, [flightId]);
+
+    useEffect(() => {
+        fetchPassengers();
+    }, [fetchPassengers]);
 
     const fetchFlightDetails = useCallback(async () => {
         try {
@@ -81,6 +82,20 @@ const FlightPassengers = () => {
     useEffect(() => {
         fetchFlightDetails();
     }, [fetchFlightDetails]);
+
+    useEffect(() => {
+        const handleGlobalRefresh = (event) => {
+            const targetPath = event.detail?.pathname;
+            const targetSearch = event.detail?.search;
+            if (targetPath === location.pathname && targetSearch === location.search) {
+                fetchPassengers();
+                fetchFlightDetails();
+            }
+        };
+
+        window.addEventListener('app:data-refresh', handleGlobalRefresh);
+        return () => window.removeEventListener('app:data-refresh', handleGlobalRefresh);
+    }, [fetchPassengers, fetchFlightDetails, location.pathname, location.search]);
 
     const handleRefreshFlightInfo = useCallback(() => {
         fetchFlightDetails();

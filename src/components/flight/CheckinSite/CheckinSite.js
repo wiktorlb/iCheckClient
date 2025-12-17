@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 import axiosInstance from '../../../api/axiosConfig';
 import '../style.css';
 import './style.css';
@@ -142,6 +143,19 @@ const CheckinSite = () => {
     useEffect(() => {
         fetchFlightDetails();
     }, [activeFlightId]);
+
+    useEffect(() => {
+        const handleGlobalRefresh = (event) => {
+            const targetPath = event.detail?.pathname;
+            const targetSearch = event.detail?.search;
+            if (targetPath === location.pathname && targetSearch === location.search) {
+                fetchFlightDetails();
+            }
+        };
+
+        window.addEventListener('app:data-refresh', handleGlobalRefresh);
+        return () => window.removeEventListener('app:data-refresh', handleGlobalRefresh);
+    }, [fetchFlightDetails, location.pathname, location.search]);
 
     const addSrrCode = async (passengerId, srrCode) => {
         try {

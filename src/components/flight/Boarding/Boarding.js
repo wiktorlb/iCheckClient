@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
+
 import axiosInstance from '../../../api/axiosConfig';
 import PassengerTable from '../components/PassengerTable/PassengerTable';
 import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
@@ -40,6 +41,8 @@ const StatsItem = ({ label, value }) => (
 
 const Boarding = () => {
     const { flightId } = useParams();
+    const location = useLocation();
+
     const [state, dispatch] = useReducer(passengerReducer, initialState);
     const { passengers, selectedPassengers, error, searchTerm } = state;
     const [flightDetails, setFlightDetails] = useState(null);
@@ -146,6 +149,20 @@ const Boarding = () => {
     useEffect(() => {
         fetchFlightDetails();
     }, [fetchFlightDetails]);
+
+    useEffect(() => {
+        const handleGlobalRefresh = (event) => {
+            const targetPath = event.detail?.pathname;
+            const targetSearch = event.detail?.search;
+            if (targetPath === location.pathname && targetSearch === location.search) {
+                fetchPassengers();
+                fetchFlightDetails();
+            }
+        };
+
+        window.addEventListener('app:data-refresh', handleGlobalRefresh);
+        return () => window.removeEventListener('app:data-refresh', handleGlobalRefresh);
+    }, [fetchPassengers, fetchFlightDetails, location.pathname, location.search]);
 
     const handleBoardPassenger = async () => {
         if (!selectedPassengers.length) return;

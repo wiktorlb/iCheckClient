@@ -19,7 +19,14 @@ const Header = ({ onLogout }) => {
   };
 
   const handleRefresh = () => {
-    window.location.reload();
+    window.dispatchEvent(
+      new CustomEvent('app:data-refresh', {
+        detail: {
+          pathname: location.pathname,
+          search: location.search
+        }
+      })
+    );
   };
 
   const showBackButton = location.pathname !== '/flightboard' && location.pathname !== '/login';
