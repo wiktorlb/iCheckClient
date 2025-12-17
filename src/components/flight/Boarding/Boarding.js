@@ -346,10 +346,6 @@ const Boarding = () => {
                             </button>
                         </div>
                         <div className="flight-actions emergency-actions">
-                            <p className="emergency-copy">
-                                Deboard all passengers if the flight is cancelled or restarted. This marks everyone as
-                                <strong> OFF </strong>.
-                            </p>
                             {deboardResult && (
                                 <div className={`close-banner ${deboardResult.type}`}>
                                     {deboardResult.message}
