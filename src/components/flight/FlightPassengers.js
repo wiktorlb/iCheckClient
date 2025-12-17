@@ -27,6 +27,15 @@ const FlightPassengers = () => {
     const [flightDetails, setFlightDetails] = useState(null);
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [showAddPassengerModal, setShowAddPassengerModal] = useState(false);
+    const [newPassenger, setNewPassenger] = useState({
+        name: '',
+        surname: '',
+        title: 'MR',
+        gender: 'M'
+    });
+    const [creatingPassenger, setCreatingPassenger] = useState(false);
+    const [createPassengerError, setCreatePassengerError] = useState('');
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -209,6 +218,68 @@ const FlightPassengers = () => {
 
     const isActionDisabled = selectedPassengers.length === 0;
 
+    const openAddPassengerModal = () => {
+        setNewPassenger({
+            name: '',
+            surname: '',
+            title: 'MR',
+            gender: 'M'
+        });
+        setCreatePassengerError('');
+        setShowAddPassengerModal(true);
+    };
+
+    const closeAddPassengerModal = () => {
+        if (!creatingPassenger) {
+            setShowAddPassengerModal(false);
+        }
+    };
+
+    const handleNewPassengerChange = (field) => (event) => {
+        setNewPassenger((prev) => ({
+            ...prev,
+            [field]: event.target.value
+        }));
+    };
+
+    const handleCreatePassenger = async (event) => {
+        event.preventDefault();
+        if (!flightId) return;
+
+        const trimmedName = newPassenger.name.trim();
+        const trimmedSurname = newPassenger.surname.trim();
+
+        if (!trimmedName || !trimmedSurname) {
+            setCreatePassengerError('Name and surname are required.');
+            return;
+        }
+
+        try {
+            setCreatingPassenger(true);
+            setCreatePassengerError('');
+
+            const jwt = localStorage.getItem('jwt');
+            const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
+
+            const payload = {
+                flightId,
+                name: trimmedName,
+                surname: trimmedSurname,
+                title: newPassenger.title,
+                gender: newPassenger.gender
+            };
+
+            await axiosInstance.post('/api/passengers', payload, config);
+            await fetchPassengers();
+            setShowAddPassengerModal(false);
+        } catch (err) {
+            const message = err.response?.data || 'Failed to create passenger.';
+            setCreatePassengerError(typeof message === 'string' ? message : 'Failed to create passenger.');
+        } finally {
+            setCreatingPassenger(false);
+        }
+    };
+
     return (
         <section className="passengers-page">
 
@@ -250,9 +321,9 @@ const FlightPassengers = () => {
                             </Link>
                         </div>
                         <div className="flight-actions">
-                            <Link to={`/flights/${flightId}/baggage-list`} className="ghost-action">
+                            <button type="button" className="ghost-action" onClick={openAddPassengerModal}>
                                 Add Passenger
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </aside>
@@ -333,6 +404,98 @@ const FlightPassengers = () => {
                     </div>
                 </div>
             </div>
+
+            {showAddPassengerModal && (
+                <div
+                    className="api-modal-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={!creatingPassenger ? closeAddPassengerModal : undefined}
+                >
+                    <div
+                        className="api-modal add-passenger-modal"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="api-modal-header">
+                            <div>
+                                <h1 className="api-modal-eyebrow">Quick add</h1>
+                                <h3>New passenger</h3>
+                            </div>
+                            <button
+                                type="button"
+                                className="api-modal-close"
+                                onClick={closeAddPassengerModal}
+                                aria-label="Close add passenger form"
+                                disabled={creatingPassenger}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <form className="api-form-grid" onSubmit={handleCreatePassenger}>
+                            <label className="api-field">
+                                <span>First name</span>
+                                <input
+                                    type="text"
+                                    value={newPassenger.name}
+                                    onChange={handleNewPassengerChange('name')}
+                                    placeholder="Enter first name"
+                                    required
+                                />
+                            </label>
+                            <label className="api-field">
+                                <span>Last name</span>
+                                <input
+                                    type="text"
+                                    value={newPassenger.surname}
+                                    onChange={handleNewPassengerChange('surname')}
+                                    placeholder="Enter last name"
+                                    required
+                                />
+                            </label>
+                            <label className="api-field">
+                                <span>Title</span>
+                                <select
+                                    value={newPassenger.title}
+                                    onChange={handleNewPassengerChange('title')}
+                                >
+                                    <option value="MR">MR</option>
+                                    <option value="MRS">MRS</option>
+                                </select>
+                            </label>
+                            <label className="api-field">
+                                <span>Gender</span>
+                                <select
+                                    value={newPassenger.gender}
+                                    onChange={handleNewPassengerChange('gender')}
+                                >
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                            </label>
+                            {createPassengerError && (
+                                <p className="modal-error">{createPassengerError}</p>
+                            )}
+                            <div className="api-modal-footer">
+                                <button
+                                    type="button"
+                                    className="ghost-btn"
+                                    onClick={closeAddPassengerModal}
+                                    disabled={creatingPassenger}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="primary-btn"
+                                    disabled={creatingPassenger}
+                                >
+                                    {creatingPassenger ? 'Adding…' : 'Add passenger'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </section>
     );
 };
