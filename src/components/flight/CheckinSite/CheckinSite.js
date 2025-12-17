@@ -369,75 +369,61 @@ const CheckinSite = () => {
     const capacity = allowCapacity || passengersList.length || '—';
 
     const seatMapPassengers = flightDetails?.passengers || passengersWithDetails;
+    const panelFlightId = activeFlightId || flightDetails?.id || '';
 
     return (
         <section className="passengers-page checkin-page">
             <div className="passengers-body center">
                 <aside className="passengers-left">
                     <div className="panel flight-info-panel">
-                        <div className="panel-header compact">
-                            <div>
-                                <h3>Informacje o locie</h3>
-                                <p>{flightDetails?.route || 'Trasa niedostępna'}</p>
-                            </div>
-                            <span className={`status-pill ${statusClass}`}>
-                                {flightDetails?.status || flightDetails?.state || 'Unknown'}
-                            </span>
-                        </div>
                         <div className="info-grid">
-                            <div>
+                            <div className="info-container">
                                 <p className="info-label">Gate</p>
                                 <p className="info-value">{gate}</p>
                             </div>
-                            <div>
+                            <div className="info-container">
                                 <p className="info-label">Radio</p>
                                 <p className="info-value">{radioNumber}</p>
                             </div>
-                            <div>
-                                <p className="info-label">Samolot</p>
-                                <p className="info-value">{planeModel}</p>
-                            </div>
-                            <div>
-                                <p className="info-label">Pojemność</p>
-                                <p className="info-value">{capacity}</p>
-                            </div>
-                        </div>
-                        <div className="flight-actions">
-                            <Link to="/flights" className="ghost-action">
-                                Lista lotów
-                            </Link>
-                            {activeFlightId && (
-                                <Link to={`/flights/${activeFlightId}/passengers`} className="ghost-action">
-                                    Lista pasażerów
-                                </Link>
-                            )}
                         </div>
                     </div>
-
                     <div className="panel seatmap-panel">
-                        {/* <div className="panel-header">
-                            <div>
-                                <h3>Mapa miejsc</h3>
-                                <p>Wybierz miejsce bezpośrednio z mapy</p>
-                            </div>
-                            <div className="seat-legend">
-                                <span><span className="dot available" />Wolne</span>
-                                <span><span className="dot occupied" />Zajęte</span>
-                                <span><span className="dot boarded" />Boarded</span>
-                            </div>
-                        </div> */}
                         {flightDetails?.seatMap ? (
                             <SeatMap
-                                flightId={activeFlightId}
+                                flightId={panelFlightId}
                                 seatMap={flightDetails.seatMap}
                                 occupiedSeats={flightDetails.occupiedSeats || []}
+                                passengers={seatMapPassengers}
                                 onSeatClick={handleAssignSeat}
                                 selectedPassenger={selectedPassenger}
-                                passengers={seatMapPassengers}
                             />
                         ) : (
                             <div className="panel-placeholder">Seat map unavailable for this flight.</div>
                         )}
+                    </div>
+                    <div className="panel flight-info-panel">
+                        <div className="flight-actions no-margin">
+                            <Link
+                                to={panelFlightId ? `/flights/${panelFlightId}/passenger-list` : '#'}
+                                className="ghost-action"
+                            >
+                                Passenger List
+                            </Link>
+                            <Link
+                                to={panelFlightId ? `/flights/${panelFlightId}/baggage-list` : '#'}
+                                className="ghost-action"
+                            >
+                                Baggage List
+                            </Link>
+                        </div>
+                        <div className="flight-actions">
+                            <Link
+                                to={panelFlightId ? `/flights/${panelFlightId}/baggage-list` : '#'}
+                                className="ghost-action"
+                            >
+                                Add Passenger
+                            </Link>
+                        </div>
                     </div>
                 </aside>
 
