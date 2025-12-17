@@ -35,6 +35,8 @@ const FlightBoard = () => {
   const [isAdminPanel, setIsAdminPanel] = useState(false);
   const [editingFlightId, setEditingFlightId] = useState(null);
   const [uiEditMode, setUiEditMode] = useState(false);
+  const [gateOptions, setGateOptions] = useState([]);
+  const [radioOptions, setRadioOptions] = useState([]);
   const itemsPerPage = 10;
   const navigate = useNavigate();
 
@@ -80,6 +82,27 @@ const FlightBoard = () => {
     decodeRole();
     fetchFlights();
   }, [decodeRole, fetchFlights]);
+
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) return;
+
+    const headers = { Authorization: `Bearer ${jwt}` };
+    const fetchOptions = async () => {
+      try {
+        const [gatesRes, radiosRes] = await Promise.all([
+          axiosInstance.get('/api/support-data/gates', { headers }),
+          axiosInstance.get('/api/support-data/radios', { headers }),
+        ]);
+        setGateOptions(Array.isArray(gatesRes.data) ? gatesRes.data.map((g) => g.gateNumber) : []);
+        setRadioOptions(Array.isArray(radiosRes.data) ? radiosRes.data.map((r) => r.radioNumber) : []);
+      } catch (err) {
+        console.error('Failed to fetch gate/radio options', err);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const deleteFlight = async (flightId) => {
     const jwt = localStorage.getItem('jwt');
@@ -132,8 +155,7 @@ const FlightBoard = () => {
     }
   };
 
-  const handleStatusChange = async (flight, newStatus) => {
-    if (!newStatus || newStatus === flight.status) return;
+  const handleFlightDetailsUpdate = async (flight, updates = {}) => {
     const jwt = localStorage.getItem('jwt');
     if (!jwt) return;
 
@@ -141,19 +163,41 @@ const FlightBoard = () => {
     try {
       const response = await axiosInstance.put(
         `/api/flights/${flight.id}/status`,
-        { newStatus },
+        {
+          newStatus: updates.status ?? flight.status,
+          editModeEnabled: updates.editModeEnabled ?? flight.editModeEnabled,
+          boardingGate: updates.boardingGate ?? flight.boardingGate,
+          radioNumber: updates.radioNumber ?? flight.radioNumber,
+        },
         { headers: { Authorization: `Bearer ${jwt}` } }
       );
       updateFlightInState(flight.id, {
-        status: response.data?.status || newStatus,
+        status: response.data?.status || updates.status || flight.status,
         editModeEnabled: response.data?.editModeEnabled ?? flight.editModeEnabled,
+        boardingGate: response.data?.boardingGate ?? updates.boardingGate ?? flight.boardingGate,
+        radioNumber: response.data?.radioNumber ?? updates.radioNumber ?? flight.radioNumber,
       });
     } catch (err) {
-      console.error('Failed to update flight status', err);
-      alert('Nie udało się zaktualizować statusu lotu.');
+      console.error('Failed to update flight details', err);
+      alert('Nie udało się zaktualizować danych lotu.');
     } finally {
       setPendingFlight(null);
     }
+  };
+
+  const handleStatusChange = (flight, newStatus) => {
+    if (!newStatus || newStatus === flight.status) return;
+    handleFlightDetailsUpdate(flight, { status: newStatus });
+  };
+
+  const handleGateChange = (flight, newGate) => {
+    if (newGate === flight.boardingGate) return;
+    handleFlightDetailsUpdate(flight, { boardingGate: newGate });
+  };
+
+  const handleRadioChange = (flight, newRadio) => {
+    if (newRadio === flight.radioNumber) return;
+    handleFlightDetailsUpdate(flight, { radioNumber: newRadio });
   };
 
   const filteredFlights = flights.filter(
@@ -204,6 +248,8 @@ const FlightBoard = () => {
     const route = formatRoute(flight.route);
     const model = flight.aircraftId || flight.plane?.model || '—';
     const status = flight.status || flight.state;
+    const gate = flight.boardingGate || '—';
+    const radio = flight.radioNumber || '—';
     const isEditing = editingFlightId === flight.id;
 
     return (
@@ -234,6 +280,14 @@ const FlightBoard = () => {
               <div>
                 <span>Destynacja</span>
                 <strong>{flight.destination || '—'}</strong>
+              </div>
+              <div>
+                <span>Gate</span>
+                <strong>{gate}</strong>
+              </div>
+              <div>
+                <span>Radio</span>
+                <strong>{radio}</strong>
               </div>
             </div>
           </div>
@@ -269,6 +323,38 @@ const FlightBoard = () => {
                 <option value="OPEN">Open</option>
                 <option value="CLOSED">Closed</option>
                 <option value="FINALIZED">Finalized</option>
+              </select>
+            </div>
+            <div className="editor-row">
+              <label htmlFor={`gate-${flight.id}`}>Gate</label>
+              <select
+                id={`gate-${flight.id}`}
+                value={flight.boardingGate || ''}
+                onChange={(e) => handleGateChange(flight, e.target.value)}
+                disabled={!flight.editModeEnabled || pendingFlight === flight.id}
+              >
+                <option value="">Select gate</option>
+                {gateOptions.map((gateOption) => (
+                  <option key={gateOption} value={gateOption}>
+                    {gateOption}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="editor-row">
+              <label htmlFor={`radio-${flight.id}`}>Radio number</label>
+              <select
+                id={`radio-${flight.id}`}
+                value={flight.radioNumber || ''}
+                onChange={(e) => handleRadioChange(flight, e.target.value)}
+                disabled={!flight.editModeEnabled || pendingFlight === flight.id}
+              >
+                <option value="">Select radio</option>
+                {radioOptions.map((radioOption) => (
+                  <option key={radioOption} value={radioOption}>
+                    {radioOption}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="editor-row split">
@@ -340,6 +426,7 @@ const FlightBoard = () => {
                 const route = formatRoute(flight.route);
                 const model = flight.aircraftId || flight.plane?.model || '—';
                 const gate = flight.boardingGate || flight.gate || '—';
+                const radio = flight.radioNumber || flight.radio || '—';
                 const status = flight.status || flight.state;
 
                 return (
@@ -369,6 +456,10 @@ const FlightBoard = () => {
                           <span>
                             <DoorOpen size={15} />
                             Gate: {gate}
+                          </span>
+                          <span>
+                            <Shield size={15} />
+                            Radio: {radio}
                           </span>
                         </div>
                       </div>
@@ -405,6 +496,44 @@ const FlightBoard = () => {
                             <option value="OPEN">Open</option>
                             <option value="CLOSED">Closed</option>
                             <option value="FINALIZED">Finalized</option>
+                          </select>
+                        </div>
+                        <div className="status-edit-row">
+                          <label htmlFor={`gate-inline-${flight.id}`}>Gate</label>
+                          <select
+                            id={`gate-inline-${flight.id}`}
+                            value={flight.boardingGate || ''}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleGateChange(flight, e.target.value);
+                            }}
+                            disabled={!flight.editModeEnabled || pendingFlight === flight.id}
+                          >
+                            <option value="">Select gate</option>
+                            {gateOptions.map((gateOption) => (
+                              <option key={gateOption} value={gateOption}>
+                                {gateOption}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="status-edit-row">
+                          <label htmlFor={`radio-inline-${flight.id}`}>Radio number</label>
+                          <select
+                            id={`radio-inline-${flight.id}`}
+                            value={flight.radioNumber || ''}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleRadioChange(flight, e.target.value);
+                            }}
+                            disabled={!flight.editModeEnabled || pendingFlight === flight.id}
+                          >
+                            <option value="">Select radio</option>
+                            {radioOptions.map((radioOption) => (
+                              <option key={radioOption} value={radioOption}>
+                                {radioOption}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
