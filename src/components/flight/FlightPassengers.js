@@ -303,13 +303,6 @@ const FlightPassengers = () => {
                                 <button
                                     type="button"
                                     className="ghost-button"
-                                    onClick={handleRefreshFlightInfo}
-                                >
-                                    Refresh
-                                </button>
-                                <button
-                                    type="button"
-                                    className="ghost-button"
                                     disabled={isActionDisabled}
                                     onClick={() => handleAction('update')}
                                 >

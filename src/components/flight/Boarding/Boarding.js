@@ -186,12 +186,7 @@ const Boarding = () => {
                 );
             }));
 
-            const response = await axiosInstance.get(
-                `/api/passengers/flights/${flightId}/passengers-with-srr`,
-                { headers: { Authorization: `Bearer ${jwt}` } }
-            );
-
-            dispatch({ type: 'SET_PASSENGERS', payload: response.data });
+            await fetchPassengers();
 
         } catch (error) {
             console.error('Error updating passenger status:', error);
@@ -343,7 +338,16 @@ const Boarding = () => {
                                     <option value="none">None</option>
                                 </select>
                             </div>
-                            <div className="toolbar-actions" />
+                            <div className="toolbar-actions">
+                                <button
+                                    type="button"
+                                    className="primary-button"
+                                    disabled={!selectedPassengers.length}
+                                    onClick={() => handleAction('board')}
+                                >
+                                    Board
+                                </button>
+                            </div>
                         </div>
 
                         <ErrorMessage error={error} />
@@ -360,11 +364,6 @@ const Boarding = () => {
                     </div>
                 </div>
             </div>
-            <ActionPanel
-                visible={selectedPassengers.length > 0}
-                onAction={handleAction}
-                mode="boarding"
-            />
         </section>
     );
 
