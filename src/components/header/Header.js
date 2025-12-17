@@ -174,6 +174,7 @@ const Header = ({ onLogout }) => {
         </div>
         <div className="topbar-actions">
           {passengersFlightId ? (
+            <div>
             <button
               className="topbar-action primary"
               onClick={() => navigate(`/flights/${passengersFlightId}/boarding`)}
@@ -181,6 +182,10 @@ const Header = ({ onLogout }) => {
               <Users size={16} />
               <span>BOARDING</span>
             </button>
+            <button className="topbar-action" onClick={handleRefresh}>
+              <RefreshCw size={16} />
+            </button>
+            </div>
           ) : (
             <button className="topbar-action" onClick={handleRefresh}>
               <RefreshCw size={16} />

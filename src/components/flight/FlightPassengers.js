@@ -67,20 +67,24 @@ const FlightPassengers = () => {
         fetchPassengers();
     }, [flightId]);
 
-    useEffect(() => {
-        const fetchFlightDetails = async () => {
-            try {
-                const jwt = localStorage.getItem('jwt');
-                const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
-                const response = await axiosInstance.get(`/api/flights/${flightId}`, config);
-                setFlightDetails(response.data);
-            } catch (error) {
-                console.error('Error fetching flight details:', error);
-            }
-        };
-
-        fetchFlightDetails();
+    const fetchFlightDetails = useCallback(async () => {
+        try {
+            const jwt = localStorage.getItem('jwt');
+            const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
+            const response = await axiosInstance.get(`/api/flights/${flightId}`, config);
+            setFlightDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching flight details:', error);
+        }
     }, [flightId]);
+
+    useEffect(() => {
+        fetchFlightDetails();
+    }, [fetchFlightDetails]);
+
+    const handleRefreshFlightInfo = useCallback(() => {
+        fetchFlightDetails();
+    }, [fetchFlightDetails]);
 
     const handleAction = useCallback(async (action) => {
         const jwt = localStorage.getItem('jwt');
@@ -281,6 +285,13 @@ const FlightPassengers = () => {
                                 </select>
                             </div>
                             <div className="toolbar-actions">
+                                <button
+                                    type="button"
+                                    className="ghost-button"
+                                    onClick={handleRefreshFlightInfo}
+                                >
+                                    Refresh
+                                </button>
                                 <button
                                     type="button"
                                     className="ghost-button"
