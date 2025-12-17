@@ -50,6 +50,10 @@ const Boarding = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [closingFlight, setClosingFlight] = useState(false);
     const [closeResult, setCloseResult] = useState(null);
+    const [deboarding, setDeboarding] = useState(false);
+    const [deboardResult, setDeboardResult] = useState(null);
+    const [confirmDeboardOpen, setConfirmDeboardOpen] = useState(false);
+    const [showEmergencyPanel, setShowEmergencyPanel] = useState(false);
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -208,6 +212,7 @@ const Boarding = () => {
         if (!jwt) return;
 
         setClosingFlight(true);
+
         setCloseResult(null);
         try {
             const response = await axiosInstance.put(
@@ -224,6 +229,59 @@ const Boarding = () => {
         } finally {
             setClosingFlight(false);
         }
+    };
+
+    const handleDeboardAll = async () => {
+        const jwt = localStorage.getItem('jwt');
+        if (!jwt || !passengers.length) return;
+
+        setDeboarding(true);
+        setDeboardResult(null);
+
+        try {
+            await Promise.all(
+                passengers.map(({ id }) =>
+                    axiosInstance.put(
+                        `/api/passengers/${id}/status`,
+                        JSON.stringify('OFF'),
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${jwt}`
+                            }
+                        }
+                    )
+                )
+            );
+
+            await fetchPassengers();
+            await fetchFlightDetails();
+
+            setDeboardResult({
+                type: 'success',
+                message: 'All passengers were marked as OFF (deboarded).'
+            });
+        } catch (error) {
+            const message = error.response?.data || 'Failed to deboard passengers.';
+            setDeboardResult({
+                type: 'error',
+                message
+            });
+        } finally {
+            setDeboarding(false);
+        }
+    };
+
+    const openDeboardConfirm = () => setConfirmDeboardOpen(true);
+    const closeDeboardConfirm = () => {
+        if (!deboarding) {
+            setConfirmDeboardOpen(false);
+        }
+    };
+
+    const confirmDeboard = async () => {
+        await handleDeboardAll();
+        setConfirmDeboardOpen(false);
     };
 
     const allowCapacity = flightDetails?.capacity || flightDetails?.plane?.capacity || 0;
@@ -285,6 +343,25 @@ const Boarding = () => {
                                 disabled={closingFlight}
                             >
                                 {closingFlight ? 'Closing...' : 'Close Flight'}
+                            </button>
+                        </div>
+                        <div className="flight-actions emergency-actions">
+                            <p className="emergency-copy">
+                                Deboard all passengers if the flight is cancelled or restarted. This marks everyone as
+                                <strong> OFF </strong>.
+                            </p>
+                            {deboardResult && (
+                                <div className={`close-banner ${deboardResult.type}`}>
+                                    {deboardResult.message}
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                className="danger-button inline"
+                                onClick={openDeboardConfirm}
+                                disabled={deboarding || !passengers.length}
+                            >
+                                {deboarding ? 'Deboarding...' : 'Deboard all passengers'}
                             </button>
                         </div>
                         {closeResult && (
@@ -364,6 +441,33 @@ const Boarding = () => {
                     </div>
                 </div>
             </div>
+
+            {confirmDeboardOpen && (
+                <div className="modal-backdrop">
+                    <div className="modal-card">
+                        <h3>Are you sure?</h3>
+                        <p>This will mark <strong>all passengers</strong> as OFF and cannot be undone.</p>
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="ghost-btn"
+                                onClick={closeDeboardConfirm}
+                                disabled={deboarding}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="danger-button"
+                                onClick={confirmDeboard}
+                                disabled={deboarding}
+                            >
+                                {deboarding ? 'Processing...' : 'Confirm deboard'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 
