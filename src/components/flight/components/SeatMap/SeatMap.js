@@ -106,69 +106,75 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
         return <div className="error">{error}</div>;
     }
 
+    const renderSeatGroup = (groupSeats) => groupSeats.map(seat => {
+        const seatLetter = seat.replace(/\d+/g, '');
+        const isOccupied = isSeatOccupied(seat);
+        const isBoarded = isPassengerBoarded(seat);
+        const tooltip = getSeatTooltip(seat);
+
+        return (
+            <span
+                key={seat}
+                className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
+                title={tooltip}
+                onClick={() => handleSeatClick(seat)}
+            >
+                {seatLetter}
+            </span>
+        );
+    });
+
+    const determineLayout = (seats) => {
+        switch (seats.length) {
+            case 4:
+                return [[0, 2], [2, 4]];
+            case 6:
+                return [[0, 3], [3, 6]];
+            case 7:
+                return [[0, 3], [3, 4], [4, 7]];
+            case 10:
+                return [[0, 3], [3, 7], [7, 10]];
+            case 12:
+                return [[0, 3], [3, 7], [7, 10], [10, 12]];
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="seatmap-container">
             {seatMap.map((row, rowIndex) => {
-                // Sprawdzamy, czy wiersz jest stringiem
                 if (typeof row !== 'string') {
                     return <div key={rowIndex} className="seat-row error">Nieprawidłowy format wiersza</div>;
                 }
 
-                // Podział miejsc po przecinku
                 const seats = row.split(',');
+                const layout = determineLayout(seats);
 
-                if (seats.length !== 6) {
+                if (!layout) {
                     return <div key={rowIndex} className="seat-row error">Nieprawidłowa liczba miejsc w wierszu</div>;
                 }
 
-                // Pobieranie numeru rzędu z pierwszego miejsca
                 const rowNumber = seats[0].replace(/[A-Z]/g, '');
 
-                // Przetwarzanie pierwszej grupy miejsc (3 miejsca)
-                const firstGroupSeats = seats.slice(0, 3).map(seat => {
-                    const seatLetter = seat.replace(/\d+/g, '');
-                    const isOccupied = isSeatOccupied(seat);
-                    const isBoarded = isPassengerBoarded(seat);
-                    const tooltip = getSeatTooltip(seat);
-
-                    return (
-                        <span
-                            key={seat}
-                            className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
-                            title={tooltip}
-                            onClick={() => handleSeatClick(seat)}
-                        >
-                            {seatLetter}
-                        </span>
+                const rowSegments = layout.flatMap(([start, end], groupIndex) => {
+                    const group = (
+                        <div key={`${rowIndex}-${groupIndex}`} className="seat-group">
+                            {renderSeatGroup(seats.slice(start, end))}
+                        </div>
                     );
-                });
 
-                // Przetwarzanie drugiej grupy miejsc (3 miejsca)
-                const secondGroupSeats = seats.slice(3, 6).map(seat => {
-                    const seatLetter = seat.replace(/\d+/g, '');
-                    const isOccupied = isSeatOccupied(seat);
-                    const isBoarded = isPassengerBoarded(seat);
-                    const tooltip = getSeatTooltip(seat);
+                    const separator = groupIndex < layout.length - 1
+                        ? <span key={`${rowIndex}-separator-${groupIndex}`} className="row-number">{rowNumber}</span>
+                        : null;
 
-                    return (
-                        <span
-                            key={seat}
-                            className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
-                            title={tooltip}
-                            onClick={() => handleSeatClick(seat)}
-                        >
-                            {seatLetter}
-                        </span>
-                    );
+                    return separator ? [group, separator] : [group];
                 });
 
                 return (
                     <div key={rowIndex} className="seat-row">
-                       {/*  <span className="row-number">{rowNumber}</span> */}
-                        <div className="seat-name-group">
-                            <div className="seat-group">{firstGroupSeats}</div>
-                            <span className="row-number">{rowNumber}</span>
-                            <div className="seat-group">{secondGroupSeats}</div>
+                        <div className="seat-name-group seat-layout">
+                            {rowSegments}
                         </div>
                     </div>
                 );
