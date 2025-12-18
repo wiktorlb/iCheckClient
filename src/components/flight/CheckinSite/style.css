@@ -57,7 +57,7 @@
 }
 
 .api-modal {
-    width: min(960px, 95vw);
+    width: min(39em, 95vw);
     max-height: 90vh;
     overflow: hidden;
     background: #fff;
@@ -238,23 +238,23 @@
 }
 
 .right-actions button {
-    background-color: #333;
+    background-color: #0f1e3d;
     color: white;
 }
 
-.right-actions button:hover:not(:disabled) {
+/* .right-actions button:hover:not(:disabled) {
     background-color: #555;
-}
+} */
 
 .left-actions button {
-    background-color: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
+    background-color: #0f1e3d;
+        color: white;
+
 }
 
-.left-actions button:hover:not(:disabled) {
+/* .left-actions button:hover:not(:disabled) {
     background-color: #e0e0e0;
-}
+} */
 
 /* Baggage form styles */
 .baggage-form {
@@ -287,7 +287,7 @@
 
 .baggage-form button {
     padding: 8px 16px;
-    background-color: #2196F3;
+    background-color: #0f1e3d;
     color: white;
     border: none;
     border-radius: 4px;
@@ -297,14 +297,17 @@
 }
 
 .baggage-form button:hover:not(:disabled) {
-    background-color: #1976D2;
+    background-color: #0f1e3d76;
 }
 
 .baggage-form button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
-
+.baggage-row{
+    display: flex;
+    gap: 1em;
+}
 /* Comment section styles */
 .comment-section {
     padding: 1rem;
@@ -356,7 +359,23 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
-
+.comment-inline {
+    display: flex;
+        gap: 1em;
+}
+.comment-inline button{
+        padding: 8px 16px;
+            background-color: #0f1e3d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            white-space: nowrap;
+}
+.comment-inline input{
+    flex: 2;
+}
 .comments-list {
     margin-top: 1rem;
     padding-top: 1rem;

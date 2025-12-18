@@ -49,6 +49,9 @@ const CheckinSite = () => {
     const [baggageWeight, setBaggageWeight] = useState('');
     const [baggageType, setBaggageType] = useState("BAG");
     const [comment, setComment] = useState('');
+    const [showHeavyBaggageModal, setShowHeavyBaggageModal] = useState(false);
+    const [heavyBaggageWeight, setHeavyBaggageWeight] = useState(null);
+
     const [passengerSrrCodes, setPassengerSrrCodes] = useState({});
     const [currentSrrCodes, setCurrentSrrCodes] = useState({});
     const getSrrTooltip = useSrrTooltip();
@@ -341,13 +344,11 @@ const CheckinSite = () => {
         handleSelectPassenger(passengerId);
     };
 
-    const handleAddBaggage = async () => {
-        if (!selectedPassenger || !baggageWeight || !baggageType) return;
-
+    const submitBaggage = async (weightValue) => {
         try {
             await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/add-baggage`, {
                 baggageType,
-                baggageWeight: parseFloat(baggageWeight)
+                baggageWeight: weightValue
             });
 
             setBaggageWeight('');
@@ -355,6 +356,38 @@ const CheckinSite = () => {
         } catch (error) {
             console.error('Error adding baggage:', error);
         }
+    };
+
+    const handleAddBaggage = async () => {
+        if (!selectedPassenger || !baggageWeight || !baggageType) return;
+
+        const weightValue = parseFloat(baggageWeight);
+        if (Number.isNaN(weightValue)) return;
+
+        if (weightValue > 32) {
+            setHeavyBaggageWeight(weightValue);
+            setShowHeavyBaggageModal(true);
+            return;
+        }
+
+        await submitBaggage(weightValue);
+    };
+
+    const confirmHeavyBaggage = async () => {
+        if (!heavyBaggageWeight || !selectedPassenger) {
+            setShowHeavyBaggageModal(false);
+            setHeavyBaggageWeight(null);
+            return;
+        }
+
+        await submitBaggage(heavyBaggageWeight);
+        setShowHeavyBaggageModal(false);
+        setHeavyBaggageWeight(null);
+    };
+
+    const cancelHeavyBaggage = () => {
+        setShowHeavyBaggageModal(false);
+        setHeavyBaggageWeight(null);
     };
 
     const userIdentity = useMemo(() => {
@@ -515,7 +548,7 @@ const CheckinSite = () => {
                         <div className="panel checkin-panel">
 
                             <div className="baggage-form">
-                                <label htmlFor="baggageType">Baggage type</label>
+                                <label htmlFor="baggageType"></label>
                                 <div className="baggage-row">
                                     <select
                                         id="baggageType"
@@ -608,6 +641,36 @@ const CheckinSite = () => {
                 </div>
             </div>
 
+            {showHeavyBaggageModal && (
+                <div className="api-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="api-modal confirm-modal">
+                        <div className="api-modal-header">
+                            <h2>Overweight baggage</h2>
+                            <button
+                                type="button"
+                                className="api-modal-close"
+                                onClick={cancelHeavyBaggage}
+                                aria-label="Close confirmation"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="confirm-modal-body">
+                            <p>The entered baggage weight ({heavyBaggageWeight} kg) exceeds 32 kg.</p>
+                            <p className="confirm-question">Are you sure?</p>
+                        </div>
+                        <div className="api-modal-footer">
+                            <button type="button" className="ghost-btn" onClick={cancelHeavyBaggage}>
+                                Cancel
+                            </button>
+                            <button type="button" className="danger-button" onClick={confirmHeavyBaggage}>
+                                Yes, add baggage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showModal && selectedPassenger && (
                 <div className="api-modal-overlay" onClick={handleCloseModal}>
                     <div className="api-modal" onClick={(e) => e.stopPropagation()}>
@@ -615,7 +678,7 @@ const CheckinSite = () => {
                             <div>
                                 <h1 className="api-modal-eyebrow">Advance Passenger Information</h1>
                                 <h3>{selectedPassenger.name} {selectedPassenger.surname}</h3>
-{/*                                 <span className="api-modal-subtitle">Edit data before sending to border control</span> */}
+                                {/* <span className="api-modal-subtitle">Edit data before sending to border control</span> */}
                             </div>
                             <button
                                 type="button"
