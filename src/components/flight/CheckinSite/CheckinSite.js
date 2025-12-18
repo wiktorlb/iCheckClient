@@ -7,6 +7,7 @@ import './style.css';
 import { useSrrTooltip } from '../hooks/useSrrTooltip';
 import SeatMap from '../components/SeatMap/SeatMap';
 import PassengerTable from '../components/PassengerTable/PassengerTable';
+import { releasePassengerSeat } from '../utils/PassengerUtils';
 
 const { countries } = require('countries-list');
 
@@ -274,6 +275,20 @@ const CheckinSite = () => {
 
         try {
             await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/update-status`, { status });
+
+            if (['STBY', 'OFF'].includes((status || '').toUpperCase())) {
+                const seatNumber = selectedPassenger.seatNumber;
+                const flightContextId = activeFlightId || flightDetails?.id;
+
+                if (seatNumber && flightContextId) {
+                    await releasePassengerSeat({
+                        flightId: flightContextId,
+                        passengerId: selectedPassenger.id,
+                        seatNumber
+                    });
+                }
+            }
+
             await fetchFlightDetails();
         } catch (error) {
             console.error('Error updating status:', error);

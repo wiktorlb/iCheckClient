@@ -20,6 +20,21 @@ export const updatePassengersStatus = async (selectedPassengers, newStatus, jwt)
     ));
 };
 
+export const releasePassengerSeat = async ({ flightId, passengerId, seatNumber }) => {
+    if (!flightId || !passengerId || !seatNumber) {
+        return;
+    }
+
+    return axiosInstance.post('/api/passengers/release-seat', {
+        flightId,
+        passengerId,
+        seatNumber
+    }).catch((error) => {
+        console.error('Failed to release seat', error);
+        throw error;
+    });
+};
+
 /**
  * Pobiera szczegóły wybranych pasażerów
  */
@@ -40,7 +55,7 @@ export const getSelectedPassengerDetails = (passengers, selectedIds, status) => 
             name: p.name,
             surname: p.surname,
             status: status || p.status,
-            flightId: p.flightId  // 🛠️ Dodane flightId!
+            flightId: p.flightId  // Dodane flightId!
         }));
 };
 

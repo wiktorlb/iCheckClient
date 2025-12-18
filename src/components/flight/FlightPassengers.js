@@ -5,7 +5,7 @@ import PassengerTable from './components/PassengerTable/PassengerTable';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
 import { passengerReducer, initialState } from './reducers/PassengerReducer';
-import { updatePassengersStatus, getSelectedPassengerDetails } from './utils/PassengerUtils';
+import { updatePassengersStatus, getSelectedPassengerDetails, releasePassengerSeat } from './utils/PassengerUtils';
 import SeatMap from './components/SeatMap/SeatMap';
 import './style.css';
 
@@ -119,6 +119,23 @@ const FlightPassengers = () => {
         try {
             if (newStatus) {
                 await updatePassengersStatus(selectedPassengers, newStatus, jwt);
+                if (['OFF', 'STBY'].includes(newStatus.toUpperCase())) {
+                    const releasePromises = selectedPassengers.map((passengerId) => {
+                        const passenger = passengers.find((p) => p.id === passengerId);
+                        if (!passenger?.seatNumber) return null;
+
+                        return releasePassengerSeat({
+                            flightId,
+                            passengerId,
+                            seatNumber: passenger.seatNumber
+                        });
+                    }).filter(Boolean);
+
+                    if (releasePromises.length > 0) {
+                        await Promise.allSettled(releasePromises);
+                        await fetchFlightDetails();
+                    }
+                }
                 dispatch({
                     type: 'UPDATE_PASSENGERS_STATUS',
                     payload: { selectedPassengers, newStatus }
@@ -149,7 +166,7 @@ const FlightPassengers = () => {
                 payload: 'Failed to update passengers.'
             });
         }
-    }, [selectedPassengers, passengers, navigate]);
+    }, [selectedPassengers, passengers, navigate, flightId, fetchFlightDetails]);
 
     const stats = useMemo(() => {
         const baseStats = passengers.reduce((acc, passenger) => {

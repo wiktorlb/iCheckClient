@@ -9,6 +9,7 @@ import { useSrrTooltip } from '../hooks/useSrrTooltip';
 import { passengerReducer, initialState } from '../reducers/PassengerReducer';
 import SeatMap from '../components/SeatMap/SeatMap';
 import ActionPanel from '../components/ActionPanel/ActionPanel';
+import { releasePassengerSeat } from '../utils/PassengerUtils';
 
 import '../style.css';
 import './style.css';
@@ -240,8 +241,8 @@ const Boarding = () => {
 
         try {
             await Promise.all(
-                passengers.map(({ id }) =>
-                    axiosInstance.put(
+                passengers.map(async ({ id, seatNumber }) => {
+                    await axiosInstance.put(
                         `/api/passengers/${id}/status`,
                         JSON.stringify('OFF'),
                         {
@@ -250,8 +251,16 @@ const Boarding = () => {
                                 Authorization: `Bearer ${jwt}`
                             }
                         }
-                    )
-                )
+                    );
+
+                    if (seatNumber) {
+                        await releasePassengerSeat({
+                            flightId,
+                            passengerId: id,
+                            seatNumber
+                        });
+                    }
+                })
             );
 
             await fetchPassengers();
