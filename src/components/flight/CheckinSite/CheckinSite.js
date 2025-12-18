@@ -605,7 +605,7 @@ const CheckinSite = () => {
                                 </button>
                             </div>
 
-                            {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                           {/*  {selectedPassenger && selectedPassenger.comments?.length > 0 && (
                                 <div className="comments-list">
                                     <h3>Comments</h3>
                                     <ul>
@@ -617,12 +617,13 @@ const CheckinSite = () => {
                                         ))}
                                     </ul>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
 
                     <div className="actions-container">
                         <div className="left-actions">
+                            <button onClick={() => console.log("Printing...") + navigate(-1)}>Print All</button>
                             <button onClick={() => console.log("Printing...") + navigate(-1)}>Print</button>
                             <button onClick={() => navigate(-1)}>Back</button>
                         </div>

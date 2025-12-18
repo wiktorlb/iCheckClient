@@ -134,6 +134,34 @@ const PassengerList = () => {
   const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
   const radioNumber = flightDetails?.radioNumber || flightDetails?.radio || '—';
 
+  const handleDownloadPassengerList = () => {
+    if (!passengers.length) {
+      return;
+    }
+
+    const lines = passengers.map((passenger, index) => {
+      const title = passenger.title?.toUpperCase()
+        || (passenger.gender === 'M' ? 'MR' : passenger.gender === 'F' ? 'MRS' : 'CHLD');
+      const firstName = passenger.name || '';
+      const lastName = passenger.surname || '';
+      const documentType = passenger.documentType === 'ID' ? 'ID' : 'P';
+      const validDate = formatDate(passenger.validUntil);
+
+      return `${index + 1}. ${firstName} ${lastName} ${title} | ${documentType} | ${validDate}`;
+    }).join('\n');
+
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const suffix = flightDetails?.flightNumber ? `_${flightDetails.flightNumber}` : '';
+    a.download = `passenger_list${suffix}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   return (
     <section className="passengers-page passenger-list-page">
       <div className="passengers-body center flex">
@@ -166,6 +194,13 @@ const PassengerList = () => {
                 />
               </div>
               <div className="toolbar-actions">
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={handleDownloadPassengerList}
+                >
+                  Download Passenger List
+                </button>
                 <Link
                   to={`/flights/${flightId}/baggage-list`}
                   className="ghost-button"
