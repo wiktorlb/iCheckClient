@@ -513,15 +513,7 @@ const CheckinSite = () => {
 
                     <div className="checkin-form-grid">
                         <div className="panel checkin-panel">
-                            <div className="panel-header">
-                                <div>
-                                    <h3>Add baggage</h3>
-                                    <p>Choose baggage type and weight to assign it to the selected passenger.</p>
-                                </div>
-                                {selectedPassenger && (
-                                    <span className="panel-tag">{selectedPassenger.name} {selectedPassenger.surname}</span>
-                                )}
-                            </div>
+
                             <div className="baggage-form">
                                 <label htmlFor="baggageType">Baggage type</label>
                                 <div className="baggage-row">
@@ -541,9 +533,16 @@ const CheckinSite = () => {
                                         placeholder="Weight (kg)"
                                         value={baggageWeight}
                                         onChange={(e) => setBaggageWeight(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleAddBaggage();
+                                            }
+                                        }}
                                         min="0"
                                         step="0.1"
                                     />
+
                                     <button
                                         onClick={handleAddBaggage}
                                         disabled={!selectedPassenger || !baggageWeight}
@@ -555,19 +554,19 @@ const CheckinSite = () => {
                         </div>
 
                         <div className="panel checkin-panel comment-panel">
-                            <div className="panel-header">
-                                <div>
-                                    <h3>Add comment</h3>
-                                    <p>Add context or crew notes for the selected passenger.</p>
-                                </div>
-                            </div>
-                            <textarea
-                                value={comment}
-                                onChange={handleCommentChange}
-                                placeholder="Write your comment here..."
-                                rows={4}
-                            />
-                            <div className="comment-actions">
+                            <div className="comment-inline">
+                                <input
+                                    type="text"
+                                    value={comment}
+                                    onChange={handleCommentChange}
+                                    placeholder="Add comment"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddComment();
+                                        }
+                                    }}
+                                />
                                 <button onClick={handleAddComment} disabled={!selectedPassenger || !comment.trim()}>
                                     Add comment
                                 </button>
