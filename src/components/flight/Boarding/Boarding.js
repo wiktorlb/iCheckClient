@@ -54,6 +54,8 @@ const Boarding = () => {
     const [deboarding, setDeboarding] = useState(false);
     const [deboardResult, setDeboardResult] = useState(null);
     const [confirmDeboardOpen, setConfirmDeboardOpen] = useState(false);
+    const [confirmSingleDeboardOpen, setConfirmSingleDeboardOpen] = useState(false);
+    const [singleDeboarding, setSingleDeboarding] = useState(false);
     const [showEmergencyPanel, setShowEmergencyPanel] = useState(false);
 
     const getSrrTooltip = useSrrTooltip();
@@ -169,6 +171,11 @@ const Boarding = () => {
         return () => window.removeEventListener('app:data-refresh', handleGlobalRefresh);
     }, [fetchPassengers, fetchFlightDetails, location.pathname, location.search]);
 
+    const selectedPassengerObjects = useMemo(
+        () => passengers.filter((passenger) => selectedPassengers.includes(passenger.id)),
+        [passengers, selectedPassengers]
+    );
+
     const handleBoardPassenger = async () => {
         if (!selectedPassengers.length) return;
 
@@ -202,10 +209,59 @@ const Boarding = () => {
         }
     };
 
+    const handleDeboardSelectedPassengers = async () => {
+        if (!selectedPassengers.length) return;
+
+        try {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) return;
+
+            setSingleDeboarding(true);
+
+            await Promise.all(selectedPassengerObjects.map(async ({ id, seatNumber }) => {
+                await axiosInstance.put(
+                    `/api/passengers/${id}/status`,
+                    JSON.stringify('OFF'),
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${jwt}`
+                        }
+                    }
+                );
+
+                if (seatNumber) {
+                    await releasePassengerSeat({
+                        flightId,
+                        passengerId: id,
+                        seatNumber
+                    });
+                }
+            }));
+
+            await fetchPassengers();
+            dispatch({ type: 'CLEAR_SELECTION' });
+            setConfirmSingleDeboardOpen(false);
+        } catch (error) {
+            console.error('Error deboarding passenger:', error);
+            dispatch({
+                type: 'SET_ERROR',
+                payload: 'Failed to deboard passenger.'
+            });
+        } finally {
+            setSingleDeboarding(false);
+        }
+    };
+
     const handleAction = async (action) => {
         if (action === 'board') {
             await handleBoardPassenger();
         }
+    };
+
+    const handleDeboardClick = () => {
+        if (!selectedPassengers.length) return;
+        setConfirmSingleDeboardOpen(true);
     };
 
     const handleCloseFlight = async () => {
@@ -429,6 +485,14 @@ const Boarding = () => {
                                 >
                                     Board
                                 </button>
+                                <button
+                                    type="button"
+                                    className="primary-button"
+                                    disabled={!selectedPassengers.length}
+                                    onClick={handleDeboardClick}
+                                >
+                                    Deboard
+                                </button>
                             </div>
                         </div>
 
@@ -468,6 +532,33 @@ const Boarding = () => {
                                 disabled={deboarding}
                             >
                                 {deboarding ? 'Processing...' : 'Confirm deboard'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {confirmSingleDeboardOpen && (
+                <div className="modal-backdrop">
+                    <div className="modal-card">
+                        <h3>Are you sure to deboard passenger?</h3>
+                        <p>This action will mark the selected passenger as OFF.</p>
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="ghost-btn"
+                                onClick={() => !singleDeboarding && setConfirmSingleDeboardOpen(false)}
+                                disabled={singleDeboarding}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="danger-button"
+                                onClick={handleDeboardSelectedPassengers}
+                                disabled={singleDeboarding}
+                            >
+                                {singleDeboarding ? 'Processing...' : 'Confirm'}
                             </button>
                         </div>
                     </div>
