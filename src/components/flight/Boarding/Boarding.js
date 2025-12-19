@@ -50,6 +50,7 @@ const Boarding = () => {
     const [srrSearchTerm, setSrrSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [closingFlight, setClosingFlight] = useState(false);
+
     const [closeResult, setCloseResult] = useState(null);
     const [deboarding, setDeboarding] = useState(false);
     const [deboardResult, setDeboardResult] = useState(null);
@@ -57,6 +58,9 @@ const Boarding = () => {
     const [confirmSingleDeboardOpen, setConfirmSingleDeboardOpen] = useState(false);
     const [singleDeboarding, setSingleDeboarding] = useState(false);
     const [showEmergencyPanel, setShowEmergencyPanel] = useState(false);
+
+    const flightStatus = (flightDetails?.status || flightDetails?.state || '').toUpperCase();
+    const isFinalized = flightStatus === 'FINALIZED';
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -177,7 +181,7 @@ const Boarding = () => {
     );
 
     const handleBoardPassenger = async () => {
-        if (!selectedPassengers.length) return;
+        if (isFinalized || !selectedPassengers.length) return;
 
         dispatch({ type: 'CLEAR_SELECTION' });
 
@@ -210,7 +214,7 @@ const Boarding = () => {
     };
 
     const handleDeboardSelectedPassengers = async () => {
-        if (!selectedPassengers.length) return;
+        if (isFinalized || !selectedPassengers.length) return;
 
         try {
             const jwt = localStorage.getItem('jwt');
@@ -254,17 +258,19 @@ const Boarding = () => {
     };
 
     const handleAction = async (action) => {
+        if (isFinalized) return;
         if (action === 'board') {
             await handleBoardPassenger();
         }
     };
 
     const handleDeboardClick = () => {
-        if (!selectedPassengers.length) return;
+        if (isFinalized || !selectedPassengers.length) return;
         setConfirmSingleDeboardOpen(true);
     };
 
     const handleCloseFlight = async () => {
+        if (isFinalized) return;
         const jwt = localStorage.getItem('jwt');
         if (!jwt) return;
 
@@ -289,6 +295,7 @@ const Boarding = () => {
     };
 
     const handleDeboardAll = async () => {
+        if (isFinalized) return;
         const jwt = localStorage.getItem('jwt');
         if (!jwt || !passengers.length) return;
 
@@ -337,7 +344,11 @@ const Boarding = () => {
         }
     };
 
-    const openDeboardConfirm = () => setConfirmDeboardOpen(true);
+    const openDeboardConfirm = () => {
+        if (isFinalized) return;
+        setConfirmDeboardOpen(true);
+    };
+
     const closeDeboardConfirm = () => {
         if (!deboarding) {
             setConfirmDeboardOpen(false);
@@ -345,9 +356,17 @@ const Boarding = () => {
     };
 
     const confirmDeboard = async () => {
+        if (isFinalized) return;
         await handleDeboardAll();
         setConfirmDeboardOpen(false);
     };
+
+    useEffect(() => {
+        if (isFinalized) {
+            setConfirmDeboardOpen(false);
+            setConfirmSingleDeboardOpen(false);
+        }
+    }, [isFinalized]);
 
     const allowCapacity = flightDetails?.capacity || flightDetails?.plane?.capacity || 0;
     const gate = flightDetails?.boardingGate || flightDetails?.gate || '—';
@@ -386,6 +405,7 @@ const Boarding = () => {
                                 seatMap={flightDetails.seatMap}
                                 occupiedSeats={flightDetails.occupiedSeats || []}
                                 passengers={passengers}
+                                disabled={isFinalized}
                             />
                         ) : (
                             <div className="panel-placeholder">Seat map unavailable for this flight.</div>
@@ -405,7 +425,7 @@ const Boarding = () => {
                                 type="button"
                                 className="ghost-action"
                                 onClick={handleCloseFlight}
-                                disabled={closingFlight}
+                                disabled={closingFlight || isFinalized}
                             >
                                 {closingFlight ? 'Closing...' : 'Close Flight'}
                             </button>
@@ -420,7 +440,7 @@ const Boarding = () => {
                                 type="button"
                                 className="danger-button inline"
                                 onClick={openDeboardConfirm}
-                                disabled={deboarding || !passengers.length}
+                                disabled={isFinalized || deboarding || !passengers.length}
                             >
                                 {deboarding ? 'Deboarding...' : 'Deboard all passengers'}
                             </button>
@@ -434,6 +454,12 @@ const Boarding = () => {
                 </aside>
 
                 <div className="passengers-right">
+                    {isFinalized && (
+                        <div className="finalized-banner" role="status">
+                            <strong>Flight finalized</strong>
+                            <span>Boarding operations are locked. Lists remain available for viewing.</span>
+                        </div>
+                    )}
                     <div className="passengers-overview">
                         {statsOrder.map(({ label, value }) => (
                             <div key={label} className="stats-item">
@@ -480,7 +506,7 @@ const Boarding = () => {
                                 <button
                                     type="button"
                                     className="primary-button"
-                                    disabled={!selectedPassengers.length}
+                                    disabled={isFinalized || !selectedPassengers.length}
                                     onClick={() => handleAction('board')}
                                 >
                                     Board
@@ -488,7 +514,7 @@ const Boarding = () => {
                                 <button
                                     type="button"
                                     className="primary-button"
-                                    disabled={!selectedPassengers.length}
+                                    disabled={isFinalized || !selectedPassengers.length}
                                     onClick={handleDeboardClick}
                                 >
                                     Deboard

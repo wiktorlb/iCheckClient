@@ -56,6 +56,10 @@ const CheckinSite = () => {
     const [currentSrrCodes, setCurrentSrrCodes] = useState({});
     const getSrrTooltip = useSrrTooltip();
     const [flightDetails, setFlightDetails] = useState(null);
+    const flightStatus = (flightDetails?.status || flightDetails?.state || '').toUpperCase();
+    const isFinalized = flightStatus === 'FINALIZED';
+    const isReadOnly = isFinalized;
+    const passengerActionsDisabled = isReadOnly || !selectedPassenger;
 
     const [passengerForm, setPassengerForm] = useState({
         name: '',
@@ -93,6 +97,13 @@ const CheckinSite = () => {
         const countryNamesArray = Object.values(countries).map(country => country.name).sort();
         setCountryNames(countryNamesArray);
     }, []);
+
+    useEffect(() => {
+        if (isReadOnly) {
+            setShowModal(false);
+            setShowHeavyBaggageModal(false);
+        }
+    }, [isReadOnly]);
 
     const fetchSrrCodes = async (passengerId) => {
         try {
@@ -265,16 +276,17 @@ const CheckinSite = () => {
     ];
 
     const handleOpenModal = (passenger) => {
-        if (!passenger?.id) {
+        if (isReadOnly || !passenger?.id) {
             console.error('No passenger selected');
             return;
         }
+
         setSelectedPassenger(passenger);
         setShowModal(true);
     };
 
     const handleUpdateStatus = async (status) => {
-        if (!selectedPassenger) return;
+        if (isReadOnly || !selectedPassenger) return;
 
         try {
             await axiosInstance.post(`/api/passengers/${selectedPassenger.id}/update-status`, { status });
@@ -299,7 +311,7 @@ const CheckinSite = () => {
     };
 
     const handleSavePassenger = async () => {
-        if (!selectedPassenger?.id) {
+        if (isReadOnly || !selectedPassenger?.id) {
             console.error('No passenger selected');
             return;
         }
@@ -323,7 +335,7 @@ const CheckinSite = () => {
 
     const handleSelectPassenger = async (passengerId) => {
         const passenger = passengersWithDetails.find(p => p.id === passengerId);
-        if (!passenger) return;
+        if (!passenger?.id) return;
 
         setSelectedPassenger(passenger);
 
@@ -359,7 +371,7 @@ const CheckinSite = () => {
     };
 
     const handleAddBaggage = async () => {
-        if (!selectedPassenger || !baggageWeight || !baggageType) return;
+        if (isReadOnly || !selectedPassenger || !baggageWeight || !baggageType) return;
 
         const weightValue = parseFloat(baggageWeight);
         if (Number.isNaN(weightValue)) return;
@@ -414,7 +426,7 @@ const CheckinSite = () => {
     }, []);
 
     const handleAddComment = async () => {
-        if (!selectedPassenger || !comment.trim()) return;
+        if (isReadOnly || !selectedPassenger || !comment.trim()) return;
 
         try {
             const commentPayload = {
@@ -439,7 +451,7 @@ const CheckinSite = () => {
     };
 
     const handleAssignSeat = async (seatNumber) => {
-        if (!selectedPassenger?.id || !activeFlightId) return;
+        if (isReadOnly || !selectedPassenger?.id || !activeFlightId) return;
 
         try {
             await axiosInstance.post(`/api/flights/${activeFlightId}/assign-seat`, {
@@ -487,6 +499,7 @@ const CheckinSite = () => {
                                 passengers={seatMapPassengers}
                                 onSeatClick={handleAssignSeat}
                                 selectedPassenger={selectedPassenger}
+                                disabled={isReadOnly}
                             />
                         ) : (
                             <div className="panel-placeholder">Seat map unavailable for this flight.</div>
@@ -507,18 +520,24 @@ const CheckinSite = () => {
                                 Baggage List
                             </Link>
                         </div>
-                        <div className="flight-actions">
+                        {/* <div className="flight-actions">
                             <Link
                                 to={panelFlightId ? `/flights/${panelFlightId}/baggage-list` : '#'}
                                 className="ghost-action"
                             >
                                 Add Passenger
                             </Link>
-                        </div>
+                        </div> */}
                     </div>
                 </aside>
 
                 <div className="passengers-right">
+                    {isReadOnly && (
+                        <div className="finalized-banner" role="status">
+                            <strong>Flight finalized</strong>
+                            <span>Passenger data is read-only. Download lists remain available.</span>
+                        </div>
+                    )}
                     <div className="passengers-overview checkin-stats">
                         {statsOrder.map(({ label, value }) => (
                             <div key={label} className="stats-item">
@@ -574,11 +593,12 @@ const CheckinSite = () => {
                                         }}
                                         min="0"
                                         step="0.1"
+                                        disabled={isReadOnly}
                                     />
 
                                     <button
                                         onClick={handleAddBaggage}
-                                        disabled={!selectedPassenger || !baggageWeight}
+                                        disabled={isReadOnly || !selectedPassenger || !baggageWeight}
                                     >
                                         Add baggage
                                     </button>
@@ -599,13 +619,14 @@ const CheckinSite = () => {
                                             handleAddComment();
                                         }
                                     }}
+                                    disabled={isReadOnly}
                                 />
-                                <button onClick={handleAddComment} disabled={!selectedPassenger || !comment.trim()}>
+                                <button onClick={handleAddComment} disabled={isReadOnly || !selectedPassenger || !comment.trim()}>
                                     Add comment
                                 </button>
                             </div>
 
-                           {/*  {selectedPassenger && selectedPassenger.comments?.length > 0 && (
+                            {/*  {selectedPassenger && selectedPassenger.comments?.length > 0 && (
                                 <div className="comments-list">
                                     <h3>Comments</h3>
                                     <ul>
@@ -629,14 +650,14 @@ const CheckinSite = () => {
                         </div>
                         <div className="right-actions">
                             <button
-                                disabled={!selectedPassenger}
+                                disabled={passengerActionsDisabled}
                                 onClick={() => selectedPassenger ? handleOpenModal(selectedPassenger) : null}
                             >
                                 API
                             </button>
-                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
-                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
-                            <button disabled={!selectedPassenger} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
+                            <button disabled={passengerActionsDisabled} onClick={() => handleUpdateStatus('ACC')}>Accept</button>
+                            <button disabled={passengerActionsDisabled} onClick={() => handleUpdateStatus('STBY')}>Standby</button>
+                            <button disabled={passengerActionsDisabled} onClick={() => handleUpdateStatus('OFF')}>Offload</button>
                         </div>
                     </div>
                 </div>

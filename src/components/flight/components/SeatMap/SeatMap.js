@@ -18,7 +18,15 @@ import './style.css';
  * @param {Object} props.seatMap - Seat map configuration data
  * @param {Array} props.occupiedSeats - List of occupied seat numbers
  */
-const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedPassenger, passengers: passengersProp }) => {
+const SeatMap = ({
+    flightId,
+    seatMap,
+    occupiedSeats = [],
+    onSeatClick,
+    selectedPassenger,
+    passengers: passengersProp,
+    disabled = false
+}) => {
     const [passengers, setPassengers] = useState([]);
     const [error, setError] = useState(null);
 
@@ -93,7 +101,7 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
 
     // Funkcja obsługująca kliknięcie na miejsce
     const handleSeatClick = (seat) => {
-        if (isSeatOccupied(seat)) {
+        if (disabled || isSeatOccupied(seat)) {
             return; // Nie reaguj na kliknięcie zajętego miejsca
         }
 
@@ -115,7 +123,7 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
         return (
             <span
                 key={seat}
-                className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'}`}
+                className={`seat ${isOccupied ? (isBoarded ? 'boarded' : 'occupied') : 'available'} ${disabled ? 'locked' : ''}`}
                 title={tooltip}
                 onClick={() => handleSeatClick(seat)}
             >
@@ -142,7 +150,7 @@ const SeatMap = ({ flightId, seatMap, occupiedSeats = [], onSeatClick, selectedP
     };
 
     return (
-        <div className="seatmap-container">
+        <div className={`seatmap-container ${disabled ? 'seatmap-readonly' : ''}`}>
             {seatMap.map((row, rowIndex) => {
                 if (typeof row !== 'string') {
                     return <div key={rowIndex} className="seat-row error">Nieprawidłowy format wiersza</div>;
