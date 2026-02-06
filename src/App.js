@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import FlightBoard from './components/flightBoard/FlightBoard';
@@ -15,35 +16,46 @@ import BaggageList from './components/flight/BaggageList/BaggageList';
 import PassengerList from './components/flight/PassengerList/PassengerList';
 /* import Users from './components/UserManagement/Users'; */
 
+const parseStoredAuth = () => {
+  const token = localStorage.getItem('jwt');
+  if (!token) {
+    return { loggedIn: false, role: null };
+  }
+
+  try {
+    const decodedToken = JSON.parse(atob(token.split('.')[1]));
+    const role = decodedToken?.role || decodedToken?.roles?.find?.(() => true) || null;
+    return { loggedIn: true, role };
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return { loggedIn: false, role: null };
+  }
+};
+
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const initialAuth = parseStoredAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(initialAuth.loggedIn);
+  const [userRole, setUserRole] = useState(initialAuth.role);
 
-  useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      setIsLoggedIn(true);
-
-      try {
-        const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        setUserRole(decodedToken.role);
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
+  const syncAuthFromStorage = useCallback(() => {
+    const { loggedIn, role } = parseStoredAuth();
+    setIsLoggedIn(loggedIn);
+    setUserRole(role);
   }, []);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        setUserRole(decodedToken.role);
-      } catch (error) {
-        console.error("Error decoding token after login:", error);
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key === 'jwt') {
+        syncAuthFromStorage();
       }
-    }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [syncAuthFromStorage]);
+
+  const handleLogin = () => {
+    syncAuthFromStorage();
   };
 
   const handleLogout = () => {
@@ -57,13 +69,15 @@ const App = () => {
       {isLoggedIn && <Header onLogout={handleLogout} />}
 
       <Routes>
-        {/* Ścieżka logowania */}
+        {/* Login route */}
+
         <Route
           path="/login"
           element={isLoggedIn ? <Navigate to="/flightboard" /> : <LoginForm onLogin={handleLogin} />}
         />
 
-        {/* Ścieżka rejestracji */}
+        {/* Registration route */}
+
         <Route
           path="/register"
           element={
@@ -75,7 +89,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do FlightBoard */}
+        {/* FlightBoard route */}
+
         <Route
           path="/flightboard"
           element={
@@ -87,7 +102,8 @@ const App = () => {
           }
         />
 
-        {/* Dodanie Rejsu (dostępne tylko dla zalogowanych użytkowników) */}
+        {/* Add flight (available to logged-in users) */}
+
         <Route
           path="/add-flight"
           element={
@@ -99,7 +115,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do pasażerów danego lotu */}
+        {/* Passengers for a specific flight */}
+
         <Route
           path="/flights/:flightId/passengers"
           element={
@@ -111,7 +128,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do dodania pasażerów */}
+        {/* Upload passengers for a flight */}
+
         <Route
           path="/flights/:flightId/upload-passengers"
           element={
@@ -123,7 +141,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do strony zarządzania użytkownikami */}
+        {/* User management page */}
+
         <Route
           path="/management"
           element={
@@ -134,13 +153,15 @@ const App = () => {
             )
           }
         />
-        {/* Ścieżka do strony odprawy pasażerów */}
+        {/* Check-in page */}
+
         <Route
           path="/checkin"
           element={isLoggedIn ? <CheckinSite /> : <Navigate to="/login" />}
         />
 
-        {/* Ścieżka do strony boarding */}
+        {/* Boarding page */}
+
         <Route
           path="/flights/:flightId/boarding"
           element={
@@ -152,7 +173,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do listy bagażu */}
+        {/* Baggage list */}
+
         <Route
           path="/flights/:flightId/baggage-list"
           element={
@@ -164,7 +186,8 @@ const App = () => {
           }
         />
 
-        {/* Ścieżka do listy pasażerów (API) */}
+        {/* Passenger list (API) */}
+
         <Route
           path="/flights/:flightId/passenger-list"
           element={
@@ -176,7 +199,8 @@ const App = () => {
           }
         />
 
-        {/* Domyślna ścieżka, przekierowuje do logowania */}
+        {/* Default route redirects to login */}
+
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </div>

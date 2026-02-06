@@ -15,6 +15,7 @@ const LoginForm = ({ onLogin }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage('');
     try {
       const response = await axiosInstance.post('/api/auth/login', {
         username,
@@ -36,7 +37,12 @@ const LoginForm = ({ onLogin }) => {
         onLogin();
       }
     } catch (error) {
-      setErrorMessage('Invalid credentials or server error');
+      const status = error.response?.status;
+      if (status === 401 || status === 403 || status === 500) {
+        setErrorMessage('Incorrect username or password. Please try again.');
+      } else {
+        setErrorMessage('Unable to sign in right now. Please try again later.');
+      }
       console.error('Login error:', error.response?.data || error.message);
     } finally {
       setLoading(false);

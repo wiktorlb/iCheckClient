@@ -174,7 +174,7 @@ const Header = ({ onLogout }) => {
               </div>
               <div className="brand-copy">
                 <span className="brand-name">iCheck</span>
-                <span className="brand-subtitle">Tablica lotów</span>
+                <span className="brand-subtitle">Flight board</span>
               </div> */}
             </button>
           )}

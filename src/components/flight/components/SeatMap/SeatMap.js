@@ -43,7 +43,7 @@ const SeatMap = ({
                     setPassengers(response.data);
                 } catch (error) {
                     console.error('Error fetching passengers:', error);
-                    setError('Błąd podczas pobierania danych pasażerów');
+                    setError('Failed to load passenger data.');
                 }
             };
 
@@ -70,39 +70,39 @@ const SeatMap = ({
 
     if (!Array.isArray(seatMap)) {
         console.error('seatMap is not an array:', seatMap);
-        return <div className="error">Błąd: Nieprawidłowe dane miejsc</div>;
+        return <div className="error">Error: Invalid seat data</div>;
     }
 
-    // Funkcja sprawdzająca, czy miejsce jest zajęte
+    // Determines if a seat is occupied
     const isSeatOccupied = (seatNumber) => {
         return occupiedSeats.includes(seatNumber);
     };
 
-    // Funkcja zwracająca pasażera przypisanego do danego miejsca
+    // Returns the passenger assigned to a seat
     const getPassengerForSeat = (seatNumber) => {
         return passengers.find(passenger => passenger.seatNumber === seatNumber);
     };
 
-    // Funkcja sprawdzająca, czy pasażer jest zboardowany
+    // Checks if the passenger is boarded
     const isPassengerBoarded = (seatNumber) => {
         const passenger = getPassengerForSeat(seatNumber);
         return passenger && passenger.status && passenger.status.toUpperCase() === 'BOARDED';
     };
 
-    // Funkcja generująca tooltip dla miejsca
+    // Generates tooltip for a seat
     const getSeatTooltip = (seatNumber) => {
         const passenger = getPassengerForSeat(seatNumber);
         if (passenger) {
             const srrCodes = passenger.srrcodes || passenger.srrCodes || [];
-            return `${passenger.name} ${passenger.surname}\nStatus: ${passenger.status}\nKody SSR: ${srrCodes.length > 0 ? srrCodes.join(', ') : 'brak'}`;
+            return `${passenger.name} ${passenger.surname}\nStatus: ${passenger.status}\nSSR Codes: ${srrCodes.length > 0 ? srrCodes.join(', ') : 'none'}`;
         }
-        return isSeatOccupied(seatNumber) ? 'Zajęte' : 'Wolne';
+        return isSeatOccupied(seatNumber) ? 'Occupied' : 'Available';
     };
 
-    // Funkcja obsługująca kliknięcie na miejsce
+    // Seat click handler
     const handleSeatClick = (seat) => {
         if (disabled || isSeatOccupied(seat)) {
-            return; // Nie reaguj na kliknięcie zajętego miejsca
+            return;
         }
 
         if (selectedPassenger && onSeatClick) {
@@ -153,14 +153,14 @@ const SeatMap = ({
         <div className={`seatmap-container ${disabled ? 'seatmap-readonly' : ''}`}>
             {seatMap.map((row, rowIndex) => {
                 if (typeof row !== 'string') {
-                    return <div key={rowIndex} className="seat-row error">Nieprawidłowy format wiersza</div>;
+                    return <div key={rowIndex} className="seat-row error">Invalid row format</div>;
                 }
 
                 const seats = row.split(',');
                 const layout = determineLayout(seats);
 
                 if (!layout) {
-                    return <div key={rowIndex} className="seat-row error">Nieprawidłowa liczba miejsc w wierszu</div>;
+                    return <div key={rowIndex} className="seat-row error">Invalid seat count in row</div>;
                 }
 
                 const rowNumber = seats[0].replace(/[A-Z]/g, '');

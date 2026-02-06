@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../../backend/iCheck"
+		},
+		{
+			"path": "C:/Users/wikto/Downloads/Flight Check-in Application"
+		}
+	],
+	"settings": {
+		"workbench.colorTheme": "Vitesse Dark Soft",
+		"screencastMode.fontSize": 54,
+		"workbench.colorCustomizations": {},
+		"window.zoomLevel": -1.8,
+		"terminal.integrated.fontSize": 12,
+		"files.associations": {
+			"*.tpl": "html",
+			"*.master": "html"
+		},
+		"git.confirmSync": false
+	}
+}

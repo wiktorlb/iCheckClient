@@ -111,7 +111,7 @@ const PassengerRow = memo(({
     `.trim();
 
     const handleRowClick = (e) => {
-        // Nie zaznaczaj wiersza, jeśli kliknięto w checkbox lub kod SSR
+        // Do not toggle selection when clicking checkbox or SSR code
         if (
             e.target.type === 'checkbox' ||
             e.target.closest('.srr-code') ||

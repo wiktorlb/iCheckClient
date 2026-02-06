@@ -2,8 +2,8 @@ import { useCallback, useState, useEffect } from 'react';
 import axiosInstance from '../../../api/axiosConfig';
 
 /**
- * Hook dostarczający funkcję do generowania tooltipów dla kodów SSR
- * @returns {Function} Funkcja generująca tooltip
+ * Hook providing a SSR tooltip generator.
+ * @returns {Function} Tooltip generation function
  */
 export const useSrrTooltip = () => {
     const [ssrCodes, setSsrCodes] = useState({});
@@ -18,7 +18,7 @@ export const useSrrTooltip = () => {
                 }, {});
                 setSsrCodes(codesMap);
             } catch (error) {
-                console.error('Error fetching SSR codes:', error);
+                console.error('Failed to fetch SSR codes:', error);
             }
         };
 
@@ -65,7 +65,6 @@ export const useSrrTooltip = () => {
 /**
  * Generates a tooltip for baggage
  */
-
 const getBaggageTooltip = (passenger, code) => {
     if (!passenger || !passenger.baggageList || passenger.baggageList.length === 0) {
         return 'No baggage details available';
@@ -162,7 +161,7 @@ const getCommentTooltip = (passenger) => {
  * Generates a tooltip for assigned seat
  */
 const getSeatTooltip = (passenger) => {
-    if (!passenger.seatNumber) return 'Brak przypisanego miejsca';
+    if (!passenger.seatNumber) return 'No seat assigned';
 
     return `SEAT: ` + `${passenger.seatNumber}`;
 };

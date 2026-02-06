@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useReducer, useState } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from '../../api/axiosConfig';
+import { buildErrorState } from '../../utils/errorHelpers';
 import PassengerTable from './components/PassengerTable/PassengerTable';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import { useSrrTooltip } from './hooks/useSrrTooltip';
@@ -35,7 +36,7 @@ const FlightPassengers = () => {
         gender: 'M'
     });
     const [creatingPassenger, setCreatingPassenger] = useState(false);
-    const [createPassengerError, setCreatePassengerError] = useState('');
+    const [createPassengerError, setCreatePassengerError] = useState(null);
 
     const getSrrTooltip = useSrrTooltip();
 
@@ -68,7 +69,13 @@ const FlightPassengers = () => {
             console.error('Error fetching passengers:', error);
             dispatch({
                 type: 'SET_ERROR',
-                payload: 'Failed to fetch passengers.'
+                payload: buildErrorState({
+                    title: 'Unable to load passengers',
+                    description: 'Check your network connection or refresh the view and try again.',
+                    error,
+                    retryLabel: 'Reload passengers',
+                    retryAction: fetchPassengers
+                })
             });
         }
     }, [flightId]);
@@ -146,14 +153,14 @@ const FlightPassengers = () => {
 
 
             if (selectedDetails.length === 0) {
-                console.error('Brak wybranych pasażerów!');
+                console.error('No passengers selected!');
                 return;
             }
 
             const flightId = selectedDetails[0]?.flightId;
 
             if (!flightId) {
-                console.error('Brak flightId w wybranych pasażerach!', selectedDetails);
+                console.error('Missing flightId in selected passengers!', selectedDetails);
                 return;
             }
 
@@ -163,7 +170,13 @@ const FlightPassengers = () => {
             console.error('Error updating passengers:', error);
             dispatch({
                 type: 'SET_ERROR',
-                payload: 'Failed to update passengers.'
+                payload: buildErrorState({
+                    title: 'Unable to update passengers',
+                    description: 'Verify selected passengers and try again.',
+                    error,
+                    retryLabel: 'Retry update',
+                    retryAction: () => handleAction(action)
+                })
             });
         }
     }, [selectedPassengers, passengers, navigate, flightId, fetchFlightDetails]);
@@ -242,7 +255,7 @@ const FlightPassengers = () => {
             title: 'MR',
             gender: 'M'
         });
-        setCreatePassengerError('');
+        setCreatePassengerError(null);
         setShowAddPassengerModal(true);
     };
 
@@ -267,13 +280,16 @@ const FlightPassengers = () => {
         const trimmedSurname = newPassenger.surname.trim();
 
         if (!trimmedName || !trimmedSurname) {
-            setCreatePassengerError('Name and surname are required.');
+            setCreatePassengerError({
+                title: 'Missing passenger data',
+                description: 'Fill in first and last name to save a new passenger.'
+            });
             return;
         }
 
         try {
             setCreatingPassenger(true);
-            setCreatePassengerError('');
+            setCreatePassengerError(null);
 
             const jwt = localStorage.getItem('jwt');
             const config = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
@@ -289,9 +305,13 @@ const FlightPassengers = () => {
             await axiosInstance.post('/api/passengers', payload, config);
             await fetchPassengers();
             setShowAddPassengerModal(false);
-        } catch (err) {
-            const message = err.response?.data || 'Failed to create passenger.';
-            setCreatePassengerError(typeof message === 'string' ? message : 'Failed to create passenger.');
+        } catch (error) {
+            console.error('Failed to create passenger', error);
+            setCreatePassengerError(buildErrorState({
+                title: 'Failed to create passenger',
+                description: 'Try again or check if the passenger already exists in the list.',
+                error
+            }));
         } finally {
             setCreatingPassenger(false);
         }
@@ -490,7 +510,9 @@ const FlightPassengers = () => {
                                 </select>
                             </label>
                             {createPassengerError && (
-                                <p className="modal-error">{createPassengerError}</p>
+                                <div className="modal-error">
+                                    <ErrorMessage error={createPassengerError} />
+                                </div>
                             )}
                             <div className="api-modal-footer">
                                 <button

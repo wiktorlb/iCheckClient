@@ -149,7 +149,7 @@ const FlightBoard = () => {
       });
     } catch (err) {
       console.error('Failed to toggle flight edit mode', err);
-      alert('Nie udało się zmienić trybu edycji lotu.');
+      alert('Unable to toggle flight edit mode.');
     } finally {
       setPendingFlight(null);
     }
@@ -179,7 +179,7 @@ const FlightBoard = () => {
       });
     } catch (err) {
       console.error('Failed to update flight details', err);
-      alert('Nie udało się zaktualizować danych lotu.');
+      alert('Unable to update flight details.');
     } finally {
       setPendingFlight(null);
     }
@@ -262,23 +262,23 @@ const FlightBoard = () => {
             </div>
             <div className="admin-card-grid">
               <div>
-                <span>Trasa</span>
+                <span>Route</span>
                 <strong>
                   {route.from} <span className="route-sep">→</span> {route.to}
                 </strong>
               </div>
               <div>
-                <span>Odlot</span>
+                <span>Departure</span>
                 <strong>
                   {flight.departureDate || '—'}, {flight.departureTime || 'TBD'}
                 </strong>
               </div>
               <div>
-                <span>Samolot</span>
+                <span>Aircraft</span>
                 <strong>{model}</strong>
               </div>
               <div>
-                <span>Destynacja</span>
+                <span>Destination</span>
                 <strong>{flight.destination || '—'}</strong>
               </div>
               <div>
@@ -312,7 +312,7 @@ const FlightBoard = () => {
         {isEditing && (
           <div className="admin-card-editor">
             <div className="editor-row">
-              <label htmlFor={`status-${flight.id}`}>Status lotu</label>
+              <label htmlFor={`status-${flight.id}`}>Flight status</label>
               <select
                 id={`status-${flight.id}`}
                 value={(flight.status || '').toUpperCase()}
@@ -364,14 +364,14 @@ const FlightBoard = () => {
                 onClick={() => handleFlightEditToggle(flight)}
                 disabled={pendingFlight === flight.id}
               >
-                {flight.editModeEnabled ? 'Zablokuj edycję' : 'Odblokuj edycję'}
+                {flight.editModeEnabled ? 'Lock editing' : 'Unlock editing'}
               </button>
               <Link
                 to={`/flights/${flight.id}/upload-passengers`}
                 className="ghost-action"
               >
                 <UploadCloud size={16} />
-                Dodaj pasażerów (.txt)
+                Add passengers (.txt)
               </Link>
             </div>
           </div>
@@ -471,7 +471,7 @@ const FlightBoard = () => {
                     {canEdit && uiEditMode && (
                       <div className="flight-card-edit">
                         <div className="toggle-row">
-                          <p>Status edycji lotu</p>
+                          <p>Flight edit status</p>
                           <button
                             type="button"
                             className={`ghost-action ${flight.editModeEnabled ? 'active' : ''}`}
@@ -481,7 +481,7 @@ const FlightBoard = () => {
                             }}
                             disabled={pendingFlight === flight.id}
                           >
-                            {flight.editModeEnabled ? 'Zablokuj edycję' : 'Odblokuj edycję'}
+                            {flight.editModeEnabled ? 'Lock editing' : 'Unlock editing'}
                           </button>
                         </div>
                         <div className="status-edit-row">
@@ -593,12 +593,12 @@ const FlightBoard = () => {
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <h1>Panel administracyjny</h1>
-                <p>Zarządzanie lotami i systemem</p>
+                <h1>Administration panel</h1>
+                <p>Manage flights and system settings</p>
               </div>
               <div className="admin-head-actions">
                 <Link to="/add-flight" className="primary-action outline">
-                  + Dodaj lot
+                  + Add flight
                 </Link>
               </div>
             </div>

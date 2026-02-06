@@ -21,7 +21,7 @@ export const SearchBarSSR = memo(({ value, onChange }) => {
     const [error, setError] = useState(null);
     const dropdownRef = useRef(null);
 
-    // Pobieranie kodów SSR z backendu
+    // Fetch SSR codes from backend
     useEffect(() => {
         const fetchSSRCodes = async () => {
             try {
@@ -40,7 +40,7 @@ export const SearchBarSSR = memo(({ value, onChange }) => {
     }, []);
 
     useEffect(() => {
-        // Filtruj kody SSR na podstawie wpisanej wartości
+        // Filter SSR codes based on input value
         const filtered = ssrCodes.filter(code =>
             code.code.toLowerCase().includes(value.toLowerCase()) ||
             code.description.toLowerCase().includes(value.toLowerCase())
@@ -49,7 +49,7 @@ export const SearchBarSSR = memo(({ value, onChange }) => {
     }, [value, ssrCodes]);
 
     useEffect(() => {
-        // Obsługa kliknięcia poza komponentem
+        // Close dropdown when clicking outside
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsOpen(false);

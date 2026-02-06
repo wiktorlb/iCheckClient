@@ -1,9 +1,9 @@
 import axiosInstance from '../../../api/axiosConfig';
 /**
- * Aktualizuje status wybranych pasażerów
- * @param {Array} selectedPassengers - Lista ID wybranych pasażerów
- * @param {string} newStatus - Nowy status
- * @param {string} jwt - Token JWT
+ * Updates the status of selected passengers.
+ * @param {Array} selectedPassengers - List of passenger IDs
+ * @param {string} newStatus - Target status value
+ * @param {string} jwt - JWT token
  */
 export const updatePassengersStatus = async (selectedPassengers, newStatus, jwt) => {
     return Promise.all(selectedPassengers.map(passengerId =>
@@ -36,17 +36,8 @@ export const releasePassengerSeat = async ({ flightId, passengerId, seatNumber }
 };
 
 /**
- * Pobiera szczegóły wybranych pasażerów
+ * Returns details for selected passengers with optional status override.
  */
-/* export const getSelectedPassengerDetails = (passengers, selectedPassengers, newStatus) => {
-    return passengers
-        .filter(passenger => selectedPassengers.includes(passenger.id))
-        .map(passenger => ({
-            ...passenger,
-            status: newStatus || passenger.status
-        }));
-}; */
-
 export const getSelectedPassengerDetails = (passengers, selectedIds, status) => {
     return passengers
         .filter(p => selectedIds.includes(p.id))
@@ -55,7 +46,7 @@ export const getSelectedPassengerDetails = (passengers, selectedIds, status) => 
             name: p.name,
             surname: p.surname,
             status: status || p.status,
-            flightId: p.flightId  // Dodane flightId!
+            flightId: p.flightId
         }));
 };
 

@@ -9,10 +9,10 @@ export const initialState = {
 };
 
 /**
- * Reducer zarządzający stanem komponentu FlightPassengers
- * @param {Object} state - Aktualny stan
- * @param {Object} action - Akcja do wykonania
- * @returns {Object} Nowy stan
+ * Reducer managing state for the FlightPassengers component.
+ * @param {Object} state - Current state
+ * @param {Object} action - Action to process
+ * @returns {Object} Updated state
  */
 export const passengerReducer = (state, action) => {
     switch (action.type) {
